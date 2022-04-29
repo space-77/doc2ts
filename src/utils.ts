@@ -1,8 +1,8 @@
+import log from './log'
 import path from 'path'
-import fs from 'fs'
-import ts from 'typescript'
-import { DeepTypes, GetTypeList, RequestType, ResponsesType, TypeList } from './type'
+import chalk from 'chalk'
 import { Doc2tsConfig } from '../doc2ts.config'
+import { DeepTypes, GetTypeList, TypeList } from './type'
 
 /**
  * @param str
@@ -165,11 +165,13 @@ export function findDiffPath(originPath: string, targetPath: string) {
 
 export async function getConfig(configPath: string) {
   try {
+    log.info('正在读取配置文件')
     const filePath = findDiffPath(__dirname, `${process.cwd()}\\`)
     const res = await import(path.join(filePath, configPath))
+    log.ok()
     return res.default
   } catch (error) {
-    console.error(error)
+    log.error('读取配置文件失败')
     throw new Error('加载配置文件失败')
   }
 }

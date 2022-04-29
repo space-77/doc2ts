@@ -6,6 +6,7 @@ import { DocModelInfoList, ModelInfos, ModelList } from './type'
 import { camel2Kebab, createType, findDiffPath, firstToLower, firstToUpper, getConfig, rename } from './utils'
 
 import TypesList from './typesList'
+import log from './log'
 class Doc2Ts {
   api!: Api // 请求 swagger 工具
   outDir!: string // 文件输出地址
@@ -23,6 +24,7 @@ class Doc2Ts {
   }
 
   async init(configPath: string) {
+    log.clear()
     await this.getConfig(configPath)
     this.createAxios()
     this.getDocData()
@@ -30,7 +32,7 @@ class Doc2Ts {
 
   async getConfig(configPath: string) {
     try {
-      const { originUrl, outDir, config, returnType = 'T', advanceKey } = await getConfig(configPath)
+      const { originUrl, outDir = './services', config, returnType = 'T', advanceKey } = await getConfig(configPath)
       this.outDir = outDir
       this.config = config
       this.originUrl = originUrl
@@ -53,20 +55,20 @@ class Doc2Ts {
       this.formatData()
       // fs.writeFileSync(path.join(__dirname, '../dist/baseModelInfoList.json'), JSON.stringify(this.baseModelInfoList))
       // fs.writeFileSync(path.join(__dirname, '../dist/modelInfoList.json'), JSON.stringify(this.modelInfoList))
-      this.createFileContent()
-      console.log('------- 任务成功 ------')
-      console.log('------- 任务成功 ------')
-      console.log('------- 任务成功 ------')
+      await this.createFileContent()
+      log.success('------- 任务成功 ------')
+      log.success('------- 任务成功 ------')
+      log.success('------- 任务成功 ------')
     } catch (error) {
-      console.error(error)
-      console.error('----任务终止----')
-      console.error('----任务终止----')
-      console.error('----任务终止----')
+      log.error('----任务终止----')
+      log.error('----任务终止----')
+      log.error('----任务终止----')
     }
   }
 
   async getModelList(count = 0) {
     try {
+      log.info('正在拉取 swagger 文档信息')
       const { data = [] } = await this.api.getModelList()
       if (data.length === 0 && count <= 4) {
         await this.getModelList(count + 1)
@@ -74,12 +76,13 @@ class Doc2Ts {
       }
 
       if (!data || !Array.isArray(data) || data.length === 0) {
-        console.log(data)
+        log.error('数据加载失败')
         throw new Error('数据加载异常')
       }
       this.modelList = data
+      log.ok()
     } catch (error) {
-      console.error(error)
+      log.error('数据加载失败')
       return Promise.reject(error)
     }
   }
@@ -100,9 +103,11 @@ class Doc2Ts {
    * @description 整理数据结构
    */
   formatData() {
+    log.info('正在整理数据')
     const { baseModelInfoList, config, returnType, advanceKey } = this
     const { moduleConfig = {} } = config
     this.modelInfoList = baseModelInfoList.map(item => new TypesList(item, moduleConfig, returnType, advanceKey))
+    log.ok()
   }
 
   createApiMethod(apiInfos: ModelInfos['apiInfos']) {
@@ -174,7 +179,7 @@ const basePath = '${basePath}'
 class ${className} extends ApiClient {${apiMethodList}}\n
 export default new ${className}()\n`
     content = render ? render(content, modelName, this.config) : content
-    this.createFile(savePath, firstToLower(`${className}.ts`), content)
+    return this.createFile(savePath, firstToLower(`${className}.ts`), content)
   }
 
   /**
@@ -207,7 +212,7 @@ export default new ${className}()\n`
 
     const savePath = this.getDirPaht('module/type')
 
-    this.createFile(savePath, `${modelName}.d.ts`, content)
+    return this.createFile(savePath, `${modelName}.d.ts`, content)
   }
 
   /**
@@ -217,21 +222,25 @@ export default new ${className}()\n`
     const modelInfoList = this.modelInfoList.sort((a, b) => a.modelName.length - b.modelName.length)
     let content = modelInfoList.map(i => `import ${i.modelName} from './module/${i.modelName}'`).join('\n')
     content += `\n\nexport default {\n${modelInfoList.map(i => `  ${i.modelName}`).join(',\n')}\n}\n`
-    this.createFile(this.getDirPaht(''), `index.ts`, content)
+    return this.createFile(this.getDirPaht(''), `index.ts`, content)
   }
 
   /**
    * @description 创建 文件内容
    */
-  createFileContent() {
-    this.modelInfoList.forEach(i => {
+  async createFileContent() {
+    const process = this.modelInfoList.map(async i => {
       // api 接口文件相关
-      this.createApiFile(i.modelInfo)
+      await this.createApiFile(i.modelInfo)
 
       // api 接口类型相关
-      this.createApiTypeFile(i.modelInfo)
+      await this.createApiTypeFile(i.modelInfo)
     })
-    this.createIndexFile()
+    process.push(this.createIndexFile())
+    try {
+      await Promise.all(process)
+      log.success(log.done(' ALL DONE '))
+    } catch (error) {}
   }
 
   /**
@@ -246,11 +255,17 @@ export default new ${className}()\n`
    *
    * @description 创建文件
    */
-  createFile(dirPath: string, fileName: string, content: string) {
-    if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true })
-    console.log(`正在创建： ${fileName} 文件`)
-    const filePath = path.join(dirPath, fileName)
-    fs.writeFileSync(filePath, content)
+  async createFile(dirPath: string, fileName: string, content: string) {
+    try {
+      if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true })
+      log.info(`正在创建：${fileName} 文件`)
+      const filePath = path.join(dirPath, fileName)
+      fs.writeFileSync(filePath, content)
+    } catch (error) {
+      log.error('创建失败')
+      console.error(error)
+      return Promise.reject(error)
+    }
   }
 }
 
