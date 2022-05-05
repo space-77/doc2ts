@@ -1,8 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import Api from './api'
-import { Doc2tsConfig } from '../doc2ts.config'
-import { DocModelInfoList, ModelInfos, ModelList } from './type'
+import { Doc2TsConfig, DocModelInfoList, ModelInfos, ModelList, ModuleConfig } from './type'
 import { camel2Kebab, createType, findDiffPath, firstToLower, firstToUpper, getConfig, rename } from './utils'
 
 import TypesList from './typesList'
@@ -11,13 +10,22 @@ class Doc2Ts {
   api!: Api // 请求 swagger 工具
   outDir!: string // 文件输出地址
   originUrl!: string // swagger 接口地址
-  advanceKey!: string
+  dataKey!: string
   modelList: ModelList[] = [] // 模块数据
   baseModelInfoList: DocModelInfoList[] = [] // 原始数据
   modelInfoList: TypesList[] = [] // 整理后的数据
 
-  returnType!: string
-  config!: Doc2tsConfig['config'] // doc2ts.config 配置信息
+  rename?: Doc2TsConfig['rename']
+  baseClassName!: Doc2TsConfig['baseClassName']
+  baseClassPath!: string
+  resultGenerics!: string
+  render:  Doc2TsConfig['render']
+  typeFileRender:  Doc2TsConfig['typeFileRender']
+
+  // baseClassName = 'ApiClient', baseClassPath = './src/api/services/client', render
+
+  // config!: Doc2TsConfig['config'] // doc2ts.config 配置信息
+  moduleConfig?: ModuleConfig // doc2ts.config 配置信息
 
   constructor(configPath = './doc2ts.config.ts') {
     this.init(configPath)
@@ -32,12 +40,19 @@ class Doc2Ts {
 
   async getConfig(configPath: string) {
     try {
-      const { originUrl, outDir = './services', config, returnType = 'T', advanceKey } = await getConfig(configPath)
-      this.outDir = outDir
-      this.config = config
+      const config = await getConfig(configPath)
+      const { originUrl, outDir, moduleConfig, resultGenerics, dataKey, rename, baseClassName, baseClassPath, render, typeFileRender } = config
+      if (!baseClassPath || originUrl) throw new Error('必要参数异常')
+      this.rename = rename
+      this.outDir = outDir || './services'
+      this.render = render
+      this.dataKey = dataKey
+      this.baseClassName = baseClassName || 'ApiClient'
       this.originUrl = originUrl
-      this.advanceKey = advanceKey
-      this.returnType = returnType
+      this.moduleConfig = moduleConfig
+      this.baseClassPath = baseClassPath
+      this.typeFileRender = typeFileRender
+      this.resultGenerics = resultGenerics || 'T'
     } catch (error) {
       console.error(error)
     }
@@ -50,7 +65,7 @@ class Doc2Ts {
   async getDocData() {
     try {
       await this.getModelList()
-      const reqList = this.modelList.map(i => this.getModelInfoList(`${i.name}Api`, i.url))
+      const reqList = this.modelList.map(i => this.getModelInfoList(i.name, i.url))
       await Promise.all(reqList)
       this.formatData()
       // fs.writeFileSync(path.join(__dirname, '../dist/baseModelInfoList.json'), JSON.stringify(this.baseModelInfoList))
@@ -90,7 +105,7 @@ class Doc2Ts {
   async getModelInfoList(name: string, modelPath: string) {
     try {
       const { data } = await this.api.getModelInfoList(modelPath)
-      const modelName = rename(camel2Kebab(name), this.config.rename)
+      const modelName = rename(camel2Kebab(name), this.rename)
       if (!modelName) throw Error('模块名称不存在')
       this.baseModelInfoList.push({ data, modelName: firstToLower(modelName) })
     } catch (error) {
@@ -104,9 +119,8 @@ class Doc2Ts {
    */
   formatData() {
     log.info('正在整理数据')
-    const { baseModelInfoList, config, returnType, advanceKey } = this
-    const { moduleConfig = {} } = config
-    this.modelInfoList = baseModelInfoList.map(item => new TypesList(item, moduleConfig, returnType, advanceKey))
+    const { baseModelInfoList, moduleConfig = {}, resultGenerics, dataKey } = this
+    this.modelInfoList = baseModelInfoList.map(item => new TypesList(item, moduleConfig, resultGenerics, dataKey))
     log.ok()
   }
 
@@ -163,13 +177,14 @@ class Doc2Ts {
   createApiFile({ modelName, apiInfos, basePath, beforeName }: ModelInfos) {
     const className = `${firstToUpper(modelName)}`
     const apiMethodList = this.createApiMethod(apiInfos)
-    const { baseClass = 'ApiClient', baseClassPath = './src/api/services/client', render } = this.config
+    const { baseClassName, baseClassPath, moduleConfig, render } = this
+    // const {baseClassPath = './src/api/services/client', render } = this.config
     const savePath = this.getDirPaht('module')
     const targetPath = path.join(process.cwd(), baseClassPath)
     const _baseClassPath = findDiffPath(savePath, targetPath)
 
     let content = `
-import { ${baseClass} } from '${_baseClassPath}'
+import { ${baseClassName} } from '${_baseClassPath}'
 import * as mT from './type/${modelName}'\n
 const basePath = '${basePath}'
 
@@ -178,7 +193,7 @@ const basePath = '${basePath}'
  */
 class ${className} extends ApiClient {${apiMethodList}}\n
 export default new ${className}()\n`
-    content = render ? render(content, modelName, this.config) : content
+    content = render ? render(content, modelName, moduleConfig?.[modelName] || {}) : content
     return this.createFile(savePath, firstToLower(`${className}.ts`), content)
   }
 
@@ -186,7 +201,7 @@ export default new ${className}()\n`
    * @id 创建 接口方法类型文件
    */
   createApiTypeFile({ modelName, apiInfos, typesList }: ModelInfos) {
-    const { typeFileRender } = this.config
+    const { moduleConfig, typeFileRender } = this
 
     let methodTypes: string = ''
     let typesListStr: string = ''
@@ -208,7 +223,7 @@ export default new ${className}()\n`
     // const responseTypesStr = `${responseTypes.join('\n')}\n\n`
 
     let content = `${typesListStr}${methodTypes}`
-    content = typeFileRender ? typeFileRender(content, modelName, this.config) : content
+    content = typeFileRender ? typeFileRender(content, modelName, moduleConfig?.[modelName] || {}) : content
 
     const savePath = this.getDirPaht('module/type')
 

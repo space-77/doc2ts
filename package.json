@@ -7,7 +7,7 @@
     "start": "nodemon --watch ./src/index.ts --ext ts --exec nodemon src/index.ts"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "axios": "^0.26.1",
     "js-crypto-rsa": "^1.0.4",

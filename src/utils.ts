@@ -1,8 +1,6 @@
 import log from './log'
 import path from 'path'
-import chalk from 'chalk'
-import { Doc2tsConfig } from '../doc2ts.config'
-import { DeepTypes, GetTypeList, TypeList } from './type'
+import { DeepTypes, Doc2TsConfig, GetTypeList, TypeList } from './type'
 
 /**
  * @param str
@@ -176,7 +174,7 @@ export async function getConfig(configPath: string) {
   }
 }
 
-export function rename(name: string, method: Doc2tsConfig['config']['rename']) {
+export function rename(name: string, method: Doc2TsConfig['rename']) {
   if (typeof method === 'function') {
     return method(name)
   } else if (typeof method === 'string' || method instanceof RegExp) {
