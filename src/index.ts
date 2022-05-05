@@ -42,7 +42,7 @@ class Doc2Ts {
     try {
       const config = await getConfig(configPath)
       const { originUrl, outDir, moduleConfig, resultGenerics, dataKey, rename, baseClassName, baseClassPath, render, typeFileRender } = config
-      if (!baseClassPath || originUrl) throw new Error('必要参数异常')
+      if (!baseClassPath || !originUrl) throw new Error('必要参数异常')
       this.rename = rename
       this.outDir = outDir || './services'
       this.render = render
