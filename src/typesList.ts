@@ -1,13 +1,13 @@
 import { findType, firstToUpper, updateName } from './utils'
-import { ModuleConfig } from '../doc2ts.config'
-import type { DocModelInfoList, FormatParamsType, GetResponsesType, ModelInfos, TypeList } from './type'
+// import { ModuleConfig } from '../doc2ts.config'
+import type { DocModelInfoList, FormatParamsType, GetResponsesType, ModelInfos, ModuleConfig, TypeList } from './type'
 
 const preReg = /^(get|post|add|delete|save|put|update|select|create|destroy|edit|find|send|download|handle)/i
 
 export default class TypesList {
   modelName: string
   modelItem: DocModelInfoList
-  returnType: string
+  resultGenerics: string
   moduleConfig: ModuleConfig
 
   modelInfo!: ModelInfos
@@ -15,12 +15,12 @@ export default class TypesList {
   funcNames = new Set<string>([])
   funcTypeNameList: string[] = []
   emptyKey = '-1'
-  advanceKey: string | undefined
+  dataKey: string | undefined
 
-  constructor(modelItem: DocModelInfoList, moduleConfig: ModuleConfig, returnType: string, advanceKey?: string) {
+  constructor(modelItem: DocModelInfoList, moduleConfig: ModuleConfig, resultGenerics: string, dataKey?: string) {
     this.modelItem = modelItem
-    this.advanceKey = advanceKey
-    this.returnType = returnType
+    this.dataKey = dataKey
+    this.resultGenerics = resultGenerics
     this.moduleConfig = moduleConfig
     this.modelName = modelItem.modelName
     this.formarModelData()
@@ -64,7 +64,7 @@ export default class TypesList {
       }
 
       const itemTypeInfo = typesList.find(i => i.preRef === originalRef)
-      if (itemTypeInfo && this.advanceKey) this.advanceType(itemTypeInfo)
+      if (itemTypeInfo && this.dataKey) this.advanceType(itemTypeInfo)
 
       const hsaParam = parameters?.length > 0
       const requestType = `${funcTypeName}Params`
@@ -86,7 +86,7 @@ export default class TypesList {
       const T = `T = ${hsaResType ? resTypeName : 'any'}`
       // const R = hsaParam ? `, R = ${requestType}` : ''
 
-      const funcType = `/** @id ${operationId} */\nexport type ${funcTypeName} = <${T}>(${paramsStr}) => Promise<${this.returnType}>`
+      const funcType = `/** @id ${operationId} */\nexport type ${funcTypeName} = <${T}>(${paramsStr}) => Promise<${this.resultGenerics}>`
       const funcInfo = { funcName, funcTypeName, requestType, responseType: resTypeName, funcType }
       funcTypeNameList.push(funcTypeName)
 
@@ -259,9 +259,9 @@ export default class TypesList {
   }
 
   advanceType(itemTypeInfo: TypeList) {
-    if (!this.advanceKey) return
+    if (!this.dataKey) return
     const { typesList } = this
-    const { childTypeName } = itemTypeInfo.value.find(i => i.keyName === this.advanceKey) || {}
+    const { childTypeName } = itemTypeInfo.value.find(i => i.keyName === this.dataKey) || {}
     if (childTypeName) {
       const childItem = typesList.find(i => i.typeName === childTypeName)
       if (childItem) {

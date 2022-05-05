@@ -1,4 +1,4 @@
-import { MethodConfig } from '../doc2ts.config'
+// import { MethodConfig } from '../doc2ts.config'
 
 export interface ModelList {
   name: string
@@ -192,3 +192,113 @@ export type FormatParamsType = (params: {
   definitions: ModelInfoList['definitions']
   typesList: TypeList[]
 }) => TypeList['value']
+
+export type MethodConfig = {
+  /**
+   * @description 修改方法名称
+   */
+  name?: string
+
+  /**
+   * @description 修改描述
+   */
+  description?: string
+
+  /**
+   * @description 该接口是否是下载文件接口
+   */
+  isDownload?: boolean
+
+  /**
+   * @description 接口的自定义配置，会传递到调用对应基类的方法里
+   */
+  config?: object
+}
+
+export type ModuleConfig = {
+  /**
+   * @description 每个模块自己的配置
+   */
+  [key: string]: {
+    /**
+     * @description 模块重命名， 优先级高于 config.rename
+     */
+    moduleName?: string
+
+    methodConfig?: {
+      [key: string]: MethodConfig
+    }
+  }
+}
+
+export type Doc2TsConfig = {
+  // 文件输出位置
+  outDir: string
+  // swagger 文档请求地址 eg: http://localhost:7001
+  originUrl: string
+
+  /**
+   * @default T
+   * @description 接口请求返回Promise的泛型
+   */
+  resultGenerics?: string
+
+  /**
+   * @description 整理 resultGenerics 的 默认类型, 根据返回数据的某个key的值做为新的返回类型
+   * @example 
+  在使用接口返回数据的时候不需要外面的一层数据，只需要 data 里的数据，即可使用 dataKey 把 外层丢弃
+  注意： 在 实现 IApiClient 接口的 request 方法，也需要做响应的处理
+  ``` ts
+  //  默认类型
+  {
+    code: '0',
+    msg: 'success',
+    data: { count: 100, list: [...], page: 1 }
+  }
+
+  //  新的类型
+  {
+    page: 1，
+    count: 100,
+    list: [...]
+  }
+   * ```
+   */
+  dataKey?: string
+
+  /**
+   * @description 模块改名
+   * @description 传入 正则类型或字符串类型则对模块名称进行 `name.replace` 操作
+   */
+  rename?: RegExp |  string| ((modelName: string) => string)
+
+  /**
+   * @default ApiClient
+   * @description 每个模块继承的基类名称， 注意：基类必须 实现 IApiClient 接口
+   */
+  baseClassName?: string
+
+  /**
+   * @default ./src/api/services/client
+   * @description 基类路径
+   */
+  baseClassPath: string
+
+  /**
+   * @param content 即将生成文件的内容
+   * @param modelName 文件对应的模块名称
+   * @param config  配置文件
+   * @description 生成接口文件前的钩子，用于修改生成的内容
+   */
+  render?(content: string, modelName: string, config: ModuleConfig['']): string
+
+  /**
+   * @param content 即将生成文件的内容
+   * @param modelName 文件对应的模块名称
+   * @param config  配置文件
+   * @description 生成接口类型文件前的钩子，用于修改生产内容
+   */
+  typeFileRender?(content: string, modelName: string, config: ModuleConfig['']): string
+
+  moduleConfig?: ModuleConfig
+}
