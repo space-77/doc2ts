@@ -1,0 +1,12 @@
+{
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "scope": "support.variable",
+        "settings": {
+          "foreground": "#4EC9B0",
+        }
+      }
+    ]
+  }
+}

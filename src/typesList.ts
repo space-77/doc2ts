@@ -169,6 +169,7 @@ export default class TypesList {
         let childTypeName: string | undefined
 
         if (originalRef === preRef) {
+          typeItem.refs.push(`${typeName}-${keyName}`)
           return {
             type,
             inType,
@@ -191,10 +192,7 @@ export default class TypesList {
             typeName: firstToUpper(keyName)
           }
           childTypeName = this.formatTypeList(params) || findType(originalRef)
-          // console.log({ childTypeName })
-          // console.log(1, childTypeName)
           childTypeName = childTypeName === this.emptyKey ? undefined : childTypeName
-          // console.log(2, childTypeName)
         }
 
         return {
@@ -280,13 +278,13 @@ export default class TypesList {
     const index = this.typesList.findIndex(i => i.typeName === typeName)
     if (index > -1) {
       const item = this.typesList[index]
-      const refs = item.refs.filter(i => i !== item.typeName)
-      if (refs.length === 0) {
+      const newRefs = item.refs.filter(i => i !== item.typeName)
+      if (newRefs.length === 0) {
         // 没有引用，可以删除
         this.typesList.splice(index, 1)
       } else {
         // 还有其地方引用该类型，不能删除
-        item.refs = refs
+        item.refs = newRefs
       }
     }
     return index
