@@ -4,7 +4,7 @@
   "description": "根据接口文档生成ts接口文件",
   "main": "src/index.ts",
   "bin": {
-    "doc2ts-build": "npm run build"
+    "doc2ts-build": "./bin/doc2api.js"
   },
   "scripts": {
     "build": "ts-node src/index.ts",
