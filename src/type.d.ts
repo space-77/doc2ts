@@ -1,5 +1,61 @@
-// import { MethodConfig } from '../doc2ts.config'
+export type Method =
+  | 'get'
+  | 'GET'
+  | 'delete'
+  | 'DELETE'
+  | 'head'
+  | 'HEAD'
+  | 'options'
+  | 'OPTIONS'
+  | 'post'
+  | 'POST'
+  | 'put'
+  | 'PUT'
+  | 'patch'
+  | 'PATCH'
+  | 'purge'
+  | 'PURGE'
+  | 'link'
+  | 'LINK'
+  | 'unlink'
+  | 'UNLINK'
 
+export type TData = Record<string, any>
+
+export interface IRequestParams {
+  url: string
+  params?: TData
+  config?: object
+  method?: Method
+}
+
+export interface IApiClient {
+  /**
+   * @param params
+   * @description 接口请求方法
+   */
+  request<T = any>(params: IRequestParams): Promise<any>
+
+  /**
+   *
+   * @description 下载文件
+   */
+  downloadFile(params: IRequestParams): Promise<any>
+
+  /**
+   *
+   * @param params
+   * @description 序列化参数
+   */
+  serialize(params: TData): string
+
+  /**
+   * @param params 数据源
+   * @param keyList 数据键
+   * @description 提取参数
+   */
+  extractParams(params: object, keyList: string[]): { [key: string]: any }
+}
 export interface ModelList {
   name: string
   url: string
@@ -270,7 +326,7 @@ export type Doc2TsConfig = {
    * @description 模块改名
    * @description 传入 正则类型或字符串类型则对模块名称进行 `name.replace` 操作
    */
-  rename?: RegExp |  string| ((modelName: string) => string)
+  rename?: RegExp | string | ((modelName: string) => string)
 
   /**
    * @default ApiClient
