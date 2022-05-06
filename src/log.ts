@@ -1,13 +1,4 @@
-import path from 'path'
 import chalk from 'chalk'
-// const path = require('path')
-// const chalk = require('chalk')
-
-// export function getPaht(url) {
-//   const newUrl = /\/$/.test(url) ? `${url}index` : `${url}/index`
-//   const { dir } = path.parse(path.resolve(__dirname, '../', newUrl))
-//   return dir
-// }
 
 class Log {
   info(text: string) {
@@ -16,7 +7,6 @@ class Log {
 
   error(text: string) {
     console.log(chalk.red('[doc2ts] '), text)
-    // return chalk.red(text)
   }
 
   warning(text: string) {
@@ -33,7 +23,6 @@ class Log {
 
   success(text: string) {
     console.log(chalk.hex('#0DBC79')('[doc2ts] '), text)
-    // return chalk.hex('#0DBC79')('[doc2ts] ')
   }
 
   link(text: string) {

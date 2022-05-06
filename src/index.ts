@@ -19,8 +19,8 @@ class Doc2Ts {
   baseClassName!: Doc2TsConfig['baseClassName']
   baseClassPath!: string
   resultGenerics!: string
-  render:  Doc2TsConfig['render']
-  typeFileRender:  Doc2TsConfig['typeFileRender']
+  render: Doc2TsConfig['render']
+  typeFileRender: Doc2TsConfig['typeFileRender']
 
   // baseClassName = 'ApiClient', baseClassPath = './src/api/services/client', render
 
@@ -41,7 +41,18 @@ class Doc2Ts {
   async getConfig(configPath: string) {
     try {
       const config = await getConfig(configPath)
-      const { originUrl, outDir, moduleConfig, resultGenerics, dataKey, rename, baseClassName, baseClassPath, render, typeFileRender } = config
+      const {
+        originUrl,
+        outDir,
+        moduleConfig,
+        resultGenerics,
+        dataKey,
+        rename,
+        baseClassName,
+        baseClassPath,
+        render,
+        typeFileRender
+      } = config
       if (!baseClassPath || !originUrl) throw new Error('必要参数异常')
       this.rename = rename
       this.outDir = outDir || './services'
@@ -75,6 +86,7 @@ class Doc2Ts {
       log.success('------- 任务成功 ------')
       log.success('------- 任务成功 ------')
     } catch (error) {
+      console.error(error)
       log.error('----任务终止----')
       log.error('----任务终止----')
       log.error('----任务终止----')
@@ -206,28 +218,27 @@ export default new ${className}()\n`
     let methodTypes: string = ''
     let typesListStr: string = ''
 
-    apiInfos.forEach(i => {
-      const { funcInfo } = i
-      const { funcType } = funcInfo
+    try {
+      apiInfos.forEach(i => {
+        const { funcInfo } = i
+        const { funcType } = funcInfo
 
-      methodTypes += `${funcType}\n`
-    })
+        methodTypes += `${funcType}\n`
+      })
 
-    typesList.forEach(i => {
-      typesListStr += `${createType(i)}\n`
-    })
+      typesList.forEach(i => {
+        typesListStr += `${createType(i)}\n`
+      })
 
-    // const deepTypeStr = createDeepType(deepTypes)
-    // const paramsTypesStr = `${paramsTypes.join('\n')}\n\n`
-    // const methodTypesStr = `${methodTypes.join('\n')}\n`
-    // const responseTypesStr = `${responseTypes.join('\n')}\n\n`
+      let content = `${typesListStr}${methodTypes}`
+      content = typeFileRender ? typeFileRender(content, modelName, moduleConfig?.[modelName] || {}) : content
 
-    let content = `${typesListStr}${methodTypes}`
-    content = typeFileRender ? typeFileRender(content, modelName, moduleConfig?.[modelName] || {}) : content
+      const savePath = this.getDirPaht('module/type')
 
-    const savePath = this.getDirPaht('module/type')
-
-    return this.createFile(savePath, `${modelName}.d.ts`, content)
+      return this.createFile(savePath, `${modelName}.d.ts`, content)
+    } catch (error) {
+      return Promise.reject(error)
+    }
   }
 
   /**
