@@ -1,3 +1,5 @@
+import fs from 'fs'
+import ts from 'typescript'
 import log from './log'
 import path from 'path'
 import { DeepTypes, Doc2TsConfig, GetTypeList, TypeList } from './type'
@@ -164,10 +166,24 @@ export function findDiffPath(originPath: string, targetPath: string) {
 export async function getConfig(configPath: string) {
   try {
     log.info('正在读取配置文件')
-    const filePath = findDiffPath(__dirname, `${process.cwd()}\\`)
-    const res = await import(path.join(filePath, configPath))
-    log.ok()
-    return res.default
+    const prePath = findDiffPath(__dirname, `${process.cwd()}\\`)
+    const filePath = path.join(__dirname, prePath, configPath)
+    const tsResult = fs.readFileSync(filePath, 'utf8')
+    const jsResult = ts.transpileModule(tsResult, {
+      compilerOptions: {
+        target: ts.ScriptTarget.ES2015,
+        module: ts.ModuleKind.CommonJS
+      }
+    })
+    const noCacheFix = (Math.random() + '').slice(2, 5)
+    const jsName = path.join(__dirname, `__${noCacheFix}__.js`)
+    // 编译到js
+    fs.writeFileSync(jsName, jsResult.outputText, 'utf8')
+
+    // 删除该文件
+    const res = require(jsName).default
+    fs.unlinkSync(jsName)
+    return res
   } catch (error) {
     log.error('读取配置文件失败')
     throw new Error('加载配置文件失败')
