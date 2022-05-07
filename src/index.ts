@@ -295,4 +295,4 @@ export default new ${className}()\n`
   }
 }
 
-new Doc2Ts()
+export default new Doc2Ts()
