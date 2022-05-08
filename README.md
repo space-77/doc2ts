@@ -223,14 +223,14 @@ export default {
 - 必传：`否`
 - 类型：`String`
 - 默认：` `
-- 说明：修改方法名称, `方法id` 在生的类型文件里每一个导出方法都会有个一注释的`id`，`注意`: 该id是固定的，但会随后端接口改变而改变。
+- 说明：修改方法名称, `接口id` 在生的类型文件里每一个导出方法都会有个一注释的`id`，`注意`: 该id是固定的，但会随后端接口改变而改变。
 
 ```typescript
 export default {
   moduleConfig: {
      '模块名称': {
        methodConfig: {
-         '方法id': {
+         '接口id': {
            name: 'xxx'
          }
        }
@@ -252,7 +252,7 @@ export default {
   moduleConfig: {
      '模块名称': {
        methodConfig: {
-         '方法id': {
+         '接口id': {
            description: 'xxx'
          }
        }
@@ -274,7 +274,7 @@ export default {
   moduleConfig: {
      '模块名称': {
        methodConfig: {
-         '方法id': {
+         '接口id': {
            downloadFile: true
          }
        }
@@ -296,7 +296,7 @@ export default {
   moduleConfig: {
      '模块名称': {
        methodConfig: {
-         '方法id': {
+         '接口id': {
            config: {...}
          }
        }
