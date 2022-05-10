@@ -10,10 +10,10 @@ export default class Api {
   }
 
   getModelList() {
-    return Api.axios.get<ModelList[]>('/api/swagger-resources')
+    return Api.axios.get<ModelList[]>('/swagger-resources')
   }
 
   getModelInfoList(modelPath: string) {
-    return Api.axios.get<ModelInfoList>(`/api${modelPath}`)
+    return Api.axios.get<ModelInfoList>(modelPath)
   }
 }
