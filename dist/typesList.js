@@ -48,13 +48,14 @@ class TypesList {
                     const childType = items === null || items === void 0 ? void 0 : items.type;
                     let childTypeName;
                     if (originalRef === preRef) {
-                        typeItem.refs.push(`${typeName}-${keyName}`);
+                        // typeItem.refs.push(`${typeName}-${keyName}`)
                         return {
                             type,
                             inType,
                             example,
                             keyName,
                             required,
+                            loop: true,
                             description,
                             hsaChild: !!originalRef,
                             childTypeName: typeName
@@ -67,7 +68,7 @@ class TypesList {
                             definitions,
                             description: `${description}-子类型`,
                             preRef: originalRef,
-                            typeName: (0, utils_1.firstToUpper)(keyName)
+                            typeName: `${(0, utils_1.firstToUpper)(typeName)}_${(0, utils_1.firstToUpper)(keyName)}`
                         };
                         childTypeName = this.formatTypeList(params) || (0, utils_1.findType)(originalRef);
                         childTypeName = childTypeName === this.emptyKey ? undefined : childTypeName;
@@ -162,22 +163,42 @@ class TypesList {
             funcNames.add(funcName);
             const funcTypeName = (0, utils_1.firstToUpper)(funcName);
             // 返回体相关
-            const { originalRef } = (_b = responses[200].schema) !== null && _b !== void 0 ? _b : {};
-            const resTypeName = `${funcTypeName}Response`;
+            let { originalRef } = (_b = responses[200].schema) !== null && _b !== void 0 ? _b : {};
+            let resType;
+            let resTypeName = `${funcTypeName}Response`;
             if (originalRef) {
-                // 引用类型
-                const params = {
-                    typesList,
-                    definitions,
-                    topmost: true,
-                    preRef: originalRef,
-                    typeName: resTypeName
-                };
-                this.formatTypeList(params);
+                if (this.dataKey) {
+                    const { properties } = definitions[originalRef];
+                    const dataItem = properties[this.dataKey];
+                    const { items, type, originalRef: ref } = dataItem;
+                    if (items) {
+                        originalRef = items.originalRef;
+                        resType = `${resTypeName}${type === 'array' ? '[]' : ''}`;
+                    }
+                    else {
+                        if (ref) {
+                            originalRef = ref;
+                        }
+                        else {
+                            originalRef = undefined;
+                            resType = (0, utils_1.findType)(type) || 'any';
+                        }
+                    }
+                }
+                if (originalRef) {
+                    // 引用类型
+                    const params = {
+                        typesList,
+                        definitions,
+                        topmost: true,
+                        preRef: originalRef,
+                        typeName: resTypeName
+                    };
+                    this.formatTypeList(params);
+                }
             }
             const itemTypeInfo = typesList.find(i => i.preRef === originalRef);
-            if (itemTypeInfo && this.dataKey)
-                this.advanceType(itemTypeInfo);
+            // if (itemTypeInfo && this.dataKey) this.advanceType(itemTypeInfo)
             const hsaParam = (parameters === null || parameters === void 0 ? void 0 : parameters.length) > 0;
             const requestType = `${funcTypeName}Params`;
             const paramsStr = hsaParam ? `params: ${requestType}` : '';
@@ -193,7 +214,7 @@ class TypesList {
             }
             // 泛型
             const hsaResType = !!itemTypeInfo && itemTypeInfo.value.length > 0;
-            const T = `T = ${hsaResType ? resTypeName : 'any'}`;
+            const T = `T = ${resType || (hsaResType ? resTypeName : 'any')}`;
             // const R = hsaParam ? `, R = ${requestType}` : ''
             const funcType = `/** @id ${operationId} */\nexport type ${funcTypeName} = <${T}>(${paramsStr}) => Promise<${this.resultGenerics}>`;
             const funcInfo = { funcName, funcTypeName, requestType, responseType: resTypeName, funcType };

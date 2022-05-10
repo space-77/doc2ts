@@ -6,14 +6,15 @@ export default class Doc2Ts {
     api: Api;
     outDir: string;
     originUrl: string;
-    dataKey: string;
+    dataKey?: string;
     modelList: ModelList[];
     baseModelInfoList: DocModelInfoList[];
     modelInfoList: TypesList[];
     rename?: Doc2TsConfig['rename'];
-    baseClassName: Doc2TsConfig['baseClassName'];
+    baseClassName: string;
     baseClassPath: string;
     resultGenerics: string;
+    hideMethod?: boolean;
     moduleConfig?: ModuleConfig;
     render: Doc2TsConfig['render'];
     typeFileRender: Doc2TsConfig['typeFileRender'];

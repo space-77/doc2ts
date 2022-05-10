@@ -131,16 +131,23 @@ function createType(typesList) {
     const { description, typeName, value, parentTypeName, refs } = typesList;
     let contentStr = '';
     value.forEach(i => {
-        const { description, required, keyName, type, hsaChild, childTypeName, childType = '', example } = i;
+        const { description, required, keyName, type, hsaChild, childTypeName, childType = '', example, loop } = i;
         if (!type && !hsaChild)
             return;
+        let valeuStr = '';
         let childTypeStr = findType(childType) || '';
+        const typeStr = type === 'array' ? '[]' : '';
         const exampleStr = example ? `\n   * @example ${example}\n   *` : '';
         childTypeStr = childTypeStr === 'object' ? 'any' : childTypeStr;
         const des = description ? `  /**${exampleStr} @description ${description}${exampleStr ? '\n  ' : ''} */\n` : '';
-        const valeuStr = hsaChild
-            ? `${childTypeName || 'any'}${type === 'array' ? '[]' : ''}`
-            : `${childTypeStr}${findType(type)}` || 'any';
+        if (loop) {
+            valeuStr = `${typeName}${typeStr}`;
+        }
+        else {
+            valeuStr = hsaChild
+                ? `${childTypeName || 'any'}${typeStr}`
+                : `${childTypeStr}${findType(type)}` || 'any';
+        }
         const itemStr = `  ${keyName}${required ? '' : '?'}: ${valeuStr}\n`;
         contentStr += `${des}${itemStr}`;
     });

@@ -39,5 +39,5 @@ export declare function createType(typesList: TypeList): string;
  * @description 计算某个路径和另一个路径之间的差值
  */
 export declare function findDiffPath(originPath: string, targetPath: string): string;
-export declare function getConfig(configPath: string): Promise<any>;
+export declare function getConfig(configPath: string): Promise<Doc2TsConfig>;
 export declare function rename(name: string, method: Doc2TsConfig['rename']): string;

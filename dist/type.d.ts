@@ -182,13 +182,14 @@ export declare type TypeList = {
     parentTypeName?: string;
     value: {
         type: string;
+        loop?: boolean;
         inType?: string;
         keyName: string;
         example?: string;
         required?: boolean;
+        hsaChild?: boolean;
         description?: string;
         childTypeName?: string;
-        hsaChild?: boolean;
         childType?: string;
     }[];
 };
@@ -281,10 +282,13 @@ export declare type Doc2TsConfig = {
      */
     baseClassName?: string;
     /**
-     * @default ./src/api/services/client
      * @description 基类路径
      */
     baseClassPath: string;
+    /**
+     * @description 隐藏请求方法，达到简化代码
+     */
+    hideMethod?: boolean;
     /**
      * @param content 即将生成文件的内容
      * @param modelName 文件对应的模块名称
@@ -301,3 +305,4 @@ export declare type Doc2TsConfig = {
     typeFileRender?(content: string, modelName: string, config: ModuleConfig['']): string;
     moduleConfig?: ModuleConfig;
 };
+export declare type Doc2TsConfigKey = keyof Doc2TsConfig;
