@@ -133,9 +133,7 @@ export function createType(typesList: TypeList) {
     if (loop) {
       valeuStr = `${typeName}${typeStr}`
     } else {
-      valeuStr = hsaChild
-        ? `${childTypeName || 'any'}${typeStr}`
-        : `${childTypeStr}${findType(type)}` || 'any'
+      valeuStr = hsaChild ? `${childTypeName || 'any'}${typeStr}` : `${childTypeStr}${findType(type)}` || 'any'
     }
     const itemStr = `  ${keyName}${required ? '' : '?'}: ${valeuStr}\n`
     contentStr += `${des}${itemStr}`
@@ -203,4 +201,28 @@ export function rename(name: string, method: Doc2TsConfig['rename']) {
     return name.replace(method, '')
   }
   return name
+}
+
+/**
+ * @param preDirPath
+ * @description 获取文件夹路径
+ */
+export function getDirPaht(outDir: string, preDirPath: string) {
+  return path.join(process.cwd(), outDir, preDirPath)
+}
+
+/**
+ * @description 创建文件
+ */
+export async function createFile(dirPath: string, fileName: string, content: string) {
+  try {
+    if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true })
+    log.info(`正在创建：${fileName} 文件`)
+    const filePath = path.join(dirPath, fileName)
+    fs.writeFileSync(filePath, content)
+  } catch (error) {
+    log.error('创建失败')
+    console.error(error)
+    return Promise.reject(error)
+  }
 }
