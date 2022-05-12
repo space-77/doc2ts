@@ -3,6 +3,7 @@ import ts from 'typescript'
 import log from './log'
 import path from 'path'
 import { DeepTypes, Doc2TsConfig, GetTypeList, TypeList } from './type'
+import { StandardDataSource } from 'pont-engine'
 
 /**
  * @param str

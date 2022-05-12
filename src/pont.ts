@@ -5,8 +5,20 @@ import path from 'path'
 import { Doc2TsConfig, Doc2TsConfigKey, ModelList, ModuleConfig } from './type'
 import { Surrounding, DataSourceConfig } from 'pont-engine/lib/utils'
 import { readRemoteDataSource, OriginType } from 'pont-engine/lib/scripts'
-import { camel2Kebab, createType, findDiffPath, firstToLower, firstToUpper, getConfig, rename } from './utils'
+import {
+  camel2Kebab,
+  createFile,
+  createType,
+  findDiffPath,
+  firstToLower,
+  firstToUpper,
+  getConfig,
+  getDirPaht,
+  rename
+} from './utils'
 import { StandardDataSource } from 'pont-engine/lib/standard'
+import { ModelInfo, StandardDataSourceLister } from './pont_type'
+import { createApiFile, generateApiClassMethodStr } from './generate'
 
 export default class Doc2Ts {
   api!: Api
@@ -16,14 +28,14 @@ export default class Doc2Ts {
   configPath = './doc2ts.config.ts'
   baseClassName = 'ApiClient'
   // StandardDataSource
-  StandardDataSourceList: { name: string; data: StandardDataSource }[] = []
+  StandardDataSourceList: StandardDataSourceLister[] = []
+  rename?: Doc2TsConfig['rename']
+  moduleConfig?: ModuleConfig // doc2ts.config 配置信息
 
   // 未使用
-  rename?: Doc2TsConfig['rename']
   baseClassPath!: string
   resultGenerics = 'T'
   hideMethod?: boolean
-  moduleConfig?: ModuleConfig // doc2ts.config 配置信息
   render: Doc2TsConfig['render']
   typeFileRender: Doc2TsConfig['typeFileRender']
 
@@ -37,6 +49,7 @@ export default class Doc2Ts {
       this.api = new Api(this.originUrl)
       await this.getModelList()
       await this.initRemoteDataSource()
+      // this.generateFile()
     } catch (error) {
       console.error(error)
     }
@@ -113,12 +126,14 @@ export default class Doc2Ts {
         enable: false,
         basePath: '',
         port: 8080,
-        wrapper: ''
+        wrapper: '{"code": 0, "data": {response}, "message": ""}'
       }
     }
 
     try {
-      this.modelList.map(async ({ url, name, swaggerVersion }) => {
+      const reqs = this.modelList.map(async ({ url, name, swaggerVersion }) => {
+        name = camel2Kebab(name)
+        if (this.rename) name = rename(name, this.rename)
         let originType: OriginType
         switch (swaggerVersion) {
           case '3.0':
@@ -141,8 +156,53 @@ export default class Doc2Ts {
         })
         this.StandardDataSourceList.push({ data, name })
       })
+
+      await Promise.all(reqs)
+
+      // const data = await readRemoteDataSource(config, (text: string) => {
+      //   log.info(text)
+      // })
     } catch (error) {
       console.error(error)
     }
   }
+
+  generateFile() {
+    // fs.writeFileSync(path.join(__dirname, '../dist/modelInfoList.json'), JSON.stringify(this.StandardDataSourceList))
+    this.StandardDataSourceList.forEach(i => {
+      const { baseClassName, baseClassPath, render, outDir, moduleConfig = {} } = this
+      const config = moduleConfig[i.name] || {}
+      const classMethodStr = generateApiClassMethodStr(i.data.mods, config)
+      const params: ModelInfo = { ...i, baseClassName, baseClassPath, render, outDir, config, classMethodStr }
+      createApiFile(params)
+    })
+  }
+
+  //   createApiFile({ data, name }: StandardDataSourceLister) {
+  //     const { baseClassName, baseClassPath, render } = this
+  //     const { mods } = data
+  //     // basePath
+  //     const config = this.moduleConfig?.[name] ?? {}
+  //     const { moduleName, methodConfig } = config
+  //     const modelName = moduleName || name
+
+  //     const savePath = getDirPaht(this.outDir, 'module')
+  //     const targetPath = path.join(process.cwd(), baseClassPath)
+  //     const _baseClassPath = findDiffPath(savePath, targetPath)
+  //     const className = firstToUpper(modelName)
+
+  //     // const basePath = '${basePath}'
+  //     let content = `
+  // import { ${baseClassName} } from '${_baseClassPath}'
+  // import * as mT from './type/${modelName}'\n
+  // ${basePath ? `const basePath = '${basePath}'` : ''}
+
+  // /**
+  //  * @description ${name}
+  //  */
+  // class ${className} extends ApiClient {${apiMethodList}}\n
+  // export default new ${className}()\n`
+  //     content = render ? render(content, modelName, config) : content
+  //     return createFile(savePath, firstToLower(`${className}.ts`), content)
+  //   }
 }

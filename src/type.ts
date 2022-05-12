@@ -24,7 +24,7 @@ export type TData = Record<string, any>
 
 export interface IRequestParams {
   url: string
-  params?: TData
+  body?: TData
   config?: object
   method?: Method
 }
@@ -272,20 +272,22 @@ export type MethodConfig = {
   config?: object
 }
 
+export type ModuleConfigInfo = {
+  /**
+   * @description 模块重命名， 优先级高于 config.rename
+   */
+  moduleName?: string
+
+  methodConfig?: {
+    [key: string]: MethodConfig
+  }
+}
+
 export type ModuleConfig = {
   /**
    * @description 每个模块自己的配置
    */
-  [key: string]: {
-    /**
-     * @description 模块重命名， 优先级高于 config.rename
-     */
-    moduleName?: string
-
-    methodConfig?: {
-      [key: string]: MethodConfig
-    }
-  }
+  [key: string]: ModuleConfigInfo
 }
 
 export type Doc2TsConfig = {
