@@ -1,26 +1,27 @@
 import fs from 'fs'
 import path from 'path'
 import Api from './api'
-import { Doc2TsConfig, DocModelInfoList, ModelInfos, ModelList, ModuleConfig } from './type'
-import { camel2Kebab, createType, findDiffPath, firstToLower, firstToUpper, getConfig, rename } from './utils'
+import { Doc2TsConfig, Doc2TsConfigKey, DocModelInfoList, ModelInfos, ModelList, ModuleConfig } from './type'
+import { camel2Kebab, createFile, createType, findDiffPath, firstToLower, firstToUpper, getConfig, getDirPaht, rename } from './utils'
 
 import TypesList from './typesList'
 import log from './log'
 export default class Doc2Ts {
   configPath = './doc2ts.config.ts'
   api!: Api // 请求 swagger 工具
-  outDir!: string // 文件输出地址
+  outDir = './services' // 文件输出地址
   originUrl!: string // swagger 接口地址
-  dataKey!: string
+  dataKey?: string
   modelList: ModelList[] = [] // 模块数据
   baseModelInfoList: DocModelInfoList[] = [] // 原始数据
   modelInfoList: TypesList[] = [] // 整理后的数据
 
   //  doc2ts.config.ts 配置相关
   rename?: Doc2TsConfig['rename']
-  baseClassName!: Doc2TsConfig['baseClassName']
+  baseClassName = 'ApiClient'
   baseClassPath!: string
-  resultGenerics!: string
+  resultGenerics = 'T'
+  hideMethod?: boolean
   moduleConfig?: ModuleConfig // doc2ts.config 配置信息
   render: Doc2TsConfig['render']
   typeFileRender: Doc2TsConfig['typeFileRender']
@@ -45,29 +46,14 @@ export default class Doc2Ts {
   async getConfig() {
     try {
       const config = await getConfig(this.configPath)
-      const {
-        originUrl,
-        outDir,
-        moduleConfig,
-        resultGenerics,
-        dataKey,
-        rename,
-        baseClassName,
-        baseClassPath,
-        render,
-        typeFileRender
-      } = config
-      if (!baseClassPath || !originUrl) throw new Error('必要参数异常')
-      this.rename = rename
-      this.outDir = outDir || './services'
-      this.render = render
-      this.dataKey = dataKey
-      this.baseClassName = baseClassName || 'ApiClient'
-      this.originUrl = originUrl
-      this.moduleConfig = moduleConfig
-      this.baseClassPath = baseClassPath
-      this.typeFileRender = typeFileRender
-      this.resultGenerics = resultGenerics || 'T'
+      Object.entries(config).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === '' || Number.isNaN(value)) {
+          // 如果用户传参的不符合规范则需要删除它，使用默认值
+          delete config[key as Doc2TsConfigKey]
+        }
+      })
+      Object.assign(this, { ...config })
+      if (!this.baseClassPath || !this.originUrl) throw new Error('必要参数异常')
     } catch (error) {
       console.error(error)
     }
@@ -94,7 +80,7 @@ export default class Doc2Ts {
   async getModelList(count = 0) {
     try {
       log.info('正在拉取 swagger 文档信息')
-      const data = (await this.api.getModelList()) || []
+      const { data } = await this.api.getModelList()
       if (data.length === 0 && count <= 4) {
         await this.getModelList(count + 1)
         return
@@ -114,10 +100,7 @@ export default class Doc2Ts {
 
   async getModelInfoList(name: string, modelPath: string) {
     try {
-      const data = await this.api.getModelInfoList(modelPath)
-      console.log('+++++++++++++++++')
-      console.log(data)
-      console.log('+++++++++++++++++')
+      const { data } = await this.api.getModelInfoList(modelPath)
       const modelName = rename(camel2Kebab(name), this.rename)
       if (!modelName) throw Error('模块名称不存在')
       this.baseModelInfoList.push({ data, modelName: firstToLower(modelName) })
@@ -138,13 +121,12 @@ export default class Doc2Ts {
   }
 
   createApiMethod(apiInfos: ModelInfos['apiInfos']) {
+    let { hideMethod: _hideMethod } = this
     return apiInfos
       .map(i => {
         const { requestInfo, funcInfo, methodConfig } = i
         const { funcName, funcTypeName } = funcInfo
-
         const { description, isDownload, config } = methodConfig
-
         const { url, params, restParameters } = requestInfo
         const noParams = restParameters.length === 0
         const bodyParams = restParameters.filter(i => i.inType === 'body')
@@ -166,7 +148,9 @@ export default class Doc2Ts {
 
         const query = queryParams.length > 0 ? `?\${this.serialize(${filterQuery ? 'query' : 'params'})}` : ''
         const body = bodyParams.length > 0 ? `, ${filterBody ? `params: body` : 'params'}` : ''
-        const hideMethod = (!body && /get/i.test(i.method)) || (!noParams && /post/i.test(i.method))
+        const hideMethod = _hideMethod
+          ? (!body && /get/i.test(i.method)) || (!noParams && /post/i.test(i.method))
+          : false
         const method = hideMethod ? '' : `, method: '${i.method}'`
 
         const requestMethod = isDownload ? 'downloadFile' : 'request'
@@ -192,7 +176,7 @@ export default class Doc2Ts {
     const apiMethodList = this.createApiMethod(apiInfos)
     const { baseClassName, baseClassPath, moduleConfig, render } = this
     // const {baseClassPath = './src/api/services/client', render } = this.config
-    const savePath = this.getDirPaht('module')
+    const savePath = getDirPaht(this.outDir, 'module')
     const targetPath = path.join(process.cwd(), baseClassPath)
     const _baseClassPath = findDiffPath(savePath, targetPath)
 
@@ -207,7 +191,7 @@ const basePath = '${basePath}'
 class ${className} extends ApiClient {${apiMethodList}}\n
 export default new ${className}()\n`
     content = render ? render(content, modelName, moduleConfig?.[modelName] || {}) : content
-    return this.createFile(savePath, firstToLower(`${className}.ts`), content)
+    return createFile(savePath, firstToLower(`${className}.ts`), content)
   }
 
   /**
@@ -228,15 +212,17 @@ export default new ${className}()\n`
       })
 
       typesList.forEach(i => {
-        typesListStr += `${createType(i)}\n`
+        if (i.refs.length > 0) {
+          typesListStr += `${createType(i)}\n`
+        }
       })
 
       let content = `${typesListStr}${methodTypes}`
       content = typeFileRender ? typeFileRender(content, modelName, moduleConfig?.[modelName] || {}) : content
 
-      const savePath = this.getDirPaht('module/type')
+      const savePath = getDirPaht(this.outDir, 'module/type')
 
-      return this.createFile(savePath, `${modelName}.d.ts`, content)
+      return createFile(savePath, `${modelName}.d.ts`, content)
     } catch (error) {
       return Promise.reject(error)
     }
@@ -249,7 +235,7 @@ export default new ${className}()\n`
     const modelInfoList = this.modelInfoList.sort((a, b) => a.modelName.length - b.modelName.length)
     let content = modelInfoList.map(i => `import ${i.modelName} from './module/${i.modelName}'`).join('\n')
     content += `\n\nexport default {\n${modelInfoList.map(i => `  ${i.modelName}`).join(',\n')}\n}\n`
-    return this.createFile(this.getDirPaht(''), `index.ts`, content)
+    return createFile(getDirPaht(this.outDir, ''), `index.ts`, content)
   }
 
   /**
@@ -270,28 +256,28 @@ export default new ${className}()\n`
     } catch (error) {}
   }
 
-  /**
-   * @param preDirPath
-   * @description 获取文件夹路径
-   */
-  getDirPaht(preDirPath: string) {
-    return path.join(process.cwd(), this.outDir, preDirPath)
-  }
+  // /**
+  //  * @param preDirPath
+  //  * @description 获取文件夹路径
+  //  */
+  // getDirPaht(preDirPath: string) {
+  //   return path.join(process.cwd(), this.outDir, preDirPath)
+  // }
 
-  /**
-   *
-   * @description 创建文件
-   */
-  async createFile(dirPath: string, fileName: string, content: string) {
-    try {
-      if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true })
-      log.info(`正在创建：${fileName} 文件`)
-      const filePath = path.join(dirPath, fileName)
-      fs.writeFileSync(filePath, content)
-    } catch (error) {
-      log.error('创建失败')
-      console.error(error)
-      return Promise.reject(error)
-    }
-  }
+  // /**
+  //  *
+  //  * @description 创建文件
+  //  */
+  // async createFile(dirPath: string, fileName: string, content: string) {
+  //   try {
+  //     if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true })
+  //     log.info(`正在创建：${fileName} 文件`)
+  //     const filePath = path.join(dirPath, fileName)
+  //     fs.writeFileSync(filePath, content)
+  //   } catch (error) {
+  //     log.error('创建失败')
+  //     console.error(error)
+  //     return Promise.reject(error)
+  //   }
+  // }
 }

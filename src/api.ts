@@ -40,10 +40,10 @@ export default class Api {
   }
 
   getModelList() {
-    return this.get<ModelList[]>('api/swagger-resources')
+    return Api.axios.get<ModelList[]>('/swagger-resources')
   }
 
   getModelInfoList(modelPath: string) {
-    return this.get<ModelInfoList>(`api${modelPath}`)
+    return Api.axios.get<ModelInfoList>(modelPath)
   }
 }

@@ -1,7 +1,6 @@
 # doc2ts
 
 ## 功能
-
 - 根据 swagger 文档 生成 ts 接口请求工具
 
 ## 启动
@@ -104,7 +103,6 @@ export default {
 ```
 
 ### 基类名称
-
 - 参数：`baseClassName`
 - 必传：`否`
 - 类型：`String`
@@ -118,7 +116,6 @@ export default {
 ```
 
 ### 基类位置
-
 - 参数：`baseClassPath`
 - 必传：`是`
 - 类型：`String`
@@ -129,6 +126,37 @@ export default {
 export default {
   baseClassPath: 'xxx'
 } as Doc2TsConfig
+```
+
+### 隐藏请求方法
+- 参数：`hideMethod`
+- 必传：`否`
+- 类型：`Boolean`
+- 默认：`false`
+- 说明：隐藏请求方法，达到简化代码，如下两种类型的请求可以省略（注意：在 实现 `IApiClient` 的 `request` 和 `downloadFile`, 需要自行处理请求方法）。  
+  1. `get` 请求: 在 `request`方法没接收到 `method` 和 `params` 值，此时该接口为 `get` 请求可以省略。
+  2. `post` 请求: 在 `request`方法没接收到 `method` 值，但接收到了 `params` 的值，此时该接口为 `post`, 可以省略。
+  3. 除了以上两点，其它情况 `method` 均不会隐藏。
+
+```typescript
+// 配置前结果
+class XXx extends ApiClient {
+  foo() {
+    return this.request({ url: 'path/xx', params, method: 'get' })
+  }
+}
+
+
+// eg
+export default {
+  hideMethod: true
+} as Doc2TsConfig
+// 配置后结果，省略了 method 的配置
+class XXx extends ApiClient {
+  foo() {
+    return this.request({ url: 'path/xx', params })
+  }
+}
 ```
 
 ### 生成模块文件前的回调钩子

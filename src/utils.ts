@@ -121,16 +121,20 @@ export function createType(typesList: TypeList) {
   const { description, typeName, value, parentTypeName, refs } = typesList
   let contentStr = ''
   value.forEach(i => {
-    const { description, required, keyName, type, hsaChild, childTypeName, childType = '', example } = i
+    const { description, required, keyName, type, hsaChild, childTypeName, childType = '', example, loop } = i
     if (!type && !hsaChild) return
+    let valeuStr = ''
     let childTypeStr = findType(childType) || ''
+    const typeStr = type === 'array' ? '[]' : ''
 
     const exampleStr = example ? `\n   * @example ${example}\n   *` : ''
     childTypeStr = childTypeStr === 'object' ? 'any' : childTypeStr
     const des = description ? `  /**${exampleStr} @description ${description}${exampleStr ? '\n  ' : ''} */\n` : ''
-    const valeuStr = hsaChild
-      ? `${childTypeName || 'any'}${type === 'array' ? '[]' : ''}`
-      : `${childTypeStr}${findType(type)}` || 'any'
+    if (loop) {
+      valeuStr = `${typeName}${typeStr}`
+    } else {
+      valeuStr = hsaChild ? `${childTypeName || 'any'}${typeStr}` : `${childTypeStr}${findType(type)}` || 'any'
+    }
     const itemStr = `  ${keyName}${required ? '' : '?'}: ${valeuStr}\n`
     contentStr += `${des}${itemStr}`
   })
@@ -163,7 +167,7 @@ export function findDiffPath(originPath: string, targetPath: string) {
   return path.join(_originPath, _targetPath).replace(/\\/g, '/')
 }
 
-export async function getConfig(configPath: string) {
+export async function getConfig(configPath: string): Promise<Doc2TsConfig> {
   try {
     log.info('正在读取配置文件')
     const prePath = findDiffPath(__dirname, `${process.cwd()}\\`)
@@ -197,4 +201,28 @@ export function rename(name: string, method: Doc2TsConfig['rename']) {
     return name.replace(method, '')
   }
   return name
+}
+
+/**
+ * @param preDirPath
+ * @description 获取文件夹路径
+ */
+export function getDirPaht(outDir: string, preDirPath: string) {
+  return path.join(process.cwd(), outDir, preDirPath)
+}
+
+/**
+ * @description 创建文件
+ */
+export async function createFile(dirPath: string, fileName: string, content: string) {
+  try {
+    if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true })
+    log.info(`正在创建：${fileName} 文件`)
+    const filePath = path.join(dirPath, fileName)
+    fs.writeFileSync(filePath, content)
+  } catch (error) {
+    log.error('创建失败')
+    console.error(error)
+    return Promise.reject(error)
+  }
 }

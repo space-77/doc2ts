@@ -218,13 +218,14 @@ export type TypeList = {
   parentTypeName?: string // 用于继承
   value: {
     type: string
+    loop?: boolean
     inType?: string
     keyName: string
     example?: string
     required?: boolean
+    hsaChild?: boolean
     description?: string
     childTypeName?: string
-    hsaChild?: boolean
     childType?: string
   }[]
 }
@@ -335,10 +336,14 @@ export type Doc2TsConfig = {
   baseClassName?: string
 
   /**
-   * @default ./src/api/services/client
    * @description 基类路径
    */
   baseClassPath: string
+
+  /**
+   * @description 隐藏请求方法，达到简化代码
+   */
+  hideMethod?: boolean
 
   /**
    * @param content 即将生成文件的内容
@@ -358,3 +363,5 @@ export type Doc2TsConfig = {
 
   moduleConfig?: ModuleConfig
 }
+
+export type Doc2TsConfigKey = keyof Doc2TsConfig
