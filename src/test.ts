@@ -1,6 +1,6 @@
 // import { Doc2Ts } from './index'
 import Doc2Ts from './pont'
-console.log('object')
+// console.log('object')
 new Doc2Ts()
 
 // const doc = new Doc2Ts()

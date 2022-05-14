@@ -1,29 +1,28 @@
 import path from 'path'
-import { Mod, Property } from 'pont-engine'
+import { Interface, Mod, Property } from 'pont-engine'
 import { PARAMS_NAME } from './config'
 import { GetParamsStr, ModelInfo } from './pont_type'
-import { ModuleConfigInfo } from './type'
-import { firstToUpper, getDirPaht, findDiffPath, createFile, firstToLower } from './utils'
+import { Method, ModuleConfigInfo } from './type'
+import { firstToUpper, resolveOutPath, findDiffPath, createFile, firstToLower } from './utils'
 
 /**
  * @description 创建请求接口文件
  */
 export function createApiFile(modelInfo: ModelInfo) {
-  const { name, classMethodStr } = modelInfo
-  const { baseClassName, baseClassPath, render, config, outDir, basePath } = modelInfo
+  const { name, interfaces, prettierConfig } = modelInfo
+  const { baseClassName, targetPath, render, config, basePath, fileName, filePath, typeFilePaht } = modelInfo
 
-  // const config = moduleConfig?.[name] ?? {}
+  const className = firstToUpper(fileName)
   const modelName = config.moduleName || name
 
-  const className = firstToUpper(modelName)
-  const savePath = getDirPaht(outDir, 'module')
-  const targetPath = path.join(process.cwd(), baseClassPath)
-  const _baseClassPath = findDiffPath(savePath, targetPath)
+  const baseClassPath = findDiffPath(filePath, targetPath)
+  const typeFilePath = findDiffPath(filePath, path.join(typeFilePaht, fileName))
 
+  const classMethodStr = generateApiClassMethodStr(interfaces, config)
   // const basePath = '${basePath}'
   let content = `
-import { ${baseClassName} } from '${_baseClassPath}'
-import * as mT from './type/${modelName}'
+import { ${baseClassName} } from '${baseClassPath}'
+import * as mT from '${typeFilePath}'
 ${basePath ? `\nconst basePath = '${basePath}'` : ''}
 
 /**
@@ -32,7 +31,7 @@ ${basePath ? `\nconst basePath = '${basePath}'` : ''}
 class ${className} extends ApiClient {${classMethodStr}}\n
 export default new ${className}()\n`
   content = render ? render(content, modelName, config) : content
-  return createFile(savePath, firstToLower(`${className}.ts`), content)
+  return createFile(filePath, `${fileName}.ts`, content, prettierConfig)
 }
 
 function filterParams(parameters: Property[], type: Property['in']) {
@@ -66,50 +65,43 @@ export function getParamsStr(parameters: Property[]): GetParamsStr {
   // body
   const bodyParams = filterParams(parameters, 'body')
   const hsaBody = bodyParams.length > 0
+  if (hsaBody) body = `, ${bodyName}`
 
   // formData
   const formDataParams = filterParams(parameters, 'formData')
   const hasformData = formDataParams.length > 0
+  if (hasformData) formData = `, ${formDataName}`
 
   // header
   const headerParams = filterParams(parameters, 'header') // .map(i => `'${i}': ${i}`) // [ "'aaa': aaa" ]
   const hasHeader = headerParams.length > 0
-
-  const onlyType = new Set(parameters.map(i => i.in)).size === 1
+  if (hasHeader) header = `, ${headerName}`
+  const parametersList = new Set(parameters.map(i => i.in)) // .size === 1
   // 判断是否存在 path 参数
   // 存在 path 参数 或者 存在两种及以上参数类型的需要 解构
-  if (hasPath || onlyType) {
+  if (hasPath || parametersList.size > 1) {
     // 需要需要解构
     codeStr = `\nconst { ${parameters.map(i => i.name).join(', ')} } = params`
 
     // 组建各种请求类型参数
     // query
-    if (hsaQuery) codeStr += `const ${queryName} = this.serialize({${queryParams.join(', ')}})\n`
+    if (hsaQuery) codeStr += `\nconst ${queryName} = this.serialize({${queryParams.join(', ')}})`
 
     // body
-    if (hsaBody) {
-      body = `, ${bodyName}`
-      codeStr += `const ${bodyName} = {${bodyParams.join(', ')}}\n`
-    }
+    if (hsaBody) codeStr += `\nconst ${bodyName} = {${bodyParams.join(', ')}}`
 
     // formData
-    if (hasformData) {
-      formData = `, ${formDataName}`
-      codeStr += `const ${formDataName} = this.formData({${formDataParams.join(', ')}})\n`
-    }
+    if (hasformData) codeStr += `\nconst ${formDataName} = this.formData({${formDataParams.join(', ')}})`
 
     // header
-    if (hasHeader) {
-      header = `, ${headerName}`
-      codeStr += `const ${headerName} = {${headerParams.join(', ')}}\n`
-    }
+    if (hasHeader) codeStr += `\nconst ${headerName} = {${headerParams.join(', ')}}`
   } else {
     // 只有一个类型的请求参数
     // 不需要解构
 
     // 组建各种请求类型参数
     // query
-    if (hsaQuery) codeStr = `\nconst ${queryName} = this.serialize(params)\n`
+    if (hsaQuery) codeStr = `\nconst ${queryName} = this.serialize(params)`
 
     // body
     // 直接把 params 传给 request方法即可
@@ -117,7 +109,7 @@ export function getParamsStr(parameters: Property[]): GetParamsStr {
     // formData
     if (hasformData) {
       formData = `, ${formDataName}`
-      codeStr = `\nconst ${formDataName} = this.formData(params)\n`
+      codeStr = `\nconst ${formDataName} = this.formData(params)`
     }
 
     // header
@@ -130,14 +122,14 @@ export function getParamsStr(parameters: Property[]): GetParamsStr {
     codeStr,
     hasPath,
     hsaBody,
-    onlyType,
     hsaQuery,
     hasHeader,
     bodyName,
     queryName,
     headerName,
     hasformData,
-    formDataName
+    formDataName,
+    onlyType: parametersList.size === 1
   }
 }
 
@@ -151,15 +143,25 @@ export function formatUrl(url: string, paramsInfo: GetParamsStr) {
 }
 
 /**
+ * @description  把get请求的 body 类型的参数，改为 query 类型
+ */
+function fixParamsType(parameters: Property[], method: Method) {
+  if (/get/i.test(method)) {
+    parameters.forEach(i => {
+      if (i.in === 'body') i.in = 'query'
+    })
+  }
+}
+
+/**
  * @description 生成请求接口class 里的请求方法
  */
-export function generateApiClassMethodStr(mods: Mod[], config: ModuleConfigInfo) {
-  const methods = mods.reduce((arr, item) => arr.concat(item.interfaces), [] as Mod['interfaces'])
-
-  const methodsList = methods.map(i => {
-    const { name: funName, method, path: _path, description, response, parameters } = i
+export function generateApiClassMethodStr(interfaces: Interface[], config: ModuleConfigInfo) {
+  const methodsList = interfaces.map(i => {
+    const { name: funName, method: met, path: _path, description, response, parameters } = i
     const { isDownload, config: metConfig } = config.methodConfig?.[funName] || {}
 
+    fixParamsType(parameters, met as Method)
     const paramsInfo = getParamsStr(parameters)
     const { codeStr, onlyType, hsaBody, bodyName, body, header, formData } = paramsInfo
 
@@ -168,15 +170,16 @@ export function generateApiClassMethodStr(mods: Mod[], config: ModuleConfigInfo)
 
     const requestMethod = isDownload ? 'downloadFile' : 'request'
     const url = `url:${formatUrl(_path, paramsInfo)}`
-    const otherConfig = body + header + formData
+    const otherConfig = header + formData
     const requestConfig = metConfig ? `, config: ${JSON.stringify(metConfig)}` : ''
-
+    const hideMethod = /^get$/i.test(met) || (/^post$/i.test(met) && body)
+    const method = hideMethod ? '' : `, method: '${met}'`
     return `
   /**
-   * @description ${description}
+   * @description ${description.replace(/\n\r?/, '，')}
   */
   ${funName}: mT.${firstToUpper(funName)} = ${paramsName} => {${codeStr}
-    return this.${requestMethod}({ ${url}${body}, method: '${method}'${otherConfig}${requestConfig} })
+    return this.${requestMethod}({ ${url}${body}${otherConfig}${method}${requestConfig} })
   }\n`
   })
 

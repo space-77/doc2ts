@@ -1,19 +1,24 @@
-import { StandardDataSource } from 'pont-engine'
 import { PARAMS_NAME } from './config'
 import { Doc2TsConfig, ModuleConfigInfo } from './type'
+import { Interface, StandardDataSource } from 'pont-engine'
+import { Options } from 'prettier'
 
 export type StandardDataSourceLister = { name: string; data: StandardDataSource }
 
 export type ModelInfo = {
   data: StandardDataSource
   name: string
-  outDir: string
+  // outDir: string
   basePath?: string
+  fileName: string
   // moduleConfig: Doc2TsConfig['moduleConfig']
   config: ModuleConfigInfo
+  targetPath: string
+  interfaces: Interface[]
   baseClassName: string
-  baseClassPath: string
-  classMethodStr: string
+  filePath: string
+  typeFilePaht: string
+  prettierConfig?: Options
   render: Doc2TsConfig['render']
 }
 

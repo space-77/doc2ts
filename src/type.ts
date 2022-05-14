@@ -291,10 +291,19 @@ export type ModuleConfig = {
 }
 
 export type Doc2TsConfig = {
-  // 文件输出位置
+  /**
+   * @description 文件输出位置
+   */
   outDir: string
-  // swagger 文档请求地址 eg: http://localhost:7001
+  /**
+   * @description swagger 文档请求地址 eg: http://localhost:7001
+   */
   originUrl: string
+
+  /**
+   * @deprecated prettier 格式化代码的配置位置，默认会读取项目上的 .prettierrc.js .prettierrc 没有则使用默认配置
+   */
+  prettierPath?: string
 
   /**
    * @default T

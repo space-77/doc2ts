@@ -2,23 +2,13 @@ import fs from 'fs'
 import log from './log'
 import Api from './api'
 import path from 'path'
-import { Doc2TsConfig, Doc2TsConfigKey, ModelList, ModuleConfig } from './type'
+import CreateTypeFile from './generateType'
 import { Surrounding, DataSourceConfig } from 'pont-engine/lib/utils'
+import { camel2Kebab, getConfig, resolveOutPath, rename, loadPrettierConfig } from './utils'
 import { readRemoteDataSource, OriginType } from 'pont-engine/lib/scripts'
-import {
-  camel2Kebab,
-  createFile,
-  createType,
-  findDiffPath,
-  firstToLower,
-  firstToUpper,
-  getConfig,
-  getDirPaht,
-  rename
-} from './utils'
-import { StandardDataSource } from 'pont-engine/lib/standard'
 import { ModelInfo, StandardDataSourceLister } from './pont_type'
 import { createApiFile, generateApiClassMethodStr } from './generate'
+import { Doc2TsConfig, Doc2TsConfigKey, ModelList, ModuleConfig } from './type'
 
 export default class Doc2Ts {
   api!: Api
@@ -31,6 +21,7 @@ export default class Doc2Ts {
   StandardDataSourceList: StandardDataSourceLister[] = []
   rename?: Doc2TsConfig['rename']
   moduleConfig?: ModuleConfig // doc2ts.config 配置信息
+  prettierPath?: string
 
   // 未使用
   baseClassPath!: string
@@ -46,10 +37,11 @@ export default class Doc2Ts {
   async init() {
     try {
       await this.getConfig()
-      this.api = new Api(this.originUrl)
-      await this.getModelList()
-      await this.initRemoteDataSource()
-      // this.generateFile()
+      // this.api = new Api(this.originUrl)
+      // await this.getModelList()
+      // await this.initRemoteDataSource()
+      this.generateFile()
+      // this.generateTypeFile() //  创建类型文件
     } catch (error) {
       console.error(error)
     }
@@ -95,7 +87,11 @@ export default class Doc2Ts {
   async initRemoteDataSource() {
     const config: DataSourceConfig = {
       originType: OriginType.SwaggerV2,
-      originUrl: 'https://mock.mengxuegu.com/mock/61134195d43427056756821a/jiukang/pont-test',
+      // originUrl: '',
+      originUrl: 'http://106.52.87.89:7001/api/tianyin-service-basic/v2/api-docs',
+      // http://106.52.87.89:7001/api/tianyin-bff-copyright-workbench/v2/api-docs
+      // originUrl: 'https://mock.mengxuegu.com/mock/61134195d43427056756821a/jiukang/pont-test',
+      // originUrl: 'https://mock.mengxuegu.com/mock/61134195d43427056756821a/jiukang/pont-test1',
       // 使用operationId作为方法名
       usingOperationId: true,
       // pont 支持一个项目中配置多个 Swagger 来源。此处配置是否启用多数据源
@@ -126,56 +122,111 @@ export default class Doc2Ts {
         enable: false,
         basePath: '',
         port: 8080,
-        wrapper: '{"code": 0, "data": {response}, "message": ""}'
+        // wrapper: ''
+        wrapper: '{"appName": "maxrocky-service", "code": "0", "data": {response}, "id": "xxxxxxxxx", "msg": "ok"}'
       }
     }
 
     try {
-      const reqs = this.modelList.map(async ({ url, name, swaggerVersion }) => {
-        name = camel2Kebab(name)
-        if (this.rename) name = rename(name, this.rename)
-        let originType: OriginType
-        switch (swaggerVersion) {
-          case '3.0':
-            originType = OriginType.SwaggerV3
-            break
-          case '2.0':
-            originType = OriginType.SwaggerV2
-            break
-          case '1.0':
-            originType = OriginType.SwaggerV1
-            break
-          default:
-            originType = OriginType.SwaggerV2
-        }
-        config.originType = originType
-        config.originUrl = `${this.originUrl}${url}`
+      // const reqs = this.modelList.map(async ({ url, name, swaggerVersion }) => {
+      //   name = camel2Kebab(name)
+      //   if (this.rename) name = rename(name, this.rename)
+      //   let originType: OriginType
+      //   switch (swaggerVersion) {
+      //     case '3.0':
+      //       originType = OriginType.SwaggerV3
+      //       break
+      //     case '2.0':
+      //       originType = OriginType.SwaggerV2
+      //       break
+      //     case '1.0':
+      //       originType = OriginType.SwaggerV1
+      //       break
+      //     default:
+      //       originType = OriginType.SwaggerV2
+      //   }
+      //   config.originType = originType
+      //   config.originUrl = `${this.originUrl}${url}`
 
-        const data = await readRemoteDataSource(config, (text: string) => {
-          log.info(`${name}-${text}`)
-        })
-        this.StandardDataSourceList.push({ data, name })
-      })
-
-      await Promise.all(reqs)
-
-      // const data = await readRemoteDataSource(config, (text: string) => {
-      //   log.info(text)
+      //   const data = await readRemoteDataSource(config, (text: string) => {
+      //     log.info(`${name}-${text}`)
+      //   })
+      //   this.StandardDataSourceList.push({ data, name })
       // })
+
+      // await Promise.all(reqs)
+
+      const data = await readRemoteDataSource(config, (text: string) => {
+        log.info(text)
+      })
+      fs.writeFileSync(path.join(__dirname, `../dist/modelInfoList2.json`), JSON.stringify(data))
     } catch (error) {
       console.error(error)
     }
   }
 
-  generateFile() {
+  async generateFile() {
+    try {
+      const dataList = fs.readFileSync(path.join(__dirname, '../dist/modelInfoList.json')).toString()
+      this.StandardDataSourceList = JSON.parse(dataList) as StandardDataSourceLister[]
+    } catch (error) {
+      console.error(error)
+      return
+    }
+
+    const prettierConfig = await loadPrettierConfig(this.prettierPath)
+
     // fs.writeFileSync(path.join(__dirname, '../dist/modelInfoList.json'), JSON.stringify(this.StandardDataSourceList))
+    const { baseClassName, baseClassPath, render, outDir, moduleConfig = {}, resultGenerics } = this
+    const targetPath = path.join(process.cwd(), baseClassPath)
+
     this.StandardDataSourceList.forEach(i => {
-      const { baseClassName, baseClassPath, render, outDir, moduleConfig = {} } = this
-      const config = moduleConfig[i.name] || {}
-      const classMethodStr = generateApiClassMethodStr(i.data.mods, config)
-      const params: ModelInfo = { ...i, baseClassName, baseClassPath, render, outDir, config, classMethodStr }
-      createApiFile(params)
+      const { data, name } = i
+      const { mods, baseClasses } = data
+      const config = moduleConfig[name] || {}
+      // const { resultGenerics } = config
+
+      const moduleName = config.moduleName || name
+      const filePath = resolveOutPath(outDir, `module/${moduleName}`)
+      const typeFilePaht = resolveOutPath(outDir, `types/${moduleName}`)
+
+      mods.forEach(({ interfaces, name: fileName }) => {
+        const params: ModelInfo = {
+          ...i,
+          render,
+          config,
+          filePath,
+          fileName,
+          interfaces,
+          targetPath,
+          typeFilePaht,
+          prettierConfig,
+          baseClassName
+        }
+        createApiFile(params)
+
+        const createTypeFile = new CreateTypeFile({
+          interfaces,
+          fileName,
+          typeFilePaht,
+          resultGenerics,
+          prettierConfig
+        })
+        createTypeFile.createBaseClasses(baseClasses)
+        // createTypeFile({ interfaces, fileName, typeFilePaht })
+      })
     })
+  }
+
+  generateTypeFile() {
+    // this.StandardDataSourceList.forEach(i => {
+    //   const { data, name: modelName } = i
+    //   const { mods } = data
+    //   const { baseClassName, baseClassPath, render, outDir, moduleConfig = {} } = this
+    //   mods.forEach(({ interfaces, name: fileName }) => {
+    //     createTypeFile(interfaces, fileName, modelName)
+    //   })
+    // })
   }
 
   //   createApiFile({ data, name }: StandardDataSourceLister) {
