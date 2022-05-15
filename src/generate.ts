@@ -1,3 +1,4 @@
+import fs from 'fs'
 import path from 'path'
 import { Interface, Mod, Property } from 'pont-engine'
 import { PARAMS_NAME } from './config'
@@ -9,29 +10,29 @@ import { firstToUpper, resolveOutPath, findDiffPath, createFile, firstToLower } 
  * @description 创建请求接口文件
  */
 export function createApiFile(modelInfo: ModelInfo) {
-  const { name, interfaces, prettierConfig } = modelInfo
-  const { baseClassName, targetPath, render, config, basePath, fileName, filePath, typeFilePaht } = modelInfo
+  // const { name, interfaces } = modelInfo
+  const { render, name, interfaces, config, basePath, fileName, filePath, typeFilePaht, hideMethod } = modelInfo
 
   const className = firstToUpper(fileName)
   const modelName = config.moduleName || name
 
-  const baseClassPath = findDiffPath(filePath, targetPath)
+  // const baseClassPath = findDiffPath(filePath, targetPath)
   const typeFilePath = findDiffPath(filePath, path.join(typeFilePaht, fileName))
 
-  const classMethodStr = generateApiClassMethodStr(interfaces, config)
+  const classMethodStr = generateApiClassMethodStr(interfaces, config, hideMethod)
   // const basePath = '${basePath}'
   let content = `
-import { ${baseClassName} } from '${baseClassPath}'
+import BaseClass from '../baseClass'
 import * as mT from '${typeFilePath}'
 ${basePath ? `\nconst basePath = '${basePath}'` : ''}
 
 /**
  * @description ${name}
  */
-class ${className} extends ApiClient {${classMethodStr}}\n
+class ${className} extends BaseClass {${classMethodStr}}\n
 export default new ${className}()\n`
   content = render ? render(content, modelName, config) : content
-  return createFile(filePath, `${fileName}.ts`, content, prettierConfig)
+  return createFile(path.join(filePath, `${fileName}.ts`), content)
 }
 
 function filterParams(parameters: Property[], type: Property['in']) {
@@ -156,10 +157,11 @@ function fixParamsType(parameters: Property[], method: Method) {
 /**
  * @description 生成请求接口class 里的请求方法
  */
-export function generateApiClassMethodStr(interfaces: Interface[], config: ModuleConfigInfo) {
+export function generateApiClassMethodStr(interfaces: Interface[], config: ModuleConfigInfo, hideMethod: boolean) {
+  // const { hideMethod } = config
   const methodsList = interfaces.map(i => {
     const { name: funName, method: met, path: _path, description, response, parameters } = i
-    const { isDownload, config: metConfig } = config.methodConfig?.[funName] || {}
+    const { isDownload, config: metConfig, description: configDes } = config.methodConfig?.[funName] || {}
 
     fixParamsType(parameters, met as Method)
     const paramsInfo = getParamsStr(parameters)
@@ -172,11 +174,11 @@ export function generateApiClassMethodStr(interfaces: Interface[], config: Modul
     const url = `url:${formatUrl(_path, paramsInfo)}`
     const otherConfig = header + formData
     const requestConfig = metConfig ? `, config: ${JSON.stringify(metConfig)}` : ''
-    const hideMethod = /^get$/i.test(met) || (/^post$/i.test(met) && body)
-    const method = hideMethod ? '' : `, method: '${met}'`
+    const hideMet = hideMethod ? /^get$/i.test(met) || (/^post$/i.test(met) && body) : false
+    const method = hideMet ? '' : `, method: '${met}'`
     return `
   /**
-   * @description ${description.replace(/\n\r?/, '，')}
+   * @description ${configDes ? configDes : description.replace(/\n\r?/, '，') || ''}
   */
   ${funName}: mT.${firstToUpper(funName)} = ${paramsName} => {${codeStr}
     return this.${requestMethod}({ ${url}${body}${otherConfig}${method}${requestConfig} })
@@ -184,4 +186,23 @@ export function generateApiClassMethodStr(interfaces: Interface[], config: Modul
   })
 
   return methodsList.join('\n')
+}
+
+/**
+ *
+ * @param tempClassPath
+ * @param targetPath
+ * @param importBaseCalssName '{xxx}' or 'xxx'
+ */
+export function createBaseClassFile(tempClassPath: string, targetPath: string, importBaseCalssName: string) {
+  const tempClassDirList = tempClassPath.split(path.sep)
+  const tempClassDir = path.join(...tempClassDirList.slice(0, tempClassDirList.length - 1))
+  const importPath = findDiffPath(tempClassDir, targetPath)
+
+  let content = fs.readFileSync(path.join(__dirname, './temp/baseClass')).toString()
+  const baseClassName = importBaseCalssName.replace(/^\{(.+)\}$/, (_, $1) => $1)
+  content = content.replace(/\{BaseCalssName\}/g, baseClassName)
+  content = content.replace(/\{BaseClassPath\}/g, importPath)
+  content = content.replace(/\{ImportBaseCalssName\}/g, importBaseCalssName)
+  createFile(tempClassPath, content)
 }

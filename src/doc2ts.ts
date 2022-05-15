@@ -2,7 +2,17 @@ import fs from 'fs'
 import path from 'path'
 import Api from './api'
 import { Doc2TsConfig, Doc2TsConfigKey, DocModelInfoList, ModelInfos, ModelList, ModuleConfig } from './type'
-import { camel2Kebab, createFile, createType, findDiffPath, firstToLower, firstToUpper, getConfig, resolveOutPath, rename } from './utils'
+import {
+  camel2Kebab,
+  createFile,
+  createType,
+  findDiffPath,
+  firstToLower,
+  firstToUpper,
+  getConfig,
+  resolveOutPath,
+  rename
+} from './utils'
 
 import TypesList from './typesList'
 import log from './log'
@@ -191,7 +201,7 @@ const basePath = '${basePath}'
 class ${className} extends ApiClient {${apiMethodList}}\n
 export default new ${className}()\n`
     content = render ? render(content, modelName, moduleConfig?.[modelName] || {}) : content
-    return createFile(savePath, firstToLower(`${className}.ts`), content)
+    return createFile(path.join(savePath, firstToLower(`${className}.ts`)), content)
   }
 
   /**
@@ -218,11 +228,11 @@ export default new ${className}()\n`
       })
 
       let content = `${typesListStr}${methodTypes}`
-      content = typeFileRender ? typeFileRender(content, modelName, moduleConfig?.[modelName] || {}) : content
+      content = typeFileRender ? typeFileRender(content, modelName) : content
 
       const savePath = resolveOutPath(this.outDir, 'module/type')
 
-      return createFile(savePath, `${modelName}.d.ts`, content)
+      return createFile(path.join(savePath, `${modelName}.d.ts`), content)
     } catch (error) {
       return Promise.reject(error)
     }
@@ -235,7 +245,7 @@ export default new ${className}()\n`
     const modelInfoList = this.modelInfoList.sort((a, b) => a.modelName.length - b.modelName.length)
     let content = modelInfoList.map(i => `import ${i.modelName} from './module/${i.modelName}'`).join('\n')
     content += `\n\nexport default {\n${modelInfoList.map(i => `  ${i.modelName}`).join(',\n')}\n}\n`
-    return createFile(resolveOutPath(this.outDir, ''), `index.ts`, content)
+    return createFile(resolveOutPath(this.outDir, 'index.ts'), content)
   }
 
   /**

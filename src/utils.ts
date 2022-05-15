@@ -3,6 +3,7 @@ import ts from 'typescript'
 import log from './log'
 import path from 'path'
 import prettier from 'prettier'
+import { PrettierConfig } from './config'
 import { DeepTypes, Doc2TsConfig, GetTypeList, TypeList } from './type'
 import { StandardDataSource } from 'pont-engine'
 
@@ -178,35 +179,42 @@ function getRootFilePath(filePath: string) {
   return path.join(__dirname, prePath, filePath)
 }
 
-export async function loadPrettierConfig(prettierPath?: string): Promise<prettier.Options | undefined> {
-  let filePath!: string
+export async function loadPrettierConfig(prettierPath?: string) {
+  let filePath: string | undefined
   if (!prettierPath) {
-    filePath = getRootFilePath('./.prettierrc.js')
-    if (!fs.existsSync(filePath)) {
-      filePath = getRootFilePath('./.prettierrc')
-      if (!fs.existsSync(filePath)) return //  prettier 配置文件不存在
-    }
+    const fileType = [
+      getRootFilePath('./.prettierrc.js'),
+      getRootFilePath('./prettier.config.js'),
+      getRootFilePath('./prettier.config.cjs'),
+      getRootFilePath('./.prettierrc'),
+      getRootFilePath('./.prettierrc.json'),
+      getRootFilePath('./.prettierrc.json5')
+    ]
+    filePath = fileType.find(i => fs.existsSync(i))
   } else {
     filePath = getRootFilePath(prettierPath)
   }
-  try {
-    if (/\.prettierrc\.js$/.test(filePath)) {
-      // js
-      return require(filePath)
-    } else if (/\.prettierrc$/.test(filePath)) {
-      // json
-      return JSON.parse(fs.readFileSync(filePath, 'utf8').toString())
+  if (!filePath) {
+    PrettierConfig.config = require(getRootFilePath('./package.json')).prettier
+  } else {
+    try {
+      // .js .cjs  .json
+      if (/\.(c?js|json)$/.test(filePath)) {
+        // js
+        PrettierConfig.config = require(filePath)
+      } else {
+        // json
+        PrettierConfig.config = JSON.parse(fs.readFileSync(filePath, 'utf8').toString())
+      }
+    } catch (error) {
+      console.error(error)
     }
-  } catch (error) {
-    console.error(error)
   }
 }
 
 export async function getConfig(configPath: string): Promise<Doc2TsConfig> {
   try {
     log.info('正在读取配置文件')
-    // const prePath = findDiffPath(__dirname, `${process.cwd()}\\`)
-    // const filePath = path.join(__dirname, prePath, configPath)
     const filePath = getRootFilePath(configPath)
     const stat = fs.statSync(filePath)
     if (!stat.isFile()) throw new Error('配置文件不存在')
@@ -245,19 +253,22 @@ export function rename(name: string, method: Doc2TsConfig['rename']) {
  * @param preDirPath
  * @description 获取文件夹路径
  */
-export function resolveOutPath(outDir: string, preDirPath: string) {
-  return path.join(process.cwd(), outDir, preDirPath)
+export function resolveOutPath(...paths: string[]) {
+  return path.join(process.cwd(), ...paths)
 }
 
 /**
  * @description 创建文件
  */
-export async function createFile(dirPath: string, fileName: string, content: string, prettier?: prettier.Options) {
+export async function createFile(filePath: string, content: string) {
   try {
+    const dirList = filePath.split(path.sep)
+    const fileName = dirList[dirList.length - 1]
+    const dirPath = path.join(...dirList.slice(0, dirList.length - 1))
+
     if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true })
     log.info(`正在创建：${fileName} 文件`)
-    const filePath = path.join(dirPath, fileName)
-    fs.writeFileSync(filePath, format(content, prettier))
+    fs.writeFileSync(filePath, format(content, PrettierConfig.config))
   } catch (error) {
     log.error('创建失败')
     console.error(error)

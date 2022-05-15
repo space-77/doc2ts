@@ -1,12 +1,13 @@
 # doc2ts
 
 ## 功能
+
 - 根据 swagger 文档 生成 ts 接口请求工具
 
 ## 启动
 
 1. 在项目根目录新建 `doc2ts.config.ts` 文件，文件必须导出一个对象 ` export default = {}`， 对象必须是 `Doc2TsConfig` 类型。
-2. 创建一个 `class` 实现 `IApiClient`接口，用于类请求模块里的class继承，参考[基类名称](#基类名称)配置项。
+2. 创建一个 `class` 实现 `IApiClient`接口，用于类请求模块里的 class 继承，参考[基类名称](#基类名称)配置项。
 
 ## Doc2TsConfig 配置说明
 
@@ -103,11 +104,15 @@ export default {
 ```
 
 ### 基类名称
+
 - 参数：`baseClassName`
 - 必传：`否`
 - 类型：`String`
 - 默认：`ApiClient`
-- 说明：每个模块继承的基类名称，用于给每个模块的请求类继承, `注意`：基类必须 实现 IApiClient 接口
+- 说明：
+  1. 每个模块继承的基类名称，用于给每个模块的请求类继承
+  2. 基类必须 实现 IApiClient 接口
+  3. 如果基类使用 `export` 导出的 那么 `baseClassName` 的值则是 `'{XXX}'`，如果是使用 `export default` 导出的则是 `'XXX'`
 
 ```typescript
 export default {
@@ -116,6 +121,7 @@ export default {
 ```
 
 ### 基类位置
+
 - 参数：`baseClassPath`
 - 必传：`是`
 - 类型：`String`
@@ -128,12 +134,27 @@ export default {
 } as Doc2TsConfig
 ```
 
+### prettier 配置文件位置
+
+- 参数：`prettierPath`
+- 必传：`否`
+- 类型：`String`
+- 默认：` `
+- 说明：prettier 配置文件路径，默认会读取项目上的 .prettierrc.js、 prettier.config.js、prettier.config.cjs、.prettierrc、.prettierrc.json、.prettierrc.json5 以及 package.json 里的 prettier 配置， 都获取不到则使用默认配置。
+
+```typescript
+export default {
+  prettierPath: './.prettierrc.js'
+} as Doc2TsConfig
+```
+
 ### 隐藏请求方法
+
 - 参数：`hideMethod`
 - 必传：`否`
 - 类型：`Boolean`
 - 默认：`false`
-- 说明：隐藏请求方法，达到简化代码，如下两种类型的请求可以省略（注意：在 实现 `IApiClient` 的 `request` 和 `downloadFile`, 需要自行处理请求方法）。  
+- 说明：隐藏请求方法，达到简化代码，如下两种类型的请求可以省略（注意：在 实现 `IApiClient` 的 `request` 和 `downloadFile`, 需要自行处理请求方法）。
   1. `get` 请求: 在 `request`方法没接收到 `method` 和 `params` 值，此时该接口为 `get` 请求可以省略。
   2. `post` 请求: 在 `request`方法没接收到 `method` 值，但接收到了 `params` 的值，此时该接口为 `post`, 可以省略。
   3. 除了以上两点，其它情况 `method` 均不会隐藏。
@@ -145,7 +166,6 @@ class XXx extends ApiClient {
     return this.request({ url: 'path/xx', params, method: 'get' })
   }
 }
-
 
 // eg
 export default {
@@ -251,18 +271,18 @@ export default {
 - 必传：`否`
 - 类型：`String`
 - 默认：` `
-- 说明：修改方法名称, `接口id` 在生的类型文件里每一个导出方法都会有个一注释的`id`，`注意`: 该id是固定的，但会随后端接口改变而改变。
+- 说明：修改方法名称, `接口id` 在生的类型文件里每一个导出方法都会有个一注释的`id`，`注意`: 该 id 是固定的，但会随后端接口改变而改变。
 
 ```typescript
 export default {
   moduleConfig: {
-     '模块名称': {
-       methodConfig: {
-         '接口id': {
-           name: 'xxx'
-         }
-       }
-     }
+    模块名称: {
+      methodConfig: {
+        接口id: {
+          name: 'xxx'
+        }
+      }
+    }
   }
 } as Doc2TsConfig
 ```
@@ -278,13 +298,13 @@ export default {
 ```typescript
 export default {
   moduleConfig: {
-     '模块名称': {
-       methodConfig: {
-         '接口id': {
-           description: 'xxx'
-         }
-       }
-     }
+    模块名称: {
+      methodConfig: {
+        接口id: {
+          description: 'xxx'
+        }
+      }
+    }
   }
 } as Doc2TsConfig
 ```
@@ -300,13 +320,13 @@ export default {
 ```typescript
 export default {
   moduleConfig: {
-     '模块名称': {
-       methodConfig: {
-         '接口id': {
-           downloadFile: true
-         }
-       }
-     }
+    模块名称: {
+      methodConfig: {
+        接口id: {
+          downloadFile: true
+        }
+      }
+    }
   }
 } as Doc2TsConfig
 ```
