@@ -11,10 +11,10 @@ class Api {
         Api.axios = axios_1.default.create({ baseURL });
     }
     getModelList() {
-        return Api.axios.get('/api/swagger-resources');
+        return Api.axios.get('/swagger-resources');
     }
     getModelInfoList(modelPath) {
-        return Api.axios.get(`/api${modelPath}`);
+        return Api.axios.get(modelPath);
     }
 }
 exports.default = Api;
