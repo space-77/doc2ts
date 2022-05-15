@@ -12,11 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.rename = exports.getConfig = exports.findDiffPath = exports.createType = exports.createDeepType = exports.getTypeList = exports.findType = exports.updateName = exports.firstToLower = exports.firstToUpper = exports.camel2Kebab = void 0;
+exports.format = exports.createFile = exports.resolveOutPath = exports.rename = exports.getConfig = exports.loadPrettierConfig = exports.findDiffPath = exports.createType = exports.createDeepType = exports.getTypeList = exports.findType = exports.updateName = exports.firstToLower = exports.firstToUpper = exports.camel2Kebab = void 0;
 const fs_1 = __importDefault(require("fs"));
 const typescript_1 = __importDefault(require("typescript"));
 const log_1 = __importDefault(require("./log"));
 const path_1 = __importDefault(require("path"));
+const prettier_1 = __importDefault(require("prettier"));
+const config_1 = require("./config");
 /**
  * @param str
  * @description 烤串转驼峰
@@ -65,15 +67,19 @@ exports.updateName = updateName;
 function findType(str) {
     switch (str) {
         case 'number':
+        case 'Number':
         case 'integer':
             return 'number';
         case 'string':
+        case 'String':
             return 'string';
         case 'boolean':
             return 'boolean';
         case 'array':
-            return '[]';
+        case 'Array':
+            return 'array';
         case 'object':
+        case 'Object':
             return 'object';
     }
 }
@@ -144,9 +150,7 @@ function createType(typesList) {
             valeuStr = `${typeName}${typeStr}`;
         }
         else {
-            valeuStr = hsaChild
-                ? `${childTypeName || 'any'}${typeStr}`
-                : `${childTypeStr}${findType(type)}` || 'any';
+            valeuStr = hsaChild ? `${childTypeName || 'any'}${typeStr}` : `${childTypeStr}${findType(type)}` || 'any';
         }
         const itemStr = `  ${keyName}${required ? '' : '?'}: ${valeuStr}\n`;
         contentStr += `${des}${itemStr}`;
@@ -180,12 +184,57 @@ function findDiffPath(originPath, targetPath) {
     return path_1.default.join(_originPath, _targetPath).replace(/\\/g, '/');
 }
 exports.findDiffPath = findDiffPath;
+function getRootFilePath(filePath) {
+    const prePath = findDiffPath(__dirname, `${process.cwd()}\\`);
+    return path_1.default.join(__dirname, prePath, filePath);
+}
+function loadPrettierConfig(prettierPath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let filePath;
+        if (!prettierPath) {
+            const fileType = [
+                getRootFilePath('./.prettierrc.js'),
+                getRootFilePath('./prettier.config.js'),
+                getRootFilePath('./prettier.config.cjs'),
+                getRootFilePath('./.prettierrc'),
+                getRootFilePath('./.prettierrc.json'),
+                getRootFilePath('./.prettierrc.json5')
+            ];
+            filePath = fileType.find(i => fs_1.default.existsSync(i));
+        }
+        else {
+            filePath = getRootFilePath(prettierPath);
+        }
+        if (!filePath) {
+            config_1.PrettierConfig.config = require(getRootFilePath('./package.json')).prettier;
+        }
+        else {
+            try {
+                // .js .cjs  .json
+                if (/\.(c?js|json)$/.test(filePath)) {
+                    // js
+                    config_1.PrettierConfig.config = require(filePath);
+                }
+                else {
+                    // json
+                    config_1.PrettierConfig.config = JSON.parse(fs_1.default.readFileSync(filePath, 'utf8').toString());
+                }
+            }
+            catch (error) {
+                console.error(error);
+            }
+        }
+    });
+}
+exports.loadPrettierConfig = loadPrettierConfig;
 function getConfig(configPath) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             log_1.default.info('正在读取配置文件');
-            const prePath = findDiffPath(__dirname, `${process.cwd()}\\`);
-            const filePath = path_1.default.join(__dirname, prePath, configPath);
+            const filePath = getRootFilePath(configPath);
+            const stat = fs_1.default.statSync(filePath);
+            if (!stat.isFile())
+                throw new Error('配置文件不存在');
             const tsResult = fs_1.default.readFileSync(filePath, 'utf8');
             const jsResult = typescript_1.default.transpileModule(tsResult, {
                 compilerOptions: {
@@ -219,3 +268,46 @@ function rename(name, method) {
     return name;
 }
 exports.rename = rename;
+/**
+ * @param preDirPath
+ * @description 获取文件夹路径
+ */
+function resolveOutPath(...paths) {
+    return path_1.default.join(process.cwd(), ...paths);
+}
+exports.resolveOutPath = resolveOutPath;
+/**
+ * @description 创建文件
+ */
+function createFile(filePath, content) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const dirList = filePath.split(path_1.default.sep);
+            const fileName = dirList[dirList.length - 1];
+            const dirPath = path_1.default.join(...dirList.slice(0, dirList.length - 1));
+            if (!fs_1.default.existsSync(dirPath))
+                fs_1.default.mkdirSync(dirPath, { recursive: true });
+            log_1.default.info(`正在创建：${fileName} 文件`);
+            fs_1.default.writeFileSync(filePath, format(content, config_1.PrettierConfig.config));
+        }
+        catch (error) {
+            log_1.default.error('创建失败');
+            console.error(error);
+            return Promise.reject(error);
+        }
+    });
+}
+exports.createFile = createFile;
+/**
+ * @description 格式化代码
+ */
+function format(fileContent, prettierOpts = {}) {
+    try {
+        return prettier_1.default.format(fileContent, Object.assign({ parser: 'typescript' }, prettierOpts));
+    }
+    catch (e) {
+        log_1.default.error(`代码格式化报错！${e.toString()}\n代码为：${fileContent}`);
+        return fileContent;
+    }
+}
+exports.format = format;

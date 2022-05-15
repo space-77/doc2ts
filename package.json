@@ -9,9 +9,10 @@
   },
   "scripts": {
     "build": "tsc",
+    "debug": "ts-node ./src/test.ts",
     "test": "node ./bin/doc2api.js",
     "init-doc": "node ./bin/init.js",
-    "start": "nodemon --watch ./src/test.ts --ext ts --exec nodemon src/test.ts"
+    "start": "nodemon --watch ./src/doc2api-v2.ts --ext ts --exec nodemon src/doc2api-v2.ts"
   },
   "author": "space-77",
   "license": "MIT",
@@ -30,10 +31,14 @@
     "typescript": "^4.6.3"
   },
   "devDependencies": {
+    "@types/fs-extra": "^9.0.13",
     "@types/node": "^17.0.25",
+    "@types/prettier": "^2.6.0",
     "@typescript-eslint/eslint-plugin": "^5.20.0",
     "@typescript-eslint/parser": "^5.20.0",
-    "nodemon": "^2.0.15"
+    "fs-extra": "^10.1.0",
+    "nodemon": "^2.0.15",
+    "prettier": "^2.6.2"
   },
   "nodemonConfig": {
     "ignore": [
@@ -41,5 +46,14 @@
       "src/api/*",
       "examples/*"
     ]
+  },
+  "prettier": {
+    "semi": false,
+    "tabWidth": 2,
+    "printWidth": 120,
+    "singleQuote": true,
+    "arrowParens": "avoid",
+    "trailingComma": "none",
+    "stylelintIntegration": true
   }
 }

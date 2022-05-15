@@ -2,7 +2,17 @@ import fs from 'fs'
 import path from 'path'
 import Api from './api'
 import { Doc2TsConfig, Doc2TsConfigKey, DocModelInfoList, ModelInfos, ModelList, ModuleConfig } from './type'
-import { camel2Kebab, createFile, createType, findDiffPath, firstToLower, firstToUpper, getConfig, getDirPaht, rename } from './utils'
+import {
+  camel2Kebab,
+  createFile,
+  createType,
+  findDiffPath,
+  firstToLower,
+  firstToUpper,
+  getConfig,
+  resolveOutPath,
+  rename
+} from './utils'
 
 import TypesList from './typesList'
 import log from './log'
@@ -176,7 +186,7 @@ export default class Doc2Ts {
     const apiMethodList = this.createApiMethod(apiInfos)
     const { baseClassName, baseClassPath, moduleConfig, render } = this
     // const {baseClassPath = './src/api/services/client', render } = this.config
-    const savePath = getDirPaht(this.outDir, 'module')
+    const savePath = resolveOutPath(this.outDir, 'module')
     const targetPath = path.join(process.cwd(), baseClassPath)
     const _baseClassPath = findDiffPath(savePath, targetPath)
 
@@ -191,7 +201,7 @@ const basePath = '${basePath}'
 class ${className} extends ApiClient {${apiMethodList}}\n
 export default new ${className}()\n`
     content = render ? render(content, modelName, moduleConfig?.[modelName] || {}) : content
-    return createFile(savePath, firstToLower(`${className}.ts`), content)
+    return createFile(path.join(savePath, firstToLower(`${className}.ts`)), content)
   }
 
   /**
@@ -218,11 +228,11 @@ export default new ${className}()\n`
       })
 
       let content = `${typesListStr}${methodTypes}`
-      content = typeFileRender ? typeFileRender(content, modelName, moduleConfig?.[modelName] || {}) : content
+      content = typeFileRender ? typeFileRender(content, modelName) : content
 
-      const savePath = getDirPaht(this.outDir, 'module/type')
+      const savePath = resolveOutPath(this.outDir, 'module/type')
 
-      return createFile(savePath, `${modelName}.d.ts`, content)
+      return createFile(path.join(savePath, `${modelName}.d.ts`), content)
     } catch (error) {
       return Promise.reject(error)
     }
@@ -235,7 +245,7 @@ export default new ${className}()\n`
     const modelInfoList = this.modelInfoList.sort((a, b) => a.modelName.length - b.modelName.length)
     let content = modelInfoList.map(i => `import ${i.modelName} from './module/${i.modelName}'`).join('\n')
     content += `\n\nexport default {\n${modelInfoList.map(i => `  ${i.modelName}`).join(',\n')}\n}\n`
-    return createFile(getDirPaht(this.outDir, ''), `index.ts`, content)
+    return createFile(resolveOutPath(this.outDir, 'index.ts'), content)
   }
 
   /**
@@ -260,7 +270,7 @@ export default new ${className}()\n`
   //  * @param preDirPath
   //  * @description 获取文件夹路径
   //  */
-  // getDirPaht(preDirPath: string) {
+  // resolveOutPath(preDirPath: string) {
   //   return path.join(process.cwd(), this.outDir, preDirPath)
   // }
 

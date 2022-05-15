@@ -2,7 +2,10 @@ import fs from 'fs'
 import ts from 'typescript'
 import log from './log'
 import path from 'path'
+import prettier from 'prettier'
+import { PrettierConfig } from './config'
 import { DeepTypes, Doc2TsConfig, GetTypeList, TypeList } from './type'
+import { StandardDataSource } from 'pont-engine'
 
 /**
  * @param str
@@ -51,15 +54,19 @@ export function updateName(name: string, nameList: Set<string>) {
 export function findType(str: string) {
   switch (str) {
     case 'number':
+    case 'Number':
     case 'integer':
       return 'number'
     case 'string':
+    case 'String':
       return 'string'
     case 'boolean':
       return 'boolean'
     case 'array':
-      return '[]'
+    case 'Array':
+      return 'array'
     case 'object':
+    case 'Object':
       return 'object'
   }
 }
@@ -167,11 +174,50 @@ export function findDiffPath(originPath: string, targetPath: string) {
   return path.join(_originPath, _targetPath).replace(/\\/g, '/')
 }
 
+function getRootFilePath(filePath: string) {
+  const prePath = findDiffPath(__dirname, `${process.cwd()}\\`)
+  return path.join(__dirname, prePath, filePath)
+}
+
+export async function loadPrettierConfig(prettierPath?: string) {
+  let filePath: string | undefined
+  if (!prettierPath) {
+    const fileType = [
+      getRootFilePath('./.prettierrc.js'),
+      getRootFilePath('./prettier.config.js'),
+      getRootFilePath('./prettier.config.cjs'),
+      getRootFilePath('./.prettierrc'),
+      getRootFilePath('./.prettierrc.json'),
+      getRootFilePath('./.prettierrc.json5')
+    ]
+    filePath = fileType.find(i => fs.existsSync(i))
+  } else {
+    filePath = getRootFilePath(prettierPath)
+  }
+  if (!filePath) {
+    PrettierConfig.config = require(getRootFilePath('./package.json')).prettier
+  } else {
+    try {
+      // .js .cjs  .json
+      if (/\.(c?js|json)$/.test(filePath)) {
+        // js
+        PrettierConfig.config = require(filePath)
+      } else {
+        // json
+        PrettierConfig.config = JSON.parse(fs.readFileSync(filePath, 'utf8').toString())
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+}
+
 export async function getConfig(configPath: string): Promise<Doc2TsConfig> {
   try {
     log.info('正在读取配置文件')
-    const prePath = findDiffPath(__dirname, `${process.cwd()}\\`)
-    const filePath = path.join(__dirname, prePath, configPath)
+    const filePath = getRootFilePath(configPath)
+    const stat = fs.statSync(filePath)
+    if (!stat.isFile()) throw new Error('配置文件不存在')
     const tsResult = fs.readFileSync(filePath, 'utf8')
     const jsResult = ts.transpileModule(tsResult, {
       compilerOptions: {
@@ -207,22 +253,46 @@ export function rename(name: string, method: Doc2TsConfig['rename']) {
  * @param preDirPath
  * @description 获取文件夹路径
  */
-export function getDirPaht(outDir: string, preDirPath: string) {
-  return path.join(process.cwd(), outDir, preDirPath)
+export function resolveOutPath(...paths: string[]) {
+  return path.join(process.cwd(), ...paths)
 }
 
 /**
  * @description 创建文件
  */
-export async function createFile(dirPath: string, fileName: string, content: string) {
+export async function createFile(filePath: string, content: string) {
   try {
+    const dirList = filePath.split(path.sep)
+    const fileName = dirList[dirList.length - 1]
+    const dirPath = path.join(...dirList.slice(0, dirList.length - 1))
+
     if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true })
     log.info(`正在创建：${fileName} 文件`)
-    const filePath = path.join(dirPath, fileName)
-    fs.writeFileSync(filePath, content)
+    fs.writeFileSync(filePath, format(content, PrettierConfig.config))
   } catch (error) {
     log.error('创建失败')
     console.error(error)
     return Promise.reject(error)
+  }
+}
+
+/**
+ * @description 格式化代码
+ */
+export function format(fileContent: string, prettierOpts = {}) {
+  try {
+    return prettier.format(fileContent, {
+      parser: 'typescript',
+      // semi: false,
+      // tabWidth: 2,
+      // arrowParens: 'avoid',
+      // singleQuote: true,
+      // printWidth: 120,
+      // trailingComma: 'none',
+      ...prettierOpts
+    })
+  } catch (e: any) {
+    log.error(`代码格式化报错！${e.toString()}\n代码为：${fileContent}`)
+    return fileContent
   }
 }

@@ -1,3 +1,17 @@
+export interface IApiClient {
+  /**
+   * @param params
+   * @description 接口请求方法
+   */
+  request<T = any>(params: IRequestParams): Promise<T>
+
+  /**
+   *
+   * @description 下载文件
+   */
+  downloadFile(params: IRequestParams): Promise<any>
+}
+
 export type Method =
   | 'get'
   | 'GET'
@@ -24,38 +38,11 @@ export type TData = Record<string, any>
 
 export interface IRequestParams {
   url: string
-  params?: TData
+  body?: TData
   config?: object
   method?: Method
 }
 
-export interface IApiClient {
-  /**
-   * @param params
-   * @description 接口请求方法
-   */
-  request<T = any>(params: IRequestParams): Promise<any>
-
-  /**
-   *
-   * @description 下载文件
-   */
-  downloadFile(params: IRequestParams): Promise<any>
-
-  /**
-   *
-   * @param params
-   * @description 序列化参数
-   */
-  serialize(params: TData): string
-
-  /**
-   * @param params 数据源
-   * @param keyList 数据键
-   * @description 提取参数
-   */
-  extractParams(params: object, keyList: string[]): { [key: string]: any }
-}
 export interface ModelList {
   name: string
   url: string
@@ -272,27 +259,38 @@ export type MethodConfig = {
   config?: object
 }
 
+export type ModuleConfigInfo = {
+  /**
+   * @description 模块重命名， 优先级高于 config.rename
+   */
+  moduleName?: string
+
+  methodConfig?: {
+    [key: string]: MethodConfig
+  }
+}
+
 export type ModuleConfig = {
   /**
    * @description 每个模块自己的配置
    */
-  [key: string]: {
-    /**
-     * @description 模块重命名， 优先级高于 config.rename
-     */
-    moduleName?: string
-
-    methodConfig?: {
-      [key: string]: MethodConfig
-    }
-  }
+  [key: string]: ModuleConfigInfo
 }
 
 export type Doc2TsConfig = {
-  // 文件输出位置
+  /**
+   * @description 文件输出位置
+   */
   outDir: string
-  // swagger 文档请求地址 eg: http://localhost:7001
+  /**
+   * @description swagger 文档请求地址 eg: http://localhost:7001
+   */
   originUrl: string
+
+  /**
+   * @deprecated prettier 格式化代码的配置位置，默认会读取项目上的 .prettierrc.js  prettier.config.js prettier.config.cjs .prettierrc .prettierrc.json .prettierrc.json5 以及 package.json 里的  prettier配置， 没有则使用默认配置
+   */
+  prettierPath?: string
 
   /**
    * @default T
@@ -356,10 +354,9 @@ export type Doc2TsConfig = {
   /**
    * @param content 即将生成文件的内容
    * @param modelName 文件对应的模块名称
-   * @param config  配置文件
    * @description 生成接口类型文件前的钩子，用于修改生产内容
    */
-  typeFileRender?(content: string, modelName: string, config: ModuleConfig['']): string
+  typeFileRender?(content: string, modelName: string): string
 
   moduleConfig?: ModuleConfig
 }
