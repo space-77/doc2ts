@@ -1,5 +1,5 @@
 import prettier from 'prettier'
-import { Doc2TsConfig, Doc2TsConfigKey, ModuleConfig } from './type'
+import { Doc2TsConfig, Doc2TsConfigKey, ModuleConfig } from '../type'
 
 export enum PARAMS_NAME {
   BODY = 'body',

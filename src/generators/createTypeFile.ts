@@ -1,6 +1,6 @@
 import path from 'path'
-import { Doc2TsConfig } from './type'
-import { createFile, firstToUpper } from './utils'
+import { Doc2TsConfig } from '../type'
+import { createFile, firstToUpper } from '../utils'
 import { BaseClass, Interface, Property, StandardDataType } from 'pont-engine'
 
 type CreateTypeFileParams = {

@@ -1,12 +1,11 @@
-import log from './log'
+import log from './utils/log'
 import Api from './api'
-import { Config } from './config'
-import { ModelList } from './type'
-import CreateTypeFile from './generateType'
+import { Config } from './common/config'
+import CreateTypeFile from './generators/createTypeFile'
 import { Surrounding, DataSourceConfig } from 'pont-engine/lib/utils'
 import { readRemoteDataSource, OriginType } from 'pont-engine/lib/scripts'
-import { CreateApiFile, createBaseClassFile } from './createApiFile'
-import { ModelInfo, StandardDataSourceLister } from './pont_type'
+import { CreateApiFile, createBaseClassFile } from './generators/createApiFile'
+import { ModelInfo, ModelList, StandardDataSourceLister } from './type'
 import { getConfig, resolveOutPath, loadPrettierConfig, rename, camel2Kebab } from './utils'
 
 export default class Doc2Ts {

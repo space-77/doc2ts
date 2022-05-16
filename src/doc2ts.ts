@@ -1,4 +1,3 @@
-import fs from 'fs'
 import path from 'path'
 import Api from './api'
 import { Doc2TsConfig, Doc2TsConfigKey, DocModelInfoList, ModelInfos, ModelList, ModuleConfig } from './type'
@@ -15,7 +14,7 @@ import {
 } from './utils'
 
 import TypesList from './typesList'
-import log from './log'
+import log from './utils/log'
 export default class Doc2Ts {
   configPath = './doc2ts.config.ts'
   api!: Api // 请求 swagger 工具
@@ -90,7 +89,7 @@ export default class Doc2Ts {
   async getModelList(count = 0) {
     try {
       log.info('正在拉取 swagger 文档信息')
-      const { data } = await this.api.getModelList()
+      const data = await this.api.getModelList()
       if (data.length === 0 && count <= 4) {
         await this.getModelList(count + 1)
         return
@@ -110,7 +109,7 @@ export default class Doc2Ts {
 
   async getModelInfoList(name: string, modelPath: string) {
     try {
-      const { data } = await this.api.getModelInfoList(modelPath)
+      const data = await this.api.getModelInfoList(modelPath)
       const modelName = rename(camel2Kebab(name), this.rename)
       if (!modelName) throw Error('模块名称不存在')
       this.baseModelInfoList.push({ data, modelName: firstToLower(modelName) })

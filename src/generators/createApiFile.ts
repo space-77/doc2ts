@@ -1,10 +1,9 @@
 import fs from 'fs'
 import path from 'path'
-import { Method } from './type'
 import { Property } from 'pont-engine'
-import { PARAMS_NAME } from './config'
-import { GetParamsStr, ModelInfo } from './pont_type'
-import { firstToUpper, findDiffPath, createFile, firstToLower } from './utils'
+import { PARAMS_NAME } from '../common/config'
+import { GetParamsStr, Method, ModelInfo } from '../type'
+import { firstToUpper, findDiffPath, createFile, firstToLower } from '../utils'
 
 export class CreateApiFile {
   modelInfo!: ModelInfo
@@ -22,7 +21,7 @@ export class CreateApiFile {
     const typeFilePath = findDiffPath(filePath, path.join(typeFilePaht, fileName))
 
     const classMethodStr = this.generateApiClassMethod()
-    let content = this.getTempData('./temp/apiFile')
+    let content = this.getTempData('../temp/apiFile')
     content = content.replace(/\{className\}/g, className)
     content = content.replace(/\{description\}/g, description)
     content = content.replace(/\{typeFilePath\}/g, typeFilePath)
@@ -52,7 +51,7 @@ export class CreateApiFile {
       const des = configDes ? configDes : description.replace(/\n\r?/, '，') || ''
       const funConfig = `${url}${body}${otherConfig}${method}${requestConfig}`
 
-      let content = this.getTempData('./temp/apiFileMethod')
+      let content = this.getTempData('../temp/apiFileMethod')
       content = content.replace(/\{funName\}/g, firstToLower(funName))
       content = content.replace(/\{funConfig\}/g, funConfig)
       content = content.replace(/\{methodBody\}/g, methodBody)

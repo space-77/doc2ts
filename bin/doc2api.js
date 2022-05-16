@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { Doc2Ts } = require('../dist/index')
+const { Doc2Ts } = require('../dist/scripts/index')
 const { Command } = require('commander')
 const program = new Command();
 

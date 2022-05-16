@@ -3,9 +3,8 @@ import ts from 'typescript'
 import log from './log'
 import path from 'path'
 import prettier from 'prettier'
-import { PrettierConfig } from './config'
-import { DeepTypes, Doc2TsConfig, GetTypeList, TypeList } from './type'
-import { StandardDataSource } from 'pont-engine'
+import { PrettierConfig } from '../common/config'
+import { DeepTypes, Doc2TsConfig, GetTypeList, TypeList } from '../type'
 
 /**
  * @param str
