@@ -24,6 +24,7 @@ export class Config {
   readonly hideMethod: boolean = false
   readonly render: Doc2TsConfig['render']
   readonly typeFileRender: Doc2TsConfig['typeFileRender']
+  readonly resultTypeRender: Doc2TsConfig['resultTypeRender']
 
   constructor(config: Doc2TsConfig) {
     Object.entries(config).forEach(([key, value]) => {

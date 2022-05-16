@@ -5,20 +5,22 @@ import { Interface, StandardDataSource } from 'pont-engine'
 export type StandardDataSourceLister = { name: string; data: StandardDataSource }
 
 export type ModelInfo = {
-  data: StandardDataSource
+  // data: StandardDataSource
   name: string
   config: ModuleConfigInfo
   filePath: string
   fileName: string
-  basePath?: string
+  // basePath?: string
   hideMethod: boolean
   interfaces: Interface[]
   typeFilePaht: string
+  description: string
   render: Doc2TsConfig['render']
+  resultTypeRender: Doc2TsConfig['resultTypeRender']
 }
 
 export type GetParamsStr = {
-  codeStr: string
+  methodBody: string
   onlyType: boolean
   hasPath: boolean
   hsaQuery: boolean

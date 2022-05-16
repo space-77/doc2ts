@@ -12,7 +12,7 @@
         "<node_internals>/**"
       ],
       "args": [
-        "${workspaceRoot}/src/test.ts" // 入口文件
+        "${workspaceRoot}/src/dev.ts" // 入口文件
       ],
       "outFiles": [
         "${workspaceFolder}/**/*.js"

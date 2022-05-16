@@ -71,9 +71,9 @@ export default class CreateTypeFile {
   private generateResTypeValue(responseType: StandardDataType) {
     const { typeArgs, typeName, templateIndex, isDefsType } = responseType
 
-    if (typeName === 'ObjectMap') {
-      console.log(isDefsType)
-    }
+    // if (typeName === 'ObjectMap') {
+    //   console.log(isDefsType)
+    // }
 
     if (isDefsType || typeName === 'ObjectMap') this.importType.add(typeName)
     let content = typeName

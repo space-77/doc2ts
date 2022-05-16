@@ -41,6 +41,8 @@ export interface IRequestParams {
   body?: TData
   config?: object
   method?: Method
+  header?: TData
+  formData?: FormData
 }
 
 export interface ModelList {
@@ -298,6 +300,10 @@ export type Doc2TsConfig = {
    */
   resultGenerics?: string
 
+  /**
+   * @description 接口返回数据类型钩子
+   */
+  resultTypeRender?(): string
   /**
    * @description 整理 resultGenerics 的 默认类型, 根据返回数据的某个key的值做为新的返回类型
    * @example 

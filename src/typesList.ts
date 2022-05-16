@@ -152,7 +152,7 @@ export default class TypesList {
     if (typeof preRef !== 'string' || !preRef) throw new Error('数据中的 originalRef 异常')
 
     const typeInfo = definitions[preRef]
-    if (typeof typeInfo === 'string') console.log({ typeInfo })
+    // if (typeof typeInfo === 'string') console.log({ typeInfo })
     const { properties, type: pType, required: _required, description = pDes } = typeInfo ?? {}
 
     const parentTypeItem = typesList.find(i => i.preRef === preRef)

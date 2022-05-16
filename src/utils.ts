@@ -78,9 +78,9 @@ export const getTypeList: GetTypeList = ({ json, deep = 1, parentName, deepTypes
   return json
     .map(i => {
       const { children, type, keyName, required, description, loop, hsaLoop } = i
-      if (keyName === 'budget') {
-        console.log(i)
-      }
+      // if (keyName === 'budget') {
+      //   console.log(i)
+      // }
       const space = Array.from(Array(deep * 2 + 1)).join(' ')
       const des = description ? `${space}/** @description ${description} */\n` : ''
       const keyStr = `${des}${space}${keyName}${required ? '' : '?'}`

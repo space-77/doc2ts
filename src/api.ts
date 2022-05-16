@@ -14,6 +14,7 @@ export default class Api {
   }
 
   get<T = any>(url: string) {
+    url = url.replace(/^\//, '')
     return new Promise<T>((resolve, reject) => {
       let rawData = ''
       this.fetch
@@ -40,10 +41,10 @@ export default class Api {
   }
 
   getModelList() {
-    return Api.axios.get<ModelList[]>('/swagger-resources')
+    return this.get<ModelList[]>('/swagger-resources')
   }
 
   getModelInfoList(modelPath: string) {
-    return Api.axios.get<ModelInfoList>(modelPath)
+    return this.get<ModelInfoList>(modelPath)
   }
 }

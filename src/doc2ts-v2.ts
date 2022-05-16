@@ -1,11 +1,11 @@
 import log from './log'
 import Api from './api'
 import { Config } from './config'
-import {  ModelList } from './type'
+import { ModelList } from './type'
 import CreateTypeFile from './generateType'
 import { Surrounding, DataSourceConfig } from 'pont-engine/lib/utils'
 import { readRemoteDataSource, OriginType } from 'pont-engine/lib/scripts'
-import { createApiFile, createBaseClassFile } from './generate'
+import { CreateApiFile, createBaseClassFile } from './createApiFile'
 import { ModelInfo, StandardDataSourceLister } from './pont_type'
 import { getConfig, resolveOutPath, loadPrettierConfig, rename, camel2Kebab } from './utils'
 
@@ -45,7 +45,7 @@ export default class Doc2Ts {
   async getModelList(count = 0) {
     try {
       log.info('正在拉取 swagger 文档信息')
-      const { data } = await this.api.getModelList()
+      const data = await this.api.getModelList()
       if (data.length === 0 && count <= 4) {
         await this.getModelList(count + 1)
         return
@@ -156,6 +156,7 @@ export default class Doc2Ts {
       baseClassName,
       baseClassPath,
       typeFileRender,
+      resultTypeRender,
       moduleConfig = {},
       resultGenerics
     } = this.config
@@ -174,23 +175,24 @@ export default class Doc2Ts {
       const moduleName = config.moduleName || name
       const filePath = resolveOutPath(outDir, `module/${moduleName}`)
       const typeFilePaht = resolveOutPath(outDir, `types/${moduleName}`)
-      // hideMethod
-      mods.forEach(({ interfaces, name: fileName }) => {
+      mods.forEach(({ interfaces, name: fileName, description }) => {
         const params: ModelInfo = {
-          ...i,
+          name,
           render,
           config,
           filePath,
           fileName,
           hideMethod,
           interfaces,
-          typeFilePaht
+          description,
+          typeFilePaht,
+          resultTypeRender
         }
-        createApiFile(params)
+        new CreateApiFile(params)
 
         const createTypeFile = new CreateTypeFile({
-          interfaces,
           fileName,
+          interfaces,
           typeFilePaht,
           resultGenerics,
           typeFileRender

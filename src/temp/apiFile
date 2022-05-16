@@ -1,0 +1,10 @@
+import BaseClass from '../baseClass'
+import * as mT from '{typeFilePath}'
+
+/**
+ * @description {description}
+ */
+class {className} extends BaseClass {
+  {classMethodStr}
+}
+export default new {className}()

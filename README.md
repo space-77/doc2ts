@@ -4,6 +4,9 @@
 
 - 根据 swagger 文档 生成 ts 接口请求工具
 
+## TODO
+- [] 返回 非必传 转 必传
+
 ## 启动
 
 1. 在项目根目录新建 `doc2ts.config.ts` 文件，文件必须导出一个对象 ` export default = {}`， 对象必须是 `Doc2TsConfig` 类型。
