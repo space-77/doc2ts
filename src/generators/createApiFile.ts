@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { Property } from 'pont-engine'
 import { PARAMS_NAME } from '../common/config'
-import { GetParamsStr, Method, ModelInfo } from '../type'
+import { FilePathList, GetParamsStr, Method, ModelInfo } from '../type'
 import { firstToUpper, findDiffPath, createFile, firstToLower } from '../utils'
 
 export class CreateApiFile {
@@ -15,10 +15,10 @@ export class CreateApiFile {
     this.createFile()
   }
   formatFileData() {
-    const { fileName, filePath, description, typeFilePaht } = this.modelInfo
+    const { fileName, dirPath, description, typeDirPaht } = this.modelInfo
 
     const className = firstToUpper(fileName)
-    const typeFilePath = findDiffPath(filePath, path.join(typeFilePaht, fileName))
+    const typeFilePath = findDiffPath(dirPath, path.join(typeDirPaht, fileName))
 
     const classMethodStr = this.generateApiClassMethod()
     let content = this.getTempData('../temp/apiFile')
@@ -178,11 +178,11 @@ export class CreateApiFile {
 
   createFile() {
     const { fileContent, modelInfo } = this
-    const { filePath, fileName, render, name, config } = modelInfo
+    const { filePath, render, name, config } = modelInfo
 
     const modelName = config.moduleName || name
     const content = render ? render(fileContent, modelName, config) : fileContent
-    createFile(path.join(filePath, `${fileName}.ts`), content)
+    createFile(filePath, content)
   }
 
   getTempData(filePath: string) {
@@ -212,9 +212,33 @@ export function createBaseClassFile(tempClassPath: string, targetPath: string, i
   const importPath = findDiffPath(tempClassDir, targetPath)
   const baseClassName = importBaseCalssName.replace(/^\{(.+)\}$/, (_, $1) => $1)
 
-  let content = fs.readFileSync(path.join(__dirname, './temp/baseClass')).toString()
+  let content = fs.readFileSync(path.join(__dirname, '../temp/baseClass')).toString()
   content = content.replace(/\{BaseCalssName\}/g, baseClassName)
   content = content.replace(/\{BaseClassPath\}/g, importPath)
   content = content.replace(/\{ImportBaseCalssName\}/g, importBaseCalssName)
   createFile(tempClassPath, content)
+}
+
+export function createIndexFilePath(outDir: string, filePathList: FilePathList[]) {
+  const indexFilePath = path.join(outDir, 'index.ts')
+  const fileNameList: string[] = []
+  const importPathCode: string[] = []
+
+  filePathList.sort((a, b) => a.fileName.length - b.fileName.length)
+
+  filePathList.forEach(i => {
+    const { fileName, filePath } = i
+    const apiFilePath = findDiffPath(outDir, filePath).replace(/\.ts$/, '')
+    importPathCode.push(`import ${fileName} from '${apiFilePath}'`)
+    fileNameList.push(fileName)
+  })
+
+  const content = `
+  ${importPathCode.join('\n')}
+
+  export default {
+    ${fileNameList.join(',\n')}
+  }
+  `
+  createFile(indexFilePath, content)
 }

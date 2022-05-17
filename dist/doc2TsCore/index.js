@@ -12,14 +12,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const log_1 = __importDefault(require("./log"));
-const api_1 = __importDefault(require("./api"));
-const config_1 = require("./config");
-const generateType_1 = __importDefault(require("./generateType"));
+const log_1 = __importDefault(require("../utils/log"));
+const api_1 = __importDefault(require("../utils/api"));
+const path_1 = __importDefault(require("path"));
+const config_1 = require("../common/config");
+const createTypeFile_1 = __importDefault(require("../generators/createTypeFile"));
 const utils_1 = require("pont-engine/lib/utils");
 const scripts_1 = require("pont-engine/lib/scripts");
-const generate_1 = require("./generate");
-const utils_2 = require("./utils");
+const createApiFile_1 = require("../generators/createApiFile");
+const utils_2 = require("../utils");
 class Doc2Ts {
     constructor() {
         this.modelList = [];
@@ -56,7 +57,7 @@ class Doc2Ts {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 log_1.default.info('正在拉取 swagger 文档信息');
-                const { data } = yield this.api.getModelList();
+                const data = yield this.api.getModelList();
                 if (data.length === 0 && count <= 4) {
                     yield this.getModelList(count + 1);
                     return;
@@ -139,7 +140,7 @@ class Doc2Ts {
                 // const data = await readRemoteDataSource(config, (text: string) => {
                 //   log.info(text)
                 // })
-                // fs.writeFileSync(path.join(__dirname, `../dist/modelInfoList2.json`), JSON.stringify(data))
+                // fs.writeFileSync(path.join(__dirname, `../../dist/modelInfoList.json`), JSON.stringify(this.StandardDataSourceList))
             }
             catch (error) {
                 console.error(error);
@@ -149,44 +150,55 @@ class Doc2Ts {
     generateFile() {
         return __awaiter(this, void 0, void 0, function* () {
             // try {
-            //   const dataList = fs.readFileSync(path.join(__dirname, '../dist/modelInfoList.json')).toString()
+            //   const dataList = fs.readFileSync(path.join(__dirname, '../../dist/modelInfoList.json')).toString()
             //   this.StandardDataSourceList = JSON.parse(dataList) as StandardDataSourceLister[]
             // } catch (error) {
             //   console.error(error)
             //   return
             // }
-            const { render, outDir, hideMethod, prettierPath, baseClassName, baseClassPath, typeFileRender, moduleConfig = {}, resultGenerics } = this.config;
+            const { render, outDir, hideMethod, prettierPath, baseClassName, baseClassPath, typeFileRender, resultTypeRender, moduleConfig = {} } = this.config;
             yield (0, utils_2.loadPrettierConfig)(prettierPath);
+            const outputDir = (0, utils_2.resolveOutPath)(outDir);
             const targetPath = (0, utils_2.resolveOutPath)(baseClassPath);
-            const tempClassPath = (0, utils_2.resolveOutPath)(outDir, 'module/baseClass.ts');
-            (0, generate_1.createBaseClassFile)(tempClassPath, targetPath, baseClassName);
+            const tempClassPath = path_1.default.join(outputDir, 'module/baseClass.ts');
+            (0, createApiFile_1.createBaseClassFile)(tempClassPath, targetPath, baseClassName);
+            const filePathList = [];
             this.StandardDataSourceList.forEach(i => {
                 const { data, name } = i;
                 const { mods, baseClasses } = data;
                 const config = moduleConfig[name] || {};
                 const moduleName = config.moduleName || name;
-                const filePath = (0, utils_2.resolveOutPath)(outDir, `module/${moduleName}`);
-                const typeFilePaht = (0, utils_2.resolveOutPath)(outDir, `types/${moduleName}`);
-                // hideMethod
-                mods.forEach(({ interfaces, name: fileName }) => {
-                    const params = Object.assign(Object.assign({}, i), { render,
+                const dirPath = path_1.default.join(outputDir, `module/${moduleName}`);
+                const typeDirPaht = path_1.default.join(outputDir, `types/${moduleName}`);
+                mods.forEach(({ interfaces, name: fileName, description }) => {
+                    const filePath = path_1.default.join(dirPath, `${fileName}.ts`);
+                    filePathList.push({ filePath, fileName });
+                    const params = {
+                        name,
+                        render,
                         config,
+                        dirPath,
                         filePath,
                         fileName,
                         hideMethod,
                         interfaces,
-                        typeFilePaht });
-                    (0, generate_1.createApiFile)(params);
-                    const createTypeFile = new generateType_1.default({
-                        interfaces,
+                        description,
+                        typeDirPaht
+                        // resultTypeRender
+                    };
+                    new createApiFile_1.CreateApiFile(params);
+                    const createTypeFile = new createTypeFile_1.default({
                         fileName,
-                        typeFilePaht,
-                        resultGenerics,
-                        typeFileRender
+                        interfaces,
+                        baseClasses,
+                        typeDirPaht,
+                        typeFileRender,
+                        resultTypeRender
                     });
-                    createTypeFile.createBaseClasses(baseClasses);
+                    createTypeFile.createBaseClasses();
                 });
             });
+            (0, createApiFile_1.createIndexFilePath)(outputDir, filePathList);
         });
     }
 }

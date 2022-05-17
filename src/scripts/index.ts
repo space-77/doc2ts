@@ -1,4 +1,4 @@
-import doc2ts from  '../doc2ts-v2'
+import doc2ts from  '../doc2TsCore'
 export * from '../type'
 import initConfig from './initConfig'
 

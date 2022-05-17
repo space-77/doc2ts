@@ -1,7 +1,6 @@
-import Api from './api';
-import { Config } from './config';
-import { ModelList } from './type';
-import { StandardDataSourceLister } from './pont_type';
+import Api from '../utils/api';
+import { Config } from '../common/config';
+import { ModelList, StandardDataSourceLister } from '../type';
 export default class Doc2Ts {
     api: Api;
     modelList: ModelList[];

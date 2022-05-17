@@ -1,5 +1,5 @@
-import { Interface, StandardDataSource } from "pont-engine/lib/standard"
-import { PARAMS_NAME } from "./common/config"
+import { Interface, Property, StandardDataSource } from 'pont-engine/lib/standard'
+import { PARAMS_NAME } from './common/config'
 
 export interface IApiClient {
   /**
@@ -49,10 +49,10 @@ export interface IRequestParams {
 }
 
 export interface ModelList {
-  name: string
   url: string
-  swaggerVersion: string
+  name: string
   location: string
+  swaggerVersion: string
 }
 
 export interface Parameters {
@@ -298,37 +298,9 @@ export type Doc2TsConfig = {
   prettierPath?: string
 
   /**
-   * @default T
-   * @description 接口请求返回Promise的泛型
-   */
-  resultGenerics?: string
-
-  /**
    * @description 接口返回数据类型钩子
    */
-  resultTypeRender?(): string
-  /**
-   * @description 整理 resultGenerics 的 默认类型, 根据返回数据的某个key的值做为新的返回类型
-   * @example 
-  在使用接口返回数据的时候不需要外面的一层数据，只需要 data 里的数据，即可使用 dataKey 把 外层丢弃
-  注意： 在 实现 IApiClient 接口的 request 方法，也需要做响应的处理
-  ``` ts
-  //  默认类型
-  {
-    code: '0',
-    msg: 'success',
-    data: { count: 100, list: [...], page: 1 }
-  }
-
-  //  新的类型
-  {
-    page: 1，
-    count: 100,
-    list: [...]
-  }
-   * ```
-   */
-  dataKey?: string
+  resultTypeRender?(typeName: string, typeInfo: Property[]): string
 
   /**
    * @description 模块改名
@@ -375,18 +347,17 @@ export type Doc2TsConfigKey = keyof Doc2TsConfig
 export type StandardDataSourceLister = { name: string; data: StandardDataSource }
 
 export type ModelInfo = {
-  // data: StandardDataSource
   name: string
   config: ModuleConfigInfo
+  dirPath: string
   filePath: string
   fileName: string
-  // basePath?: string
   hideMethod: boolean
   interfaces: Interface[]
-  typeFilePaht: string
+  typeDirPaht: string
   description: string
   render: Doc2TsConfig['render']
-  resultTypeRender: Doc2TsConfig['resultTypeRender']
+  // resultTypeRender: Doc2TsConfig['resultTypeRender']
 }
 
 export type GetParamsStr = {
@@ -405,3 +376,5 @@ export type GetParamsStr = {
   header: string
   formData: string
 }
+
+export type FilePathList = { fileName: string; filePath: string }

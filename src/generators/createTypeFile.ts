@@ -3,66 +3,84 @@ import { Doc2TsConfig } from '../type'
 import { createFile, firstToUpper } from '../utils'
 import { BaseClass, Interface, Property, StandardDataType } from 'pont-engine'
 
-type CreateTypeFileParams = {
+type TypeFileInfo = {
   fileName: string
   interfaces: Interface[]
-  typeFilePaht: string
-  resultGenerics: string
+  baseClasses: BaseClass[]
+  typeDirPaht: string
   typeFileRender?: Doc2TsConfig['typeFileRender']
+  resultTypeRender?: Doc2TsConfig['resultTypeRender']
 }
-type TypeList = { resTpeName: string; response: StandardDataType; paramTypeName: string; parameters: Property[] }[]
+type TypeList = {
+  response: StandardDataType
+  parameters: Property[]
+  resTypeName: string
+  paramTypeName: string
+  metReturnTypeName: string
+}[]
 
 const objMapType = `export type ObjectMap<Key extends string | number | symbol = any, Value = any> = {
   [key in Key]: Value;
 }
 `
-
 export default class CreateTypeFile {
   content = ''
-  fileName: string
-  interfaces: Interface[]
-  typeFilePaht: string
-  resultGenerics: string
   typeList: TypeList = []
   importType: Set<string> = new Set([])
+  fileInfo!: TypeFileInfo
 
-  constructor(params: CreateTypeFileParams) {
-    const { interfaces, fileName, typeFilePaht, resultGenerics, typeFileRender } = params
-    this.fileName = fileName
-    this.interfaces = interfaces
-    this.typeFilePaht = typeFilePaht
-    this.resultGenerics = resultGenerics
-    this.generateFile(typeFileRender)
+  constructor(params: TypeFileInfo) {
+    this.fileInfo = params
+    this.generateFile()
   }
 
-  private generateFile(typeFileRender?: Doc2TsConfig['typeFileRender']) {
-    const { typeFilePaht, fileName } = this
+  private generateFile() {
+    const { typeDirPaht, fileName, typeFileRender } = this.fileInfo
     this.generateApiClassType() // 创建 接口请求方法的类型
+    this.generateTypeValue() // 创建 返回类型
     this.generateTypes() // 创建 返回数据的类型
     this.generateParamType() // 创建 参数的类型
     this.generateImportType() // 创建 返回数据类型和参数类型 需要引入的类型
     this.content = typeof typeFileRender === 'function' ? typeFileRender(this.content, fileName) : this.content
-    createFile(path.join(typeFilePaht, `${fileName}.d.ts`), this.content)
+    createFile(path.join(typeDirPaht, `${fileName}.ts`), this.content)
   }
 
   private generateApiClassType() {
-    const { resultGenerics, interfaces, typeList } = this
+    const { fileInfo, typeList } = this
+    const { interfaces } = fileInfo
     const methodList = interfaces.map(i => {
       const { response, parameters } = i
       const name = firstToUpper(i.name)
-      const resTpeName = `${name}Res`
+      const resTypeName = `${name}Body`
+      const metReturnTypeName = `${name}Response`
       const paramTypeName = `${name}Param`
-      typeList.push({ resTpeName, response, paramTypeName, parameters })
-      return `export type ${name} = <T = ${resTpeName}>(params: ${paramTypeName}) => Promise<${resultGenerics}>\n`
+      typeList.push({ resTypeName, response, paramTypeName, parameters, metReturnTypeName })
+      return `export type ${name} = (params: ${paramTypeName}) => ${metReturnTypeName}\n`
     })
     this.content = methodList.join('\n')
+  }
+
+  private generateTypeValue() {
+    const { typeList, fileInfo } = this
+    const { baseClasses, resultTypeRender: render } = fileInfo
+    const typeValueList = typeList.map(i => {
+      const { resTypeName, response, metReturnTypeName } = i
+      let promType = `Promise<${resTypeName}>`
+      if (typeof render === 'function') {
+        const { typeName } = response
+        const typeInfo = baseClasses.find(i => i.name === typeName)
+        if (typeInfo) promType = render(resTypeName, typeInfo.properties)
+      }
+      return `type ${metReturnTypeName} = ${promType}`
+    })
+    this.content = `${typeValueList.join('\n')}\n${this.content}`
   }
 
   private generateTypes() {
     const { typeList, content } = this
     const resTypeList = typeList.map(i => {
-      const { resTpeName, response } = i
-      return `export type ${resTpeName} = ${this.generateResTypeValue(response)}`
+      const { resTypeName, response } = i
+      return `export type ${resTypeName} = ${this.generateResTypeValue(response)}`
     })
 
     this.content = `${resTypeList.join('\n')}\n${content}`
@@ -70,10 +88,6 @@ export default class CreateTypeFile {
 
   private generateResTypeValue(responseType: StandardDataType) {
     const { typeArgs, typeName, templateIndex, isDefsType } = responseType
-
-    // if (typeName === 'ObjectMap') {
-    //   console.log(isDefsType)
-    // }
 
     if (isDefsType || typeName === 'ObjectMap') this.importType.add(typeName)
     let content = typeName
@@ -112,8 +126,8 @@ export default class CreateTypeFile {
     return des ? `/** @description ${des}*/\n` : ''
   }
 
-  createBaseClasses(baseClasses: BaseClass[]) {
-    const { typeFilePaht } = this
+  createBaseClasses() {
+    const { typeDirPaht, baseClasses } = this.fileInfo
     const content = baseClasses.map(i => {
       const { name, properties, templateArgs, description } = i
 
@@ -126,6 +140,6 @@ export default class CreateTypeFile {
       return `${this.getDescription(description)}export type ${name}${temStr} = {\n${itemsValue}}`
     })
 
-    createFile(path.join(typeFilePaht, `type.d.ts`), `${objMapType}${content.join('\n')}`)
+    createFile(path.join(typeDirPaht, `type.ts`), `${objMapType}${content.join('\n')}`)
   }
 }

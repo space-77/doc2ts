@@ -1,6 +1,6 @@
 import http from 'http'
 import https from 'https'
-import { ModelInfoList, ModelList } from './type'
+import { ModelInfoList, ModelList } from '../type'
 
 export default class Api {
   fetch!: typeof https | typeof http

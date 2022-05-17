@@ -163,14 +163,19 @@ export function findDiffPath(originPath: string, targetPath: string) {
     }
   }
   if (index === -1) throw new Error('两个路径不在同一个盘符')
-  const _originPath = originPath
-    .slice(index)
-    .split('\\')
-    .map(() => '..')
-    .join('/')
-  const _targetPath = targetPath.slice(index)
+  let _originPath = ''
 
-  return path.join(_originPath, _targetPath).replace(/\\/g, '/')
+  const diff = originPath.slice(index)
+  const _targetPath = targetPath.slice(index)
+  if (diff) {
+    _originPath = diff
+      .split(path.sep)
+      .map(() => '..')
+      .join('/')
+    return path.join(_originPath, _targetPath).replace(/\\/g, '/')
+  } else {
+    return `./${path.join(_originPath, _targetPath).replace(/\\/g, '/')}`
+  }
 }
 
 function getRootFilePath(filePath: string) {
@@ -215,6 +220,7 @@ export async function getConfig(configPath: string): Promise<Doc2TsConfig> {
   try {
     log.info('正在读取配置文件')
     const filePath = getRootFilePath(configPath)
+    // console.log({ filePath })
     const stat = fs.statSync(filePath)
     if (!stat.isFile()) throw new Error('配置文件不存在')
     const tsResult = fs.readFileSync(filePath, 'utf8')

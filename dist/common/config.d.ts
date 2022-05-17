@@ -1,5 +1,5 @@
 import prettier from 'prettier';
-import { Doc2TsConfig, ModuleConfig } from './type';
+import { Doc2TsConfig, ModuleConfig } from '../type';
 export declare enum PARAMS_NAME {
     BODY = "body",
     QUERY = "query",
@@ -17,9 +17,9 @@ export declare class Config {
     readonly moduleConfig?: ModuleConfig;
     readonly prettierPath?: string;
     readonly baseClassPath: string;
-    readonly resultGenerics = "T";
     readonly hideMethod: boolean;
     readonly render: Doc2TsConfig['render'];
     readonly typeFileRender: Doc2TsConfig['typeFileRender'];
+    readonly resultTypeRender: Doc2TsConfig['resultTypeRender'];
     constructor(config: Doc2TsConfig);
 }

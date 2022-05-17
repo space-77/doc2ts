@@ -17,10 +17,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.init = exports.Doc2Ts = void 0;
-const doc2ts_v2_1 = __importDefault(require("./doc2ts-v2"));
 __exportStar(require("./type"), exports);
-const initConfig_1 = __importDefault(require("./initConfig"));
-exports.Doc2Ts = doc2ts_v2_1.default;
-exports.init = initConfig_1.default;
-// export cosnt build
+const doc2TsCore_1 = __importDefault(require("./doc2TsCore"));
+new doc2TsCore_1.default();

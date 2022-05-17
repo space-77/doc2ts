@@ -1,12 +1,14 @@
-import log from './utils/log'
-import Api from './api'
-import { Config } from './common/config'
-import CreateTypeFile from './generators/createTypeFile'
+import fs from 'fs'
+import log from '../utils/log'
+import Api from '../utils/api'
+import path from 'path'
+import { Config } from '../common/config'
+import CreateTypeFile from '../generators/createTypeFile'
 import { Surrounding, DataSourceConfig } from 'pont-engine/lib/utils'
 import { readRemoteDataSource, OriginType } from 'pont-engine/lib/scripts'
-import { CreateApiFile, createBaseClassFile } from './generators/createApiFile'
-import { ModelInfo, ModelList, StandardDataSourceLister } from './type'
-import { getConfig, resolveOutPath, loadPrettierConfig, rename, camel2Kebab } from './utils'
+import { CreateApiFile, createBaseClassFile, createIndexFilePath } from '../generators/createApiFile'
+import { FilePathList, ModelInfo, ModelList, StandardDataSourceLister } from '../type'
+import { getConfig, resolveOutPath, loadPrettierConfig, rename, camel2Kebab } from '../utils'
 
 export default class Doc2Ts {
   api!: Api
@@ -132,7 +134,7 @@ export default class Doc2Ts {
       // const data = await readRemoteDataSource(config, (text: string) => {
       //   log.info(text)
       // })
-      // fs.writeFileSync(path.join(__dirname, `../dist/modelInfoList2.json`), JSON.stringify(data))
+      // fs.writeFileSync(path.join(__dirname, `../../dist/modelInfoList.json`), JSON.stringify(this.StandardDataSourceList))
     } catch (error) {
       console.error(error)
     }
@@ -140,7 +142,7 @@ export default class Doc2Ts {
 
   async generateFile() {
     // try {
-    //   const dataList = fs.readFileSync(path.join(__dirname, '../dist/modelInfoList.json')).toString()
+    //   const dataList = fs.readFileSync(path.join(__dirname, '../../dist/modelInfoList.json')).toString()
     //   this.StandardDataSourceList = JSON.parse(dataList) as StandardDataSourceLister[]
     // } catch (error) {
     //   console.error(error)
@@ -156,15 +158,16 @@ export default class Doc2Ts {
       baseClassPath,
       typeFileRender,
       resultTypeRender,
-      moduleConfig = {},
-      resultGenerics
+      moduleConfig = {}
     } = this.config
 
     await loadPrettierConfig(prettierPath)
 
+    const outputDir = resolveOutPath(outDir)
     const targetPath = resolveOutPath(baseClassPath)
-    const tempClassPath = resolveOutPath(outDir, 'module/baseClass.ts')
+    const tempClassPath = path.join(outputDir, 'module/baseClass.ts')
     createBaseClassFile(tempClassPath, targetPath, baseClassName)
+    const filePathList: FilePathList[] = []
 
     this.StandardDataSourceList.forEach(i => {
       const { data, name } = i
@@ -172,32 +175,39 @@ export default class Doc2Ts {
       const config = moduleConfig[name] || {}
 
       const moduleName = config.moduleName || name
-      const filePath = resolveOutPath(outDir, `module/${moduleName}`)
-      const typeFilePaht = resolveOutPath(outDir, `types/${moduleName}`)
+      const dirPath = path.join(outputDir, `module/${moduleName}`)
+      const typeDirPaht = path.join(outputDir, `types/${moduleName}`)
       mods.forEach(({ interfaces, name: fileName, description }) => {
+        const filePath = path.join(dirPath, `${fileName}.ts`)
+        filePathList.push({ filePath, fileName })
+
         const params: ModelInfo = {
           name,
           render,
           config,
+          dirPath,
           filePath,
           fileName,
           hideMethod,
           interfaces,
           description,
-          typeFilePaht,
-          resultTypeRender
+          typeDirPaht
+          // resultTypeRender
         }
         new CreateApiFile(params)
 
         const createTypeFile = new CreateTypeFile({
           fileName,
           interfaces,
-          typeFilePaht,
-          resultGenerics,
-          typeFileRender
+          baseClasses,
+          typeDirPaht,
+          typeFileRender,
+          resultTypeRender
         })
-        createTypeFile.createBaseClasses(baseClasses)
+        createTypeFile.createBaseClasses()
       })
     })
+
+    createIndexFilePath(outputDir, filePathList)
   }
 }

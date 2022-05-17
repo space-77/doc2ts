@@ -4,9 +4,6 @@
 
 - 根据 swagger 文档 生成 ts 接口请求工具
 
-## TODO
-- [] 返回 非必传 转 必传
-
 ## 启动
 
 1. 在项目根目录新建 `doc2ts.config.ts` 文件，文件必须导出一个对象 ` export default = {}`， 对象必须是 `Doc2TsConfig` 类型。
@@ -41,55 +38,6 @@ export default {
 export default {
   outDir: 'xxx'
 } as Doc2TsConfig
-```
-
-### 配置 请求接口 Promise 的泛型
-
-- 参数：`resultGenerics`
-- 必传：`否`
-- 类型：`String`
-- 默认：`T`
-- 说明：控制 `IApiClient.request` 方法返回 Promise 的泛型，`注意`: 如果配置了`resultGenerics`相应的 `IApiClient.request` 方法也需要返回对应的类型，否则会出现类型和结果不匹配问题。
-
-```typescript
-// 默认的结果
-export type methodName = <T = any>(params: methodNameParams) => Promise<T>
-
-// eg
-export default {
-  resultGenerics: '[any, T]'
-} as Doc2TsConfig
-// 配置后的结果
-export type methodName = <T = any>(params: methodNameParams) => Promise<[any, T]>
-```
-
-### 过滤接口返回值外层数据结构
-
-- 参数：`dataKey`
-- 必传：`否`
-- 类型：`String`
-- 默认：` `
-- 说明：如果接口返回数据是包含有请求状态等信息，为了方便使用数据，可以配置 `dataKey`，过滤外层信息。 `注意`：该配置只是处理 ts 类型，需要在实现 `IApiClient.request`方法时做对应的处理
-
-```typescript
-// 接口返回数据结构
-{
-  "msg": "success",
-  "code": "0",
-  "data": { "list": [], "count": 100, "page": 1 }
-}
-// doc2ts.config.ts
-export default {
-  dataKey: 'data'
-} as Doc2TsConfig
-// 配置后结果
-try {
-  const result = await api.modelName.methodName()
-  // 此时 result 的类型为 { "list": [], "count": 100, "page": 1 }
-  // 注意是类型，结果是不是这样需要 IApiClient.request 里自行处理
-} catch (error) {
-  console.error(error)
-}
 ```
 
 ### 修改模块名字
@@ -181,6 +129,22 @@ class XXx extends ApiClient {
   }
 }
 ```
+
+### 自定义请求方法返回类型
+- 参数：`resultTypeRender`
+- 必传：`否`
+- 类型：`(typeName: string, typeInfo: Property[]) => string`
+- 默认：` `
+- 说明：可以根据自己的需求去自定义返回类型
+
+``` typescript
+export default {
+  resultTypeRender(typeName, typeInfo) {
+    return `Promise<${resTypeName}>` // default
+  }
+} as Doc2TsConfig
+```
+
 
 ### 生成模块文件前的回调钩子
 

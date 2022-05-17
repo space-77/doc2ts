@@ -1,35 +1,35 @@
-import { Doc2TsConfig } from './type';
+import { Doc2TsConfig } from '../type';
 import { BaseClass, Interface, Property, StandardDataType } from 'pont-engine';
-declare type CreateTypeFileParams = {
+declare type TypeFileInfo = {
     fileName: string;
     interfaces: Interface[];
-    typeFilePaht: string;
-    resultGenerics: string;
+    baseClasses: BaseClass[];
+    typeDirPaht: string;
     typeFileRender?: Doc2TsConfig['typeFileRender'];
+    resultTypeRender?: Doc2TsConfig['resultTypeRender'];
 };
 declare type TypeList = {
-    resTpeName: string;
     response: StandardDataType;
-    paramTypeName: string;
     parameters: Property[];
+    resTypeName: string;
+    paramTypeName: string;
+    metReturnTypeName: string;
 }[];
 export default class CreateTypeFile {
     content: string;
-    fileName: string;
-    interfaces: Interface[];
-    typeFilePaht: string;
-    resultGenerics: string;
     typeList: TypeList;
     importType: Set<string>;
-    constructor(params: CreateTypeFileParams);
+    fileInfo: TypeFileInfo;
+    constructor(params: TypeFileInfo);
     private generateFile;
     private generateApiClassType;
+    private generateTypeValue;
     private generateTypes;
     private generateResTypeValue;
     private generateParamType;
     private generateParamTypeValue;
     private generateImportType;
     getDescription(des?: string): string;
-    createBaseClasses(baseClasses: BaseClass[]): void;
+    createBaseClasses(): void;
 }
 export {};

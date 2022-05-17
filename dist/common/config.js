@@ -15,7 +15,6 @@ class Config {
     constructor(config) {
         this.outDir = './services'; // 文件输出地址
         this.baseClassName = 'ApiClient';
-        this.resultGenerics = 'T';
         this.hideMethod = false;
         Object.entries(config).forEach(([key, value]) => {
             if (value === undefined || value === null || value === '' || Number.isNaN(value)) {

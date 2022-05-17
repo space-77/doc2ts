@@ -20,7 +20,6 @@ export class Config {
   readonly moduleConfig?: ModuleConfig // doc2ts.config 配置信息
   readonly prettierPath?: string
   readonly baseClassPath!: string
-  readonly resultGenerics = 'T'
   readonly hideMethod: boolean = false
   readonly render: Doc2TsConfig['render']
   readonly typeFileRender: Doc2TsConfig['typeFileRender']

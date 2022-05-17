@@ -99,5 +99,5 @@
     "skipLibCheck": true,                                 /* Skip type checking all .d.ts files. */
     "types": ["node", "fs-extra"]
   },
-  "include": ["src/*"]
+  "include": ["src/index.ts", "src/type.ts"]
 }
