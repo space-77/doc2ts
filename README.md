@@ -16,14 +16,27 @@
 ### 配置 swagger 文档地址
 
 - 参数：`originUrl`
-- 必传：`是`
+- 必传：`originUrl`和`swaggerBootstrapUiUrl`必填其中一个
+- 类型：`List<String>`
+- 默认：` `
+- 说明：配置 swagger 
+
+```typescript
+export default {
+  originUrl: [{modelName: 'xxx', url: 'https://xxx/xxx'}]
+} as Doc2TsConfig
+```
+### 配置 swagger-bootstrap-ui 文档地址
+
+- 参数：`swaggerBootstrapUiUrl`
+- 必传：`originUrl`和`swaggerBootstrapUiUrl`必填其中一个
 - 类型：`String`
 - 默认：` `
 - 说明：配置 swagger 文档的 eg: http://localhost:7001
 
 ```typescript
 export default {
-  originUrl: 'xxx'
+  swaggerBootstrapUiUrl: 'xxx'
 } as Doc2TsConfig
 ```
 
@@ -57,7 +70,7 @@ export default {
 ### 基类名称
 
 - 参数：`baseClassName`
-- 必传：`否`
+- 必传：`是`
 - 类型：`String`
 - 默认：`ApiClient`
 - 说明：

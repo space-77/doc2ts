@@ -1,0 +1,10 @@
+import { Doc2TsConfig } from 'doc2ts'
+
+const doc2tsConfig: Doc2TsConfig = {
+  outDir: './src/api/',
+  originUrl: 'https://petstore.swagger.io/',
+  baseClassName: '{ApiClient}',
+  baseClassPath: './src/api/services/client'
+}
+
+export default doc2tsConfig

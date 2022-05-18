@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-const { Doc2Ts } = require('../dist/scripts/index')
+const { Doc2Ts, initConfig } = require('../dist/scripts/index')
 const { Command } = require('commander')
 const program = new Command();
 
 program.option('-i, --init', '初始化配置文件').action(() => {
-  console.log('TODO: 初始化配置文件')
+  initConfig()
 })
 
 program.option('-g, --generate', '生成代码').action(() => {

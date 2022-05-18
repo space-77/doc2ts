@@ -16,14 +16,16 @@ class CreateApiFile {
         this.createFile();
     }
     formatFileData() {
-        const { fileName, dirPath, description, typeDirPaht } = this.modelInfo;
+        const { fileName, dirPath, description, typeDirPaht, diffClassPath } = this.modelInfo;
         const className = (0, utils_1.firstToUpper)(fileName);
         const typeFilePath = (0, utils_1.findDiffPath)(dirPath, path_1.default.join(typeDirPaht, fileName));
+        // const typeFilePath = findDiffPath(dirPath, path.join(typeDirPaht, fileName))
         const classMethodStr = this.generateApiClassMethod();
         let content = this.getTempData('../temp/apiFile');
         content = content.replace(/\{className\}/g, className);
         content = content.replace(/\{description\}/g, description);
         content = content.replace(/\{typeFilePath\}/g, typeFilePath);
+        content = content.replace(/\{baseClassPath\}/g, diffClassPath);
         content = content.replace(/\{classMethodStr\}/g, classMethodStr);
         this.fileContent = content;
     }
@@ -164,7 +166,7 @@ class CreateApiFile {
     createFile() {
         const { fileContent, modelInfo } = this;
         const { filePath, render, name, config } = modelInfo;
-        const modelName = config.moduleName || name;
+        const modelName = config.moduleName || name || '';
         const content = render ? render(fileContent, modelName, config) : fileContent;
         (0, utils_1.createFile)(filePath, content);
     }
@@ -204,8 +206,9 @@ function createIndexFilePath(outDir, filePathList) {
     const indexFilePath = path_1.default.join(outDir, 'index.ts');
     const fileNameList = [];
     const importPathCode = [];
-    filePathList.sort((a, b) => a.fileName.length - b.fileName.length);
-    filePathList.forEach(i => {
+    const filePathItems = filePathList.reduce((arr, item) => arr.concat(item.data), []);
+    filePathItems.sort((a, b) => a.fileName.length - b.fileName.length);
+    filePathItems.forEach(i => {
         const { fileName, filePath } = i;
         const apiFilePath = (0, utils_1.findDiffPath)(outDir, filePath).replace(/\.ts$/, '');
         importPathCode.push(`import ${fileName} from '${apiFilePath}'`);

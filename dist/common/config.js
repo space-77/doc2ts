@@ -14,6 +14,7 @@ exports.PrettierConfig = PrettierConfig;
 class Config {
     constructor(config) {
         this.outDir = './services'; // 文件输出地址
+        // readonly swaggerBootstrapUiUrl!: Doc2TsConfig['swaggerBootstrapUiUrl']  // swagger-bootstrap-ui 接口地址
         this.baseClassName = 'ApiClient';
         this.hideMethod = false;
         Object.entries(config).forEach(([key, value]) => {
@@ -23,7 +24,7 @@ class Config {
             }
         });
         Object.assign(this, Object.assign({}, config));
-        if (!this.baseClassPath || !this.originUrl)
+        if (!this.baseClassPath || !Array.isArray(this.origins) || this.origins.length === 0)
             throw new Error('必要参数异常');
     }
 }

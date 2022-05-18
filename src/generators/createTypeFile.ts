@@ -19,7 +19,7 @@ type TypeList = {
   metReturnTypeName: string
 }[]
 
-const objMapType = `export type ObjectMap<Key extends string | number | symbol = any, Value = any> = {
+const objMapType = `type ObjectMap<Key extends string | number | symbol = any, Value = any> = {
   [key in Key]: Value;
 }
 `
@@ -119,7 +119,13 @@ export default class CreateTypeFile {
   private generateImportType() {
     const { importType, content } = this
     const importTypeList = Array.from(importType).sort((a, b) => a.length - b.length)
-    this.content = `import { ${importTypeList.join(', ')} } from './type' \n${content}`
+    // if (importType.has('ObjectMap')) {
+    //   // objMapType
+    //   const objectMapType = objMapType
+    // }
+    const objectMapTypeStr = importType.has('ObjectMap') ? `\n${objMapType}` : ''
+
+    this.content = `import { ${importTypeList.join(', ')} } from './type' ${objectMapTypeStr} \n${content}`
   }
 
   getDescription(des?: string) {
@@ -140,6 +146,6 @@ export default class CreateTypeFile {
       return `${this.getDescription(description)}export type ${name}${temStr} = {\n${itemsValue}}`
     })
 
-    createFile(path.join(typeDirPaht, `type.ts`), `${objMapType}${content.join('\n')}`)
+    createFile(path.join(typeDirPaht, `type.ts`), content.join('\n'))
   }
 }

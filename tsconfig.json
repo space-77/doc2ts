@@ -97,7 +97,7 @@
     /* Completeness */
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     "skipLibCheck": true,                                 /* Skip type checking all .d.ts files. */
-    "types": ["node", "fs-extra"]
+    "types": ["node"]
   },
-  "include": ["src/index.ts", "src/type.ts"]
+  "include": ["src/index.ts", "src/scripts/*"]
 }

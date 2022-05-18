@@ -1,4 +1,4 @@
-import { DeepTypes, Doc2TsConfig, GetTypeList, TypeList } from '../type';
+import { DeepTypes, Doc2TsConfig, GetTypeList, ModelList, TypeList } from '../type';
 /**
  * @param str
  * @description 烤串转驼峰
@@ -55,3 +55,4 @@ export declare function createFile(filePath: string, content: string): Promise<u
  * @description 格式化代码
  */
 export declare function format(fileContent: string, prettierOpts?: {}): string;
+export declare function getModelUrl(origins: Doc2TsConfig['origins']): Promise<ModelList[]>;

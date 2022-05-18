@@ -8,10 +8,10 @@ import { Surrounding, DataSourceConfig } from 'pont-engine/lib/utils'
 import { readRemoteDataSource, OriginType } from 'pont-engine/lib/scripts'
 import { CreateApiFile, createBaseClassFile, createIndexFilePath } from '../generators/createApiFile'
 import { FilePathList, ModelInfo, ModelList, StandardDataSourceLister } from '../type'
-import { getConfig, resolveOutPath, loadPrettierConfig, rename, camel2Kebab } from '../utils'
+import { getConfig, resolveOutPath, loadPrettierConfig, rename, camel2Kebab, getModelUrl, findDiffPath } from '../utils'
 
 export default class Doc2Ts {
-  api!: Api
+  api = new Api()
   modelList: ModelList[] = []
   StandardDataSourceList: StandardDataSourceLister[] = []
 
@@ -25,7 +25,6 @@ export default class Doc2Ts {
   async init() {
     try {
       await this.getConfig()
-      this.api = new Api(this.config.originUrl)
       await this.getModelList()
       await this.initRemoteDataSource()
       this.generateFile()
@@ -43,25 +42,35 @@ export default class Doc2Ts {
     }
   }
 
-  async getModelList(count = 0) {
+  async getModelList() {
     try {
-      log.info('正在拉取 swagger 文档信息')
-      const data = await this.api.getModelList()
-      if (data.length === 0 && count <= 4) {
-        await this.getModelList(count + 1)
-        return
-      }
-
-      if (!data || !Array.isArray(data) || data.length === 0) {
-        log.error('数据加载失败')
-        throw new Error('数据加载异常')
-      }
-      this.modelList = data
-      log.ok()
+      this.modelList = await getModelUrl(this.config.origins)
     } catch (error) {
-      log.error('数据加载失败')
-      return Promise.reject(error)
+      log.error('获取API接口数据失败')
+      console.error(error)
     }
+    // try {
+    //   log.info('正在拉取 swagger 文档信息')
+    //   let data: ModelList[] = []
+    //   const { originUrl } = this.config
+    //   if (Array.isArray(originUrl) && originUrl.length > 0) {
+    //     // data = await this.api.getModelList()
+    //   } else {
+    //   }
+    //   if (data.length === 0 && count <= 4) {
+    //     await this.getModelList(count + 1)
+    //     return
+    //   }
+
+    //   if (!data || !Array.isArray(data) || data.length === 0) {
+    //     log.error('数据加载失败')
+    //     throw new Error('数据加载异常')
+    //   }
+    //   log.ok()
+    // } catch (error) {
+    //   log.error('数据加载失败')
+    //   return Promise.reject(error)
+    // }
   }
 
   async initRemoteDataSource() {
@@ -104,7 +113,7 @@ export default class Doc2Ts {
 
     try {
       const reqs = this.modelList.map(async ({ url, name, swaggerVersion }) => {
-        name = camel2Kebab(name)
+        name = name ? camel2Kebab(name) : ''
         if (this.config.rename) name = rename(name, this.config.rename)
         let originType: OriginType
         switch (swaggerVersion) {
@@ -120,8 +129,8 @@ export default class Doc2Ts {
           default:
             originType = OriginType.SwaggerV2
         }
+        config.originUrl = url
         config.originType = originType
-        config.originUrl = `${this.config.originUrl}${url}`
 
         const data = await readRemoteDataSource(config, (text: string) => {
           log.info(`${name}-${text}`)
@@ -172,15 +181,19 @@ export default class Doc2Ts {
     this.StandardDataSourceList.forEach(i => {
       const { data, name } = i
       const { mods, baseClasses } = data
-      const config = moduleConfig[name] || {}
+      const config = name ? moduleConfig[name] || {} : {}
 
       const moduleName = config.moduleName || name
-      const dirPath = path.join(outputDir, `module/${moduleName}`)
-      const typeDirPaht = path.join(outputDir, `types/${moduleName}`)
+      const modulePath = moduleName ? `/${moduleName}` : ''
+      const dirPath = path.join(outputDir, `module${modulePath}`)
+      const typeDirPaht = path.join(outputDir, `types${modulePath}`)
+
+      const filePathItems: FilePathList['data'] = []
       mods.forEach(({ interfaces, name: fileName, description }) => {
         const filePath = path.join(dirPath, `${fileName}.ts`)
-        filePathList.push({ filePath, fileName })
+        filePathItems.push({ filePath, fileName })
 
+        const diffClassPath = findDiffPath(dirPath, tempClassPath).replace(/\.ts$/, '')
         const params: ModelInfo = {
           name,
           render,
@@ -191,8 +204,8 @@ export default class Doc2Ts {
           hideMethod,
           interfaces,
           description,
-          typeDirPaht
-          // resultTypeRender
+          typeDirPaht,
+          diffClassPath
         }
         new CreateApiFile(params)
 
@@ -206,6 +219,7 @@ export default class Doc2Ts {
         })
         createTypeFile.createBaseClasses()
       })
+      filePathList.push({ moduleName, data: filePathItems })
     })
 
     createIndexFilePath(outputDir, filePathList)

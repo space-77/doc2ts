@@ -1,24 +1,28 @@
 import http from 'http'
 import https from 'https'
-import { ModelInfoList, ModelList } from '../type'
+import { Doc2TsConfig, ModelInfoList, ModelList } from '../type'
 
 export default class Api {
-  fetch!: typeof https | typeof http
+  // static fetch: typeof https | typeof http
+  static urlReg = /^https?:\/\//
+  static httpsReg = /^https:\/\//
   static baseURL: string
 
-  constructor(baseURL: string) {
-    if (!baseURL) throw new Error('接口地址不存在')
-    if (!/^https?:\/\/.+/.test(baseURL)) throw new Error('请配置正确的接口地址')
-    Api.baseURL = /\/$/.test(baseURL) ? baseURL : `${baseURL}/`
-    this.fetch = /^http:\/\//.test(baseURL) ? http : https
+  constructor() {
+    // if (!Array.isArray(originUrl) || originUrl.length === 0) throw new Error('接口地址不存在')
+    // const uiUrl = originUrl.filter
+    // if (!/^https?:\/\/.+/.test(baseURL)) throw new Error('请配置正确的接口地址')
+    // Api.baseURL = /\/$/.test(baseURL) ? baseURL : `${baseURL}/`
+    // this.fetch = /^http:\/\//.test(baseURL) ? http : https
   }
 
-  get<T = any>(url: string) {
-    url = url.replace(/^\//, '')
+  static get<T = any>(url: string) {
+    if (!Api.urlReg) throw new Error(`${url} 请求路径不合法`)
+    const fetch = Api.httpsReg.test(url) ? https : http
     return new Promise<T>((resolve, reject) => {
       let rawData = ''
-      this.fetch
-        .get(`${Api.baseURL}${url}`, res => {
+      fetch
+        .get(url, res => {
           if (res.statusCode == 200) {
             res.on('data', chunk => {
               //接收流数据
@@ -40,11 +44,16 @@ export default class Api {
     })
   }
 
-  getModelList() {
-    return this.get<ModelList[]>('/swagger-resources')
+  getModelList(url?: string) {
+    if (url) {
+      return Api.get<ModelList>(url)
+    } else {
+      const url = `${Api.baseURL}/swagger-resources`
+      return Api.get<ModelList[]>(url)
+    }
   }
 
   getModelInfoList(modelPath: string) {
-    return this.get<ModelInfoList>(modelPath)
+    return Api.get<ModelInfoList>(modelPath)
   }
 }

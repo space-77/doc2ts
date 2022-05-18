@@ -10,7 +10,7 @@ export default class Doc2Ts {
     constructor();
     init(): Promise<void>;
     getConfig(): Promise<void>;
-    getModelList(count?: number): Promise<undefined>;
+    getModelList(): Promise<void>;
     initRemoteDataSource(): Promise<void>;
     generateFile(): Promise<void>;
 }

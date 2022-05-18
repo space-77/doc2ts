@@ -24,9 +24,9 @@ export interface IRequestParams {
 }
 export interface ModelList {
     url: string;
-    name: string;
-    location: string;
-    swaggerVersion: string;
+    name?: string;
+    location?: string;
+    swaggerVersion?: '3.0' | '2.0' | '1.0';
 }
 export interface Parameters {
     in: string;
@@ -240,7 +240,9 @@ export declare type Doc2TsConfig = {
     /**
      * @description swagger 文档请求地址 eg: http://localhost:7001
      */
-    originUrl: string;
+    origins: (ModelList & {
+        isSwaggerBootstrapUi: boolean;
+    })[];
     /**
      * @deprecated prettier 格式化代码的配置位置，默认会读取项目上的 .prettierrc.js  prettier.config.js prettier.config.cjs .prettierrc .prettierrc.json .prettierrc.json5 以及 package.json 里的  prettier配置， 没有则使用默认配置
      */
@@ -258,7 +260,7 @@ export declare type Doc2TsConfig = {
      * @default ApiClient
      * @description 每个模块继承的基类名称， 注意：基类必须 实现 IApiClient 接口
      */
-    baseClassName?: string;
+    baseClassName: string;
     /**
      * @description 基类路径
      */
@@ -284,11 +286,11 @@ export declare type Doc2TsConfig = {
 };
 export declare type Doc2TsConfigKey = keyof Doc2TsConfig;
 export declare type StandardDataSourceLister = {
-    name: string;
+    name?: string;
     data: StandardDataSource;
 };
 export declare type ModelInfo = {
-    name: string;
+    name?: string;
     config: ModuleConfigInfo;
     dirPath: string;
     filePath: string;
@@ -297,6 +299,7 @@ export declare type ModelInfo = {
     interfaces: Interface[];
     typeDirPaht: string;
     description: string;
+    diffClassPath: string;
     render: Doc2TsConfig['render'];
 };
 export declare type GetParamsStr = {
@@ -316,6 +319,9 @@ export declare type GetParamsStr = {
     formData: string;
 };
 export declare type FilePathList = {
-    fileName: string;
-    filePath: string;
+    moduleName?: string;
+    data: {
+        fileName: string;
+        filePath: string;
+    }[];
 };

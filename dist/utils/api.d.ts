@@ -1,12 +1,10 @@
-/// <reference types="node" />
-import http from 'http';
-import https from 'https';
 import { ModelInfoList, ModelList } from '../type';
 export default class Api {
-    fetch: typeof https | typeof http;
+    static urlReg: RegExp;
+    static httpsReg: RegExp;
     static baseURL: string;
-    constructor(baseURL: string);
-    get<T = any>(url: string): Promise<T>;
-    getModelList(): Promise<ModelList[]>;
+    constructor();
+    static get<T = any>(url: string): Promise<T>;
+    getModelList(url?: string): Promise<ModelList> | Promise<ModelList[]>;
     getModelInfoList(modelPath: string): Promise<ModelInfoList>;
 }

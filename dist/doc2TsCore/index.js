@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const fs_1 = __importDefault(require("fs"));
 const log_1 = __importDefault(require("../utils/log"));
 const api_1 = __importDefault(require("../utils/api"));
 const path_1 = __importDefault(require("path"));
@@ -23,6 +24,7 @@ const createApiFile_1 = require("../generators/createApiFile");
 const utils_2 = require("../utils");
 class Doc2Ts {
     constructor() {
+        this.api = new api_1.default();
         this.modelList = [];
         this.StandardDataSourceList = [];
         this.configPath = './doc2ts.config.ts';
@@ -32,9 +34,8 @@ class Doc2Ts {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 yield this.getConfig();
-                this.api = new api_1.default(this.config.originUrl);
-                yield this.getModelList();
-                yield this.initRemoteDataSource();
+                // await this.getModelList()
+                // await this.initRemoteDataSource()
                 this.generateFile();
             }
             catch (error) {
@@ -53,26 +54,36 @@ class Doc2Ts {
             }
         });
     }
-    getModelList(count = 0) {
+    getModelList() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                log_1.default.info('正在拉取 swagger 文档信息');
-                const data = yield this.api.getModelList();
-                if (data.length === 0 && count <= 4) {
-                    yield this.getModelList(count + 1);
-                    return;
-                }
-                if (!data || !Array.isArray(data) || data.length === 0) {
-                    log_1.default.error('数据加载失败');
-                    throw new Error('数据加载异常');
-                }
-                this.modelList = data;
-                log_1.default.ok();
+                this.modelList = yield (0, utils_2.getModelUrl)(this.config.origins);
             }
             catch (error) {
-                log_1.default.error('数据加载失败');
-                return Promise.reject(error);
+                log_1.default.error('获取API接口数据失败');
+                console.error(error);
             }
+            // try {
+            //   log.info('正在拉取 swagger 文档信息')
+            //   let data: ModelList[] = []
+            //   const { originUrl } = this.config
+            //   if (Array.isArray(originUrl) && originUrl.length > 0) {
+            //     // data = await this.api.getModelList()
+            //   } else {
+            //   }
+            //   if (data.length === 0 && count <= 4) {
+            //     await this.getModelList(count + 1)
+            //     return
+            //   }
+            //   if (!data || !Array.isArray(data) || data.length === 0) {
+            //     log.error('数据加载失败')
+            //     throw new Error('数据加载异常')
+            //   }
+            //   log.ok()
+            // } catch (error) {
+            //   log.error('数据加载失败')
+            //   return Promise.reject(error)
+            // }
         });
     }
     initRemoteDataSource() {
@@ -112,7 +123,7 @@ class Doc2Ts {
             };
             try {
                 const reqs = this.modelList.map(({ url, name, swaggerVersion }) => __awaiter(this, void 0, void 0, function* () {
-                    name = (0, utils_2.camel2Kebab)(name);
+                    name = name ? (0, utils_2.camel2Kebab)(name) : '';
                     if (this.config.rename)
                         name = (0, utils_2.rename)(name, this.config.rename);
                     let originType;
@@ -129,8 +140,8 @@ class Doc2Ts {
                         default:
                             originType = scripts_1.OriginType.SwaggerV2;
                     }
+                    config.originUrl = url;
                     config.originType = originType;
-                    config.originUrl = `${this.config.originUrl}${url}`;
                     const data = yield (0, scripts_1.readRemoteDataSource)(config, (text) => {
                         log_1.default.info(`${name}-${text}`);
                     });
@@ -149,13 +160,14 @@ class Doc2Ts {
     }
     generateFile() {
         return __awaiter(this, void 0, void 0, function* () {
-            // try {
-            //   const dataList = fs.readFileSync(path.join(__dirname, '../../dist/modelInfoList.json')).toString()
-            //   this.StandardDataSourceList = JSON.parse(dataList) as StandardDataSourceLister[]
-            // } catch (error) {
-            //   console.error(error)
-            //   return
-            // }
+            try {
+                const dataList = fs_1.default.readFileSync(path_1.default.join(__dirname, '../../dist/modelInfoList.json')).toString();
+                this.StandardDataSourceList = JSON.parse(dataList);
+            }
+            catch (error) {
+                console.error(error);
+                return;
+            }
             const { render, outDir, hideMethod, prettierPath, baseClassName, baseClassPath, typeFileRender, resultTypeRender, moduleConfig = {} } = this.config;
             yield (0, utils_2.loadPrettierConfig)(prettierPath);
             const outputDir = (0, utils_2.resolveOutPath)(outDir);
@@ -166,13 +178,16 @@ class Doc2Ts {
             this.StandardDataSourceList.forEach(i => {
                 const { data, name } = i;
                 const { mods, baseClasses } = data;
-                const config = moduleConfig[name] || {};
+                const config = name ? moduleConfig[name] || {} : {};
                 const moduleName = config.moduleName || name;
-                const dirPath = path_1.default.join(outputDir, `module/${moduleName}`);
-                const typeDirPaht = path_1.default.join(outputDir, `types/${moduleName}`);
+                const modulePath = moduleName ? `/${moduleName}` : '';
+                const dirPath = path_1.default.join(outputDir, `module${modulePath}`);
+                const typeDirPaht = path_1.default.join(outputDir, `types${modulePath}`);
+                const filePathItems = [];
                 mods.forEach(({ interfaces, name: fileName, description }) => {
                     const filePath = path_1.default.join(dirPath, `${fileName}.ts`);
-                    filePathList.push({ filePath, fileName });
+                    filePathItems.push({ filePath, fileName });
+                    const diffClassPath = (0, utils_2.findDiffPath)(dirPath, tempClassPath).replace(/\.ts$/, '');
                     const params = {
                         name,
                         render,
@@ -183,8 +198,8 @@ class Doc2Ts {
                         hideMethod,
                         interfaces,
                         description,
-                        typeDirPaht
-                        // resultTypeRender
+                        typeDirPaht,
+                        diffClassPath
                     };
                     new createApiFile_1.CreateApiFile(params);
                     const createTypeFile = new createTypeFile_1.default({
@@ -197,6 +212,7 @@ class Doc2Ts {
                     });
                     createTypeFile.createBaseClasses();
                 });
+                filePathList.push({ moduleName, data: filePathItems });
             });
             (0, createApiFile_1.createIndexFilePath)(outputDir, filePathList);
         });

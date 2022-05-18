@@ -12,13 +12,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.format = exports.createFile = exports.resolveOutPath = exports.rename = exports.getConfig = exports.loadPrettierConfig = exports.findDiffPath = exports.createType = exports.createDeepType = exports.getTypeList = exports.findType = exports.updateName = exports.firstToLower = exports.firstToUpper = exports.camel2Kebab = void 0;
+exports.getModelUrl = exports.format = exports.createFile = exports.resolveOutPath = exports.rename = exports.getConfig = exports.loadPrettierConfig = exports.findDiffPath = exports.createType = exports.createDeepType = exports.getTypeList = exports.findType = exports.updateName = exports.firstToLower = exports.firstToUpper = exports.camel2Kebab = void 0;
 const fs_1 = __importDefault(require("fs"));
 const typescript_1 = __importDefault(require("typescript"));
 const log_1 = __importDefault(require("./log"));
 const path_1 = __importDefault(require("path"));
 const prettier_1 = __importDefault(require("prettier"));
 const config_1 = require("../common/config");
+const api_1 = __importDefault(require("./api"));
 /**
  * @param str
  * @description 烤串转驼峰
@@ -165,29 +166,8 @@ exports.createType = createType;
  * @description 计算某个路径和另一个路径之间的差值
  */
 function findDiffPath(originPath, targetPath) {
-    const maxLen = Math.max(...[originPath.length, targetPath.length]) - 1;
-    let index = -1;
-    for (let i = 0; i < maxLen; i++) {
-        if (originPath[i] !== targetPath[i]) {
-            index = i;
-            break;
-        }
-    }
-    if (index === -1)
-        throw new Error('两个路径不在同一个盘符');
-    let _originPath = '';
-    const diff = originPath.slice(index);
-    const _targetPath = targetPath.slice(index);
-    if (diff) {
-        _originPath = diff
-            .split(path_1.default.sep)
-            .map(() => '..')
-            .join('/');
-        return path_1.default.join(_originPath, _targetPath).replace(/\\/g, '/');
-    }
-    else {
-        return `./${path_1.default.join(_originPath, _targetPath).replace(/\\/g, '/')}`;
-    }
+    const diffPath = path_1.default.relative(originPath, targetPath).replace(/\\\\?/g, '/');
+    return /^\.\.?\//.test(diffPath) ? diffPath : `./${diffPath}`; // 处理同级目录应用异常问题
 }
 exports.findDiffPath = findDiffPath;
 function getRootFilePath(filePath) {
@@ -318,3 +298,43 @@ function format(fileContent, prettierOpts = {}) {
     }
 }
 exports.format = format;
+function getModelList(url, count = 0) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const baseUrl = url.replace(/\/$/, '');
+        try {
+            log_1.default.info('正在拉取 swagger-bootstrap-ui 文档信息');
+            const data = yield api_1.default.get(`${baseUrl}/swagger-resources`);
+            if (data.length === 0 && count <= 4) {
+                return yield getModelList(url, count + 1);
+            }
+            if (!data || !Array.isArray(data) || data.length === 0) {
+                log_1.default.error('数据加载失败');
+                throw new Error('数据加载异常');
+            }
+            log_1.default.ok();
+            return data.map(i => (Object.assign(Object.assign({}, i), { url: `${baseUrl}${i.url}` })));
+        }
+        catch (error) {
+            log_1.default.error('数据加载失败');
+            return Promise.reject(error);
+        }
+    });
+}
+function getModelUrl(origins) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const urlBaseUrl = origins.filter(i => i.isSwaggerBootstrapUi).map(({ url }) => url);
+        const urlList = origins.filter(i => !i.isSwaggerBootstrapUi); // .map(i => ({ name: i.modelName, url: i.url }))
+        const apiUrls = urlList.map(i => {
+            const [_, version = 2] = i.url.match(/\/v(\d)\//) || [];
+            const swaggerVersion = `${version}.0`;
+            return Object.assign(Object.assign({}, i), { swaggerVersion });
+        });
+        const reqs = urlBaseUrl.map((url) => __awaiter(this, void 0, void 0, function* () {
+            const modelList = yield getModelList(url);
+            apiUrls.push(...modelList);
+        }));
+        yield Promise.all(reqs);
+        return apiUrls;
+    });
+}
+exports.getModelUrl = getModelUrl;

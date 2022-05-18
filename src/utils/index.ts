@@ -4,7 +4,9 @@ import log from './log'
 import path from 'path'
 import prettier from 'prettier'
 import { PrettierConfig } from '../common/config'
-import { DeepTypes, Doc2TsConfig, GetTypeList, TypeList } from '../type'
+import { DeepTypes, Doc2TsConfig, GetTypeList, ModelList, TypeList } from '../type'
+import Api from './api'
+import { OriginType } from 'pont-engine/lib/scripts'
 
 /**
  * @param str
@@ -154,28 +156,8 @@ export interface ${typeName}${parentTypeName ? ` extends ${parentTypeName}` : ''
  * @description 计算某个路径和另一个路径之间的差值
  */
 export function findDiffPath(originPath: string, targetPath: string) {
-  const maxLen = Math.max(...[originPath.length, targetPath.length]) - 1
-  let index = -1
-  for (let i = 0; i < maxLen; i++) {
-    if (originPath[i] !== targetPath[i]) {
-      index = i
-      break
-    }
-  }
-  if (index === -1) throw new Error('两个路径不在同一个盘符')
-  let _originPath = ''
-
-  const diff = originPath.slice(index)
-  const _targetPath = targetPath.slice(index)
-  if (diff) {
-    _originPath = diff
-      .split(path.sep)
-      .map(() => '..')
-      .join('/')
-    return path.join(_originPath, _targetPath).replace(/\\/g, '/')
-  } else {
-    return `./${path.join(_originPath, _targetPath).replace(/\\/g, '/')}`
-  }
+  const diffPath = path.relative(originPath, targetPath).replace(/\\\\?/g, '/')
+  return /^\.\.?\//.test(diffPath) ? diffPath : `./${diffPath}` // 处理同级目录应用异常问题
 }
 
 function getRootFilePath(filePath: string) {
@@ -300,4 +282,42 @@ export function format(fileContent: string, prettierOpts = {}) {
     log.error(`代码格式化报错！${e.toString()}\n代码为：${fileContent}`)
     return fileContent
   }
+}
+
+async function getModelList(url: string, count = 0): Promise<ModelList[]> {
+  const baseUrl = url.replace(/\/$/, '')
+  try {
+    log.info('正在拉取 swagger-bootstrap-ui 文档信息')
+    const data = await Api.get<ModelList[]>(`${baseUrl}/swagger-resources`)
+    if (data.length === 0 && count <= 4) {
+      return await getModelList(url, count + 1)
+    }
+
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      log.error('数据加载失败')
+      throw new Error('数据加载异常')
+    }
+    log.ok()
+    return data.map(i => ({ ...i, url: `${baseUrl}${i.url}` }))
+  } catch (error) {
+    log.error('数据加载失败')
+    return Promise.reject(error)
+  }
+}
+
+export async function getModelUrl(origins: Doc2TsConfig['origins']) {
+  const urlBaseUrl = origins.filter(i => i.isSwaggerBootstrapUi).map(({ url }) => url)
+  const urlList = origins.filter(i => !i.isSwaggerBootstrapUi) // .map(i => ({ name: i.modelName, url: i.url }))
+  const apiUrls: ModelList[] = urlList.map(i => {
+    const [_, version = 2] = i.url.match(/\/v(\d)\//) || []
+    const swaggerVersion = `${version}.0` as ModelList['swaggerVersion']
+    return { ...i, swaggerVersion }
+  })
+
+  const reqs = urlBaseUrl.map(async url => {
+    const modelList = await getModelList(url)
+    apiUrls.push(...modelList)
+  })
+  await Promise.all(reqs)
+  return apiUrls
 }

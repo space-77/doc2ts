@@ -15,16 +15,18 @@ export class CreateApiFile {
     this.createFile()
   }
   formatFileData() {
-    const { fileName, dirPath, description, typeDirPaht } = this.modelInfo
+    const { fileName, dirPath, description, typeDirPaht, diffClassPath } = this.modelInfo
 
     const className = firstToUpper(fileName)
     const typeFilePath = findDiffPath(dirPath, path.join(typeDirPaht, fileName))
+    // const typeFilePath = findDiffPath(dirPath, path.join(typeDirPaht, fileName))
 
     const classMethodStr = this.generateApiClassMethod()
     let content = this.getTempData('../temp/apiFile')
     content = content.replace(/\{className\}/g, className)
     content = content.replace(/\{description\}/g, description)
     content = content.replace(/\{typeFilePath\}/g, typeFilePath)
+    content = content.replace(/\{baseClassPath\}/g, diffClassPath)
     content = content.replace(/\{classMethodStr\}/g, classMethodStr)
 
     this.fileContent = content
@@ -180,7 +182,7 @@ export class CreateApiFile {
     const { fileContent, modelInfo } = this
     const { filePath, render, name, config } = modelInfo
 
-    const modelName = config.moduleName || name
+    const modelName = config.moduleName || name || ''
     const content = render ? render(fileContent, modelName, config) : fileContent
     createFile(filePath, content)
   }
@@ -224,20 +226,51 @@ export function createIndexFilePath(outDir: string, filePathList: FilePathList[]
   const fileNameList: string[] = []
   const importPathCode: string[] = []
 
-  filePathList.sort((a, b) => a.fileName.length - b.fileName.length)
+  // filePathList.sort((a,b) => a.)
 
-  filePathList.forEach(i => {
+  const filePathItems = filePathList.reduce((arr, item) => arr.concat(item.data), [] as FilePathList['data'])
+
+  filePathItems.sort((a, b) => a.fileName.length - b.fileName.length)
+
+  filePathItems.forEach(i => {
     const { fileName, filePath } = i
     const apiFilePath = findDiffPath(outDir, filePath).replace(/\.ts$/, '')
     importPathCode.push(`import ${fileName} from '${apiFilePath}'`)
     fileNameList.push(fileName)
   })
 
+  // 无模块，直接导出
+  const noModelItems = filePathList
+    .filter(i => !i.moduleName)
+    .reduce((arr, i) => arr.concat(i.data), [] as FilePathList['data'])
+    .sort((a, b) => a.fileName.length - b.fileName.length)
+    .map(i => i.fileName)
+    .join(',\n')
+
+  // console.log(noModelItems)
+
+  // 有模块，再分模块导出
+  const hasModelItems = filePathList
+    .filter(i => i.moduleName)
+    .sort((a, b) => a.moduleName!.length - b.moduleName!.length)
+    .map(({ moduleName, data }) => {
+      data.sort((a, b) => a.fileName.length - b.fileName.length)
+      return `${moduleName}: {
+        ${data.map(i => i.fileName).join(',\n')}
+      }`
+    })
+    .join(',\n')
+  // let exportContent = `
+  // ${hasModelItems.map(i => {})}
+  // `
+
   const content = `
   ${importPathCode.join('\n')}
 
   export default {
-    ${fileNameList.join(',\n')}
+    ${noModelItems}
+    ${noModelItems ? ',' : ''}
+    ${hasModelItems}
   }
   `
   createFile(indexFilePath, content)
