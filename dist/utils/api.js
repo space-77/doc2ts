@@ -7,13 +7,6 @@ const http_1 = __importDefault(require("http"));
 const https_1 = __importDefault(require("https"));
 const index_1 = require("./index");
 class Api {
-    constructor() {
-        // if (!Array.isArray(originUrl) || originUrl.length === 0) throw new Error('接口地址不存在')
-        // const uiUrl = originUrl.filter
-        // if (!/^https?:\/\/.+/.test(baseURL)) throw new Error('请配置正确的接口地址')
-        // Api.baseURL = /\/$/.test(baseURL) ? baseURL : `${baseURL}/`
-        // this.fetch = /^http:\/\//.test(baseURL) ? http : https
-    }
     static get(url) {
         if ((0, index_1.judgeIsVaildUrl)(url))
             throw new Error(`${url} 请求路径不合法`);
@@ -52,11 +45,6 @@ class Api {
             return Api.get(url);
         }
     }
-    getModelInfoList(modelPath) {
-        return Api.get(modelPath);
-    }
 }
 exports.default = Api;
-// static fetch: typeof https | typeof http
-// static urlReg = /^https?:\/\//
 Api.httpsReg = /^https:\/\//;

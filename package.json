@@ -1,6 +1,6 @@
 {
   "name": "doc2ts",
-  "version": "0.3.1",
+  "version": "0.4.2",
   "description": "根据接口文档生成ts接口文件",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -8,11 +8,11 @@
     "doc2ts": "./bin/doc2api.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node ./scripts/build.js",
     "test": "node ./bin/doc2api.js",
     "init-doc": "node ./bin/init.js",
     "init-config": "ts-node ./src/scripts/initConfig.ts",
-    "start": "ts-node ./src/index.ts"
+    "start": "ts-node ./src/dev.ts"
   },
   "author": "space-77",
   "license": "MIT",

@@ -88,14 +88,14 @@ async function generateConfig(answers: InitConfig) {
   const { originUrl, baseClassPath, baseClassName, outDir, languageType, createBaseClass } = answers
   const tips = defaultOriginUrl === originUrl ? '/* 请把这个地址更换为您的地址 */' : ''
   const origins = `[{ url: ${tips} '${originUrl}' }]`
-  let content = loadTempFile('../temp/doc2ts-comfig')
-
-  content = content.replace(/\{outDir\}/, outDir)
-  content = content.replace(/\{origins\}/, origins)
-  content = content.replace(/\{languageType\}/, languageType)
-  content = content.replace(/\{baseClassPath\}/, baseClassPath)
-  content = content.replace(/\{baseClassName\}/, baseClassName)
   try {
+    let content = loadTempFile('../temp/doc2ts-comfig')
+    content = content.replace(/\{outDir\}/, outDir)
+    content = content.replace(/\{origins\}/, origins)
+    content = content.replace(/\{languageType\}/, languageType)
+    content = content.replace(/\{baseClassPath\}/, baseClassPath)
+    content = content.replace(/\{baseClassName\}/, baseClassName)
+
     await createFile(CONFIG_FILE_PATH, content)
     log.success('配置文件已生成')
     if (createBaseClass) {

@@ -13,10 +13,8 @@ var __createBinding = (this && this.__createBinding) || (Object.create ? (functi
 var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-__exportStar(require("./type"), exports);
-const doc2TsCore_1 = __importDefault(require("./doc2TsCore"));
-new doc2TsCore_1.default();
+exports.Surrounding = void 0;
+var config_1 = require("./common/config");
+Object.defineProperty(exports, "Surrounding", { enumerable: true, get: function () { return config_1.Surrounding; } });
+__exportStar(require("./doc2TsCore"), exports);

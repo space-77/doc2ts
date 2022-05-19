@@ -8,7 +8,7 @@ program.option('-i, --init', '初始化配置文件').action(() => {
   initConfig()
 })
 
-program.option('-g, --generate', '生成代码').action(() => {
+program.option('-b, --build', '生成代码').action(() => {
   const doc2ts = new Doc2Ts()
   doc2ts.build()
 })

@@ -1,5 +1,5 @@
+import { PARAMS_NAME, Surrounding } from './common/config';
 import { Interface, Property, StandardDataSource } from 'pont-engine/lib/standard';
-import { PARAMS_NAME } from './common/config';
 export interface IApiClient {
     /**
      * @param config
@@ -28,177 +28,6 @@ export interface ModelList {
     location?: string;
     swaggerVersion?: '3.0' | '2.0' | '1.0';
 }
-export interface Parameters {
-    in: string;
-    name: string;
-    type: string;
-    format?: string;
-    description: string;
-    required: boolean;
-    'x-example': string;
-    schema?: {
-        type: string;
-        originalRef: string;
-        $ref: string;
-    };
-}
-export interface PropertiesItem {
-    type: string;
-    $ref?: string;
-    example?: string;
-    description: string;
-    originalRef?: string;
-    items?: {
-        $ref: string;
-        type?: string;
-        originalRef: string;
-    };
-}
-export interface MethodInfo {
-    tags: string[];
-    summary: string;
-    description: string;
-    operationId: string;
-    parameters: Parameters[];
-    produces: string[];
-    responses: {
-        200: {
-            schema: PropertiesItem;
-            description: string;
-        };
-    };
-    deprecated: boolean;
-}
-export interface ModelInfoList {
-    swagger: string;
-    info: {
-        title: string;
-        version: string;
-        description: string;
-    };
-    host: string;
-    basePath: string;
-    tags: {
-        name: string;
-        description: string;
-    }[];
-    paths: {
-        [key: string]: {
-            put: MethodInfo;
-            get: MethodInfo;
-            post: MethodInfo;
-            delete: MethodInfo;
-        };
-    };
-    definitions: {
-        [key: string]: {
-            type: string;
-            title: string;
-            required?: string[];
-            description?: string;
-            properties: {
-                [key: string]: PropertiesItem;
-            };
-        };
-    };
-}
-export interface DocModelInfoList {
-    data: ModelInfoList;
-    modelName: string;
-}
-export interface ResponsesType {
-    loop?: boolean;
-    type?: string;
-    keyName?: string;
-    hsaLoop?: boolean;
-    example?: string;
-    required?: boolean;
-    parentType?: string;
-    description?: string;
-    children?: ResponsesType | ResponsesType[] | null;
-}
-export interface RequestType {
-    loop?: boolean;
-    type?: string;
-    format?: string;
-    inType?: string;
-    keyName?: string;
-    hsaLoop?: boolean;
-    required?: boolean;
-    description?: string;
-    children: RequestType[] | null;
-}
-export interface ModelInfos {
-    basePath: string;
-    modelName: string;
-    beforeName: string;
-    typesList: TypeList[];
-    funcTypeNameList: string[];
-    apiInfos: {
-        requestInfo: {
-            url: string;
-            qurey: string[] | null;
-            params: string;
-            restParameters: TypeList['value'];
-        };
-        method: string;
-        summary: string;
-        funcInfo: {
-            funcName: string;
-            funcType: string;
-            requestType: string;
-            funcTypeName: string;
-            responseType: string;
-        };
-        operationId: string;
-        paramsTypes: TypeList['value'];
-        methodConfig: MethodConfig;
-    }[];
-}
-export declare type DeepTypes = {
-    [key: string]: (ResponsesType | RequestType)[];
-};
-export declare type GetTypeList = (params: {
-    deep?: number;
-    json: (ResponsesType | RequestType)[];
-    parentName?: string;
-    deepTypes: DeepTypes;
-}) => string;
-export declare type TypeList = {
-    refs: string[];
-    preRef: string;
-    typeName: string;
-    description?: string;
-    parentTypeName?: string;
-    value: {
-        type: string;
-        loop?: boolean;
-        inType?: string;
-        keyName: string;
-        example?: string;
-        required?: boolean;
-        hsaChild?: boolean;
-        description?: string;
-        childTypeName?: string;
-        childType?: string;
-    }[];
-};
-export declare type GetResponsesType = (params: {
-    preRef: string;
-    topmost?: boolean;
-    definitions: ModelInfoList['definitions'];
-    typesList: TypeList[];
-    inType?: string;
-    typeName: string;
-    description?: string;
-}) => string | undefined;
-export declare type FormatParamsType = (params: {
-    parameters: Parameters[];
-    description: string;
-    paramsTypeName: string;
-    definitions: ModelInfoList['definitions'];
-    typesList: TypeList[];
-}) => TypeList['value'];
 export declare type MethodConfig = {
     /**
      * @description 修改方法名称
@@ -248,6 +77,10 @@ export declare type Doc2TsConfig = {
      * @description 每个模块继承的基类名称， 注意：基类必须 实现 IApiClient 接口
      */
     baseClassName: string;
+    /**
+     * @description 生成的文件类型
+     */
+    languageType?: Surrounding;
     /**
      * @description 基类路径
      */

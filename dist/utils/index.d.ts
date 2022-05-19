@@ -1,4 +1,4 @@
-import { DeepTypes, Doc2TsConfig, GetTypeList, ModelList, TypeList } from '../type';
+import { Doc2TsConfig, ModelList } from '../type';
 /**
  * @param str
  * @description 烤串转驼峰
@@ -14,25 +14,6 @@ export declare function firstToUpper(str: string): string;
  * @description 首字母小写
  */
 export declare function firstToLower(str: string): string;
-/**
- *
- * @param name
- * @param nameList
- * @description 就解决重名问题
- */
-export declare function updateName(name: string, nameList: Set<string>): string;
-/**
- *
- * @param str
- * @description 类型装换
- */
-export declare function findType(str: string): "number" | "string" | "boolean" | "array" | "object" | undefined;
-/**
- * @description 根据JSON生成数据类型
- */
-export declare const getTypeList: GetTypeList;
-export declare function createDeepType(deepTypes: DeepTypes): string;
-export declare function createType(typesList: TypeList): string;
 /**
  * @param originPath 起始位置
  * @param targetPath 目标位置

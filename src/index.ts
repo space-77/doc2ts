@@ -1,4 +1,4 @@
-export * from './type'
-import Doc2Ts from './doc2TsCore'
+export { Doc2TsConfig, IApiClient, IRequestParams, Method, TData, ModelList, FilePathList } from './type'
+export { Surrounding } from './common/config'
 
-new Doc2Ts()
+export * from './doc2TsCore'

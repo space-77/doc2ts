@@ -1,0 +1,6 @@
+/**
+ * @description {description}
+ */
+{funName}: mT.{funTypeName} = {paramsName} => {{methodBody}
+  return this.{requestMethod}({ {funConfig} })
+}
