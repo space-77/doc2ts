@@ -1,4 +1,4 @@
-import prettier from 'prettier'
+import type prettier from 'prettier'
 import { Doc2TsConfig, Doc2TsConfigKey, ModuleConfig } from '../type'
 
 export const CONFIG_PATH = 'doc2ts-config.ts'
@@ -28,6 +28,7 @@ export class Config {
   readonly moduleConfig?: ModuleConfig // doc2ts-config 配置信息
   readonly prettierPath?: string
   readonly baseClassPath!: string
+  readonly languageType?: Doc2TsConfig['languageType']
   readonly hideMethod: boolean = false
   readonly render: Doc2TsConfig['render']
   readonly typeFileRender: Doc2TsConfig['typeFileRender']

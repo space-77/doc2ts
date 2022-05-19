@@ -1,4 +1,4 @@
-import { PARAMS_NAME, Surrounding } from './common/config'
+import type { PARAMS_NAME } from './common/config'
 import { Interface, Property, StandardDataSource } from 'pont-engine/lib/standard'
 
 export interface IApiClient {
@@ -170,6 +170,7 @@ export type Doc2TsConfigKey = keyof Doc2TsConfig
 export type StandardDataSourceLister = { name?: string; data: StandardDataSource }
 
 export type ModelInfo = {
+  isJs?: boolean
   name?: string
   config: ModuleConfigInfo
   dirPath: string

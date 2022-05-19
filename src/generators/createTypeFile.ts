@@ -31,10 +31,10 @@ export default class CreateTypeFile {
 
   constructor(params: TypeFileInfo) {
     this.fileInfo = params
-    this.generateFile()
+    // this.generateFile()
   }
 
-  private generateFile() {
+  public async generateFile() {
     const { typeDirPaht, fileName, typeFileRender } = this.fileInfo
     this.generateApiClassType() // 创建 接口请求方法的类型
     this.generateTypeValue() // 创建 返回类型
@@ -42,7 +42,7 @@ export default class CreateTypeFile {
     this.generateParamType() // 创建 参数的类型
     this.generateImportType() // 创建 返回数据类型和参数类型 需要引入的类型
     this.content = typeof typeFileRender === 'function' ? typeFileRender(this.content, fileName) : this.content
-    createFile(path.join(typeDirPaht, `${fileName}.ts`), this.content)
+    await createFile(path.join(typeDirPaht, `${fileName}.d.ts`), this.content)
   }
 
   private generateApiClassType() {
@@ -95,6 +95,9 @@ export default class CreateTypeFile {
       const [firstType] = typeArgs
       content += `<${this.generateResTypeValue(firstType)}>`
     }
+    //  if (!/\>$/.test(content) && isDefsType) {
+    //   console.log(content)
+    // }
     return content || 'any'
   }
 
@@ -118,12 +121,9 @@ export default class CreateTypeFile {
 
   private generateImportType() {
     const { importType, content } = this
+    const hasObjectMap = importType.delete('ObjectMap')
     const importTypeList = Array.from(importType).sort((a, b) => a.length - b.length)
-    // if (importType.has('ObjectMap')) {
-    //   // objMapType
-    //   const objectMapType = objMapType
-    // }
-    const objectMapTypeStr = importType.has('ObjectMap') ? `\n${objMapType}` : ''
+    const objectMapTypeStr = hasObjectMap ? `\n${objMapType}` : ''
 
     this.content = `import { ${importTypeList.join(', ')} } from './type' ${objectMapTypeStr} \n${content}`
   }
@@ -132,20 +132,20 @@ export default class CreateTypeFile {
     return des ? `/** @description ${des}*/\n` : ''
   }
 
-  createBaseClasses() {
+  async createBaseClasses() {
     const { typeDirPaht, baseClasses } = this.fileInfo
     const content = baseClasses.map(i => {
       const { name, properties, templateArgs, description } = i
 
       if (properties.length === 0) return ''
 
-      const temList = templateArgs.map(i => i.typeName)
+      const temList = templateArgs.map(i => `${i.typeName} = any`)
       const temStr = temList.length > 0 ? `<${temList.join(', ')}>` : ''
       const itemsValue = this.generateParamTypeValue(properties).join('\n')
 
       return `${this.getDescription(description)}export type ${name}${temStr} = {\n${itemsValue}}`
     })
 
-    createFile(path.join(typeDirPaht, `type.ts`), content.join('\n'))
+    await createFile(path.join(typeDirPaht, `type.d.ts`), content.join('\n'))
   }
 }

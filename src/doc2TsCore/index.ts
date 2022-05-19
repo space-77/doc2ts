@@ -1,6 +1,8 @@
+import fs from 'fs'
 import log from '../utils/log'
 import Api from '../utils/api'
 import path from 'path'
+import { execSync } from 'child_process'
 import { Config, CONFIG_PATH } from '../common/config'
 import CreateTypeFile from '../generators/createTypeFile'
 import { Surrounding, DataSourceConfig } from 'pont-engine/lib/utils'
@@ -23,9 +25,12 @@ export default class Doc2Ts {
   async init() {
     try {
       await this.getConfig()
-      await this.getModelList()
-      await this.initRemoteDataSource()
-      this.generateFile()
+      // await this.getModelList()
+      // await this.initRemoteDataSource()
+      await this.generateFile()
+      // await this.transform2js()
+      // log.clear()
+      // log.success(log.done('---ALL DONE---'))
     } catch (error) {
       console.error(error)
     }
@@ -148,19 +153,20 @@ export default class Doc2Ts {
   }
 
   async generateFile() {
-    // try {
-    //   const dataList = fs.readFileSync(path.join(__dirname, '../../dist/modelInfoList.json')).toString()
-    //   this.StandardDataSourceList = JSON.parse(dataList) as StandardDataSourceLister[]
-    // } catch (error) {
-    //   console.error(error)
-    //   return
-    // }
+    try {
+      const dataList = fs.readFileSync(path.join(__dirname, '../../dist/modelInfoList.json')).toString()
+      this.StandardDataSourceList = JSON.parse(dataList) as StandardDataSourceLister[]
+    } catch (error) {
+      console.error(error)
+      return
+    }
 
     const {
       render,
       outDir,
       hideMethod,
       prettierPath,
+      languageType,
       baseClassName,
       baseClassPath,
       typeFileRender,
@@ -168,15 +174,19 @@ export default class Doc2Ts {
       moduleConfig = {}
     } = this.config
 
+    const isJs = languageType === Surrounding.javaScript // 'javaScript'
+
+    const fileSuffix = `.${isJs ? 'j' : 't'}s`
+
     await loadPrettierConfig(prettierPath)
 
     const outputDir = resolveOutPath(outDir)
     const targetPath = resolveOutPath(baseClassPath)
-    const tempClassPath = path.join(outputDir, 'module/baseClass.ts')
-    createBaseClassFile(tempClassPath, targetPath, baseClassName)
+    const tempClassPath = path.join(outputDir, `module/baseClass${fileSuffix}`)
+    createBaseClassFile({ tempClassPath, targetPath, importBaseCalssName: baseClassName, isJs })
     const filePathList: FilePathList[] = []
 
-    this.StandardDataSourceList.forEach(i => {
+    const allProcess = this.StandardDataSourceList.map(async i => {
       const { data, name } = i
       const { mods, baseClasses } = data
       const config = name ? moduleConfig[name] || {} : {}
@@ -187,12 +197,13 @@ export default class Doc2Ts {
       const typeDirPaht = path.join(outputDir, `types${modulePath}`)
 
       const filePathItems: FilePathList['data'] = []
-      mods.forEach(({ interfaces, name: fileName, description }) => {
-        const filePath = path.join(dirPath, `${fileName}.ts`)
+      const pros = mods.map(async ({ interfaces, name: fileName, description }) => {
+        const filePath = path.join(dirPath, `${fileName}${fileSuffix}`)
         filePathItems.push({ filePath, fileName })
 
         const diffClassPath = findDiffPath(dirPath, tempClassPath).replace(/\.[t|j]s$/, '')
         const params: ModelInfo = {
+          isJs,
           name,
           render,
           config,
@@ -205,7 +216,7 @@ export default class Doc2Ts {
           typeDirPaht,
           diffClassPath
         }
-        new CreateApiFile(params)
+        const createApiFile = new CreateApiFile(params)
 
         const createTypeFile = new CreateTypeFile({
           fileName,
@@ -215,11 +226,38 @@ export default class Doc2Ts {
           typeFileRender,
           resultTypeRender
         })
-        createTypeFile.createBaseClasses()
+
+        await Promise.all(
+          [
+            createApiFile.createFile(),
+            !isJs && createTypeFile.generateFile(),
+            !isJs && createTypeFile.createBaseClasses()
+          ].filter(Boolean)
+        )
       })
       filePathList.push({ moduleName, data: filePathItems })
+      await Promise.all(pros)
     })
 
-    createIndexFilePath(outputDir, filePathList)
+    const indexFilePath = path.join(outDir, `index${fileSuffix}`)
+    allProcess.push(createIndexFilePath({ outDir: outputDir, filePathList, indexFilePath, fileSuffix }))
+    await Promise.all(allProcess)
   }
+
+  // async transform2js() {
+  //   const { outDir } = this.config
+  //   try {
+  //     // console.log(path.join(resolveOutPath(outDir), 'index.ts'))
+  //     // findDiffPath()
+  //     // execSync('tsc ')
+  //     // console.log(path.join(__dirname, '../../'));
+  //     const filePath = findDiffPath(path.join(__dirname, '../../'), path.join(resolveOutPath(outDir), 'index.ts'))
+  //     // execSync(`tsc ${filePath} --target esnext --outDir dist11`)
+  //     const res = execSync(`tsc ${filePath} --target esnext --module commonjs --outDir dist11`).toString()
+  //     console.log(res)
+  //     // execSync(`tsc ${filePath} --target esnext --outDir dist11`)
+  //   } catch (error) {
+  //     return Promise.reject(error)
+  //   }
+  // }
 }

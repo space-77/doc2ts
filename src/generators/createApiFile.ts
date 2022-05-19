@@ -12,14 +12,17 @@ export class CreateApiFile {
     this.modelInfo = params
 
     this.formatFileData()
-    this.createFile()
   }
   formatFileData() {
-    const { fileName, dirPath, description, typeDirPaht, diffClassPath } = this.modelInfo
+    const { fileName, dirPath, description, typeDirPaht, diffClassPath, isJs } = this.modelInfo
 
     const className = firstToUpper(fileName)
-    const typeFilePath = findDiffPath(dirPath, path.join(typeDirPaht, fileName))
-    // const typeFilePath = findDiffPath(dirPath, path.join(typeDirPaht, fileName))
+    let typeFilePath = ''
+
+    if (!isJs) {
+      typeFilePath = findDiffPath(dirPath, path.join(typeDirPaht, fileName))
+      typeFilePath = `\nimport * as mT from '${typeFilePath}'`
+    }
 
     const classMethodStr = this.generateApiClassMethod()
     let content = this.getTempData('../temp/apiFile')
@@ -33,7 +36,7 @@ export class CreateApiFile {
   }
 
   generateApiClassMethod() {
-    const { config, hideMethod, interfaces } = this.modelInfo
+    const { config, hideMethod, interfaces, isJs } = this.modelInfo
     const methodsList = interfaces.map(i => {
       const { name: funName, method: met, path: _path, description, response, parameters } = i
       const { isDownload, config: metConfig, description: configDes } = config.methodConfig?.[funName] || {}
@@ -47,6 +50,7 @@ export class CreateApiFile {
       const requestMethod = isDownload ? 'downloadFile' : 'request'
       const url = `url:${this.formatUrl(_path, paramsInfo)}`
       const otherConfig = header + formData
+      const funTypeName = isJs ? '' : `: mT.${firstToUpper(funName)}`
       const requestConfig = metConfig ? `, config: ${JSON.stringify(metConfig)}` : ''
       const hideMet = hideMethod ? /^get$/i.test(met) || (/^post$/i.test(met) && body) : false
       const method = hideMet ? '' : `, method: '${met}'`
@@ -58,7 +62,7 @@ export class CreateApiFile {
       content = content.replace(/\{funConfig\}/g, funConfig)
       content = content.replace(/\{methodBody\}/g, methodBody)
       content = content.replace(/\{paramsName\}/g, paramsName)
-      content = content.replace(/\{funTypeName\}/g, firstToUpper(funName))
+      content = content.replace(/\{funTypeName\}/g, funTypeName)
       content = content.replace(/\{description\}/g, des)
       return content.replace(/\{requestMethod\}/g, requestMethod)
     })
@@ -178,13 +182,13 @@ export class CreateApiFile {
     }
   }
 
-  createFile() {
+  async createFile() {
     const { fileContent, modelInfo } = this
     const { filePath, render, name, config } = modelInfo
 
     const modelName = config.moduleName || name || ''
     const content = render ? render(fileContent, modelName, config) : fileContent
-    createFile(filePath, content)
+    await createFile(filePath, content)
   }
 
   getTempData(filePath: string) {
@@ -202,39 +206,44 @@ export class CreateApiFile {
   }
 }
 
+type BaseClassConfig = { tempClassPath: string; targetPath: string; importBaseCalssName: string; isJs: boolean }
 /**
  *
  * @param tempClassPath
  * @param targetPath
  * @param importBaseCalssName '{xxx}' or 'xxx'
  */
-export function createBaseClassFile(tempClassPath: string, targetPath: string, importBaseCalssName: string) {
+export function createBaseClassFile(config: BaseClassConfig) {
+  const { tempClassPath, targetPath, importBaseCalssName, isJs } = config
   const tempClassDirList = tempClassPath.split(path.sep)
   const tempClassDir = path.join(...tempClassDirList.slice(0, tempClassDirList.length - 1))
   const importPath = findDiffPath(tempClassDir, targetPath).replace(/\.ts/, '')
   const baseClassName = importBaseCalssName.replace(/^\{(.+)\}$/, (_, $1) => $1)
 
-  let content = fs.readFileSync(path.join(__dirname, '../temp/baseClass')).toString()
+  const tempFilePath = `../temp/baseClass${isJs ? 'js' : ''}`
+  let content = fs.readFileSync(path.join(__dirname, tempFilePath)).toString()
   content = content.replace(/\{BaseCalssName\}/g, baseClassName)
   content = content.replace(/\{BaseClassPath\}/g, importPath)
   content = content.replace(/\{ImportBaseCalssName\}/g, importBaseCalssName)
   createFile(tempClassPath, content)
 }
 
-export function createIndexFilePath(outDir: string, filePathList: FilePathList[]) {
-  const indexFilePath = path.join(outDir, 'index.ts')
+type IndexFileConfig = { outDir: string; filePathList: FilePathList[]; indexFilePath: string; fileSuffix: string }
+
+export async function createIndexFilePath(config: IndexFileConfig) {
+  const { outDir, filePathList, indexFilePath, fileSuffix } = config
   const fileNameList: string[] = []
   const importPathCode: string[] = []
-
-  // filePathList.sort((a,b) => a.)
 
   const filePathItems = filePathList.reduce((arr, item) => arr.concat(item.data), [] as FilePathList['data'])
 
   filePathItems.sort((a, b) => a.fileName.length - b.fileName.length)
 
+  const fixSuffix = new RegExp(`\\${fileSuffix}$`)
+
   filePathItems.forEach(i => {
     const { fileName, filePath } = i
-    const apiFilePath = findDiffPath(outDir, filePath).replace(/\.ts$/, '')
+    const apiFilePath = findDiffPath(outDir, filePath).replace(fixSuffix, '')
     importPathCode.push(`import ${fileName} from '${apiFilePath}'`)
     fileNameList.push(fileName)
   })
@@ -273,5 +282,5 @@ export function createIndexFilePath(outDir: string, filePathList: FilePathList[]
     ${hasModelItems}
   }
   `
-  createFile(indexFilePath, content)
+  await createFile(indexFilePath, content)
 }

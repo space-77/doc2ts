@@ -1,5 +1,4 @@
-import BaseClass from '{baseClassPath}'
-import * as mT from '{typeFilePath}'
+import BaseClass from '{baseClassPath}'{typeFilePath}
 
 /**
  * @description {description}

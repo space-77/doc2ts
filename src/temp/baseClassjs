@@ -1,0 +1,24 @@
+import {ImportBaseCalssName} from '{BaseClassPath}'
+
+export default class BaseClass extends {BaseCalssName} {
+  /**
+   * @description 拼接参数
+   */
+  serialize(query) {
+    return Object.entries(query)
+      .map(([k, v]) => (v !== undefined && v != null ? `${k}=${v}` : undefined))
+      .filter(Boolean)
+      .join('&')
+  }
+
+  /**
+   * @description 创建 formdata
+   */
+  formData(formData) {
+    const fd = new FormData()
+    Object.entries(formData).forEach(([k, v]) => {
+      fd.append(k, v)
+    })
+    return fd
+  }
+}

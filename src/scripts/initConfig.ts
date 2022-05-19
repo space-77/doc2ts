@@ -90,7 +90,7 @@ async function generateConfig(answers: InitConfig) {
   const origins = `[{ url: ${tips} '${originUrl}' }]`
   try {
     let content = loadTempFile('../temp/doc2ts-comfig')
-    content = content.replace(/\{outDir\}/, outDir) 
+    content = content.replace(/\{outDir\}/, outDir)
     content = content.replace(/\{origins\}/, origins)
     content = content.replace(/\{languageType\}/, languageType)
     content = content.replace(/\{baseClassPath\}/, baseClassPath)
@@ -99,17 +99,18 @@ async function generateConfig(answers: InitConfig) {
     await createFile(CONFIG_FILE_PATH, content)
     log.success('配置文件已生成')
     if (createBaseClass) {
-      generateBacsClass(baseClassPath, baseClassName)
+      generateBacsClass(baseClassPath, baseClassName, languageType)
     }
   } catch (error) {
     console.error(error)
   }
 }
 
-async function generateBacsClass(baseClassPath: string, baseClassName: string) {
+async function generateBacsClass(baseClassPath: string, baseClassName: string, languageType: string) {
   log.info('基类文件生成中...')
+  const isJs = languageType === 'javaScript'
   try {
-    let content = loadTempFile('../temp/baseClassFile')
+    let content = loadTempFile(`../temp/baseClassFile${isJs ? 'js' : ''}`)
     content = content.replace(/\{baseClassName\}/, baseClassName)
     await createFile(path.join(process.cwd(), baseClassPath), content)
     log.success('基类文件已生成')
