@@ -211,7 +211,7 @@ export class CreateApiFile {
 export function createBaseClassFile(tempClassPath: string, targetPath: string, importBaseCalssName: string) {
   const tempClassDirList = tempClassPath.split(path.sep)
   const tempClassDir = path.join(...tempClassDirList.slice(0, tempClassDirList.length - 1))
-  const importPath = findDiffPath(tempClassDir, targetPath)
+  const importPath = findDiffPath(tempClassDir, targetPath).replace(/\.ts/, '')
   const baseClassName = importBaseCalssName.replace(/^\{(.+)\}$/, (_, $1) => $1)
 
   let content = fs.readFileSync(path.join(__dirname, '../temp/baseClass')).toString()

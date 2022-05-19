@@ -80,10 +80,12 @@ export async function loadPrettierConfig(prettierPath?: string) {
 }
 
 export async function getConfig(configPath: string): Promise<Doc2TsConfig> {
+  const noCacheFix = (Math.random() + '').slice(2, 5)
+  const jsName = path.join(__dirname, `__${noCacheFix}__.js`)
+
   try {
     log.info('正在读取配置文件')
     const filePath = getRootFilePath(configPath)
-    // console.log({ filePath })
     const stat = fs.statSync(filePath)
     if (!stat.isFile()) throw new Error('配置文件不存在')
     const tsResult = fs.readFileSync(filePath, 'utf8')
@@ -93,8 +95,6 @@ export async function getConfig(configPath: string): Promise<Doc2TsConfig> {
         module: ts.ModuleKind.CommonJS
       }
     })
-    const noCacheFix = (Math.random() + '').slice(2, 5)
-    const jsName = path.join(__dirname, `__${noCacheFix}__.js`)
     // 编译到js
     fs.writeFileSync(jsName, jsResult.outputText, 'utf8')
 
@@ -104,6 +104,7 @@ export async function getConfig(configPath: string): Promise<Doc2TsConfig> {
     return res
   } catch (error) {
     log.error('读取配置文件失败')
+    if (fs.existsSync(jsName)) fs.unlinkSync(jsName)
     throw new Error('加载配置文件失败')
   }
 }

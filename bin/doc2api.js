@@ -1,13 +1,20 @@
 #!/usr/bin/env node
 
-const { Doc2Ts, initConfig } = require('../dist/scripts/index')
-const { Command } = require('commander')
-const program = new Command();
+const program = require('commander')
+const { Doc2Ts, init } = require('../dist/scripts/index')
 
-program.option('-i, --init', '初始化配置文件').action(() => {
-  initConfig()
-})
+program
+  .command('init')
+  .description('初始化配置文件')
+  .action(() => {
+    init()
+  })
 
-program.option('-b, --build', '生成代码').action(() => {
-  new Doc2Ts()
-})
+program
+  .command('build')
+  .description('生成代码')
+  .action(() => {
+    new Doc2Ts()
+  })
+
+program.parse(process.argv)

@@ -99,10 +99,11 @@ function loadPrettierConfig(prettierPath) {
 exports.loadPrettierConfig = loadPrettierConfig;
 function getConfig(configPath) {
     return __awaiter(this, void 0, void 0, function* () {
+        const noCacheFix = (Math.random() + '').slice(2, 5);
+        const jsName = path_1.default.join(__dirname, `__${noCacheFix}__.js`);
         try {
             log_1.default.info('正在读取配置文件');
             const filePath = getRootFilePath(configPath);
-            // console.log({ filePath })
             const stat = fs_1.default.statSync(filePath);
             if (!stat.isFile())
                 throw new Error('配置文件不存在');
@@ -113,8 +114,6 @@ function getConfig(configPath) {
                     module: typescript_1.default.ModuleKind.CommonJS
                 }
             });
-            const noCacheFix = (Math.random() + '').slice(2, 5);
-            const jsName = path_1.default.join(__dirname, `__${noCacheFix}__.js`);
             // 编译到js
             fs_1.default.writeFileSync(jsName, jsResult.outputText, 'utf8');
             // 删除该文件
@@ -124,6 +123,8 @@ function getConfig(configPath) {
         }
         catch (error) {
             log_1.default.error('读取配置文件失败');
+            if (fs_1.default.existsSync(jsName))
+                fs_1.default.unlinkSync(jsName);
             throw new Error('加载配置文件失败');
         }
     });

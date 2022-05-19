@@ -90,11 +90,11 @@ async function generateConfig(answers: InitConfig) {
   const origins = `[{ url: ${tips} '${originUrl}' }]`
   try {
     let content = loadTempFile('../temp/doc2ts-comfig')
-    content = content.replace(/\{outDir\}/, outDir)
+    content = content.replace(/\{outDir\}/, outDir) 
     content = content.replace(/\{origins\}/, origins)
+    content = content.replace(/\{languageType\}/, languageType)
     content = content.replace(/\{baseClassPath\}/, baseClassPath)
     content = content.replace(/\{baseClassName\}/, baseClassName)
-    content = content.replace(/\{languageType\}/, `Surrounding.${languageType}`)
 
     await createFile(CONFIG_FILE_PATH, content)
     log.success('配置文件已生成')
@@ -117,5 +117,3 @@ async function generateBacsClass(baseClassPath: string, baseClassName: string) {
     console.error(error)
   }
 }
-
-init()

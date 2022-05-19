@@ -115,7 +115,7 @@ export type Doc2TsConfig = {
   /**
    * @description 生成的文件类型
    */
-  languageType?: Surrounding
+  languageType?: 'typeScript' | 'javaScript'
 
   /**
    * @description 基类路径
