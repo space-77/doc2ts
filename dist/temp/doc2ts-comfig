@@ -1,4 +1,4 @@
-import { Doc2TsConfig } from 'doc2ts'
+import { Doc2TsConfig, Surrounding } from 'doc2ts'
 
 const doc2tsConfig: Doc2TsConfig = {
   outDir: '{outDir}',

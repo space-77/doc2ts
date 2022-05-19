@@ -95,9 +95,9 @@ function generateConfig(answers) {
             let content = loadTempFile('../temp/doc2ts-comfig');
             content = content.replace(/\{outDir\}/, outDir);
             content = content.replace(/\{origins\}/, origins);
-            content = content.replace(/\{languageType\}/, languageType);
             content = content.replace(/\{baseClassPath\}/, baseClassPath);
             content = content.replace(/\{baseClassName\}/, baseClassName);
+            content = content.replace(/\{languageType\}/, `Surrounding.${languageType}`);
             yield (0, utils_1.createFile)(CONFIG_FILE_PATH, content);
             log_1.default.success('配置文件已生成');
             if (createBaseClass) {
