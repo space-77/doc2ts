@@ -2,15 +2,15 @@ import { Interface, Property, StandardDataSource } from 'pont-engine/lib/standar
 import { PARAMS_NAME } from './common/config';
 export interface IApiClient {
     /**
-     * @param params
+     * @param config
      * @description 接口请求方法
      */
-    request<T = any>(params: IRequestParams): Promise<T>;
+    request<T = any>(config: IRequestParams): Promise<T>;
     /**
      *
      * @description 下载文件
      */
-    downloadFile(params: IRequestParams): Promise<any>;
+    downloadFile(config: IRequestParams): Promise<any>;
 }
 export declare type Method = 'get' | 'GET' | 'delete' | 'DELETE' | 'head' | 'HEAD' | 'options' | 'OPTIONS' | 'post' | 'POST' | 'put' | 'PUT' | 'patch' | 'PATCH' | 'purge' | 'PURGE' | 'link' | 'LINK' | 'unlink' | 'UNLINK';
 export declare type TData = Record<string, any>;
@@ -234,15 +234,24 @@ export declare type ModuleConfig = {
 };
 export declare type Doc2TsConfig = {
     /**
+     * @description swagger 文档请求地址 eg: http://localhost:7001
+     */
+    origins: (ModelList & {
+        isSwaggerBootstrapUi?: boolean;
+    })[];
+    /**
      * @description 文件输出位置
      */
     outDir: string;
     /**
-     * @description swagger 文档请求地址 eg: http://localhost:7001
+     * @default ApiClient
+     * @description 每个模块继承的基类名称， 注意：基类必须 实现 IApiClient 接口
      */
-    origins: (ModelList & {
-        isSwaggerBootstrapUi: boolean;
-    })[];
+    baseClassName: string;
+    /**
+     * @description 基类路径
+     */
+    baseClassPath: string;
     /**
      * @deprecated prettier 格式化代码的配置位置，默认会读取项目上的 .prettierrc.js  prettier.config.js prettier.config.cjs .prettierrc .prettierrc.json .prettierrc.json5 以及 package.json 里的  prettier配置， 没有则使用默认配置
      */
@@ -256,15 +265,6 @@ export declare type Doc2TsConfig = {
      * @description 传入 正则类型或字符串类型则对模块名称进行 `name.replace` 操作
      */
     rename?: RegExp | string | ((modelName: string) => string);
-    /**
-     * @default ApiClient
-     * @description 每个模块继承的基类名称， 注意：基类必须 实现 IApiClient 接口
-     */
-    baseClassName: string;
-    /**
-     * @description 基类路径
-     */
-    baseClassPath: string;
     /**
      * @description 隐藏请求方法，达到简化代码
      */

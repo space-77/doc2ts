@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getModelUrl = exports.format = exports.createFile = exports.resolveOutPath = exports.rename = exports.getConfig = exports.loadPrettierConfig = exports.findDiffPath = exports.createType = exports.createDeepType = exports.getTypeList = exports.findType = exports.updateName = exports.firstToLower = exports.firstToUpper = exports.camel2Kebab = void 0;
+exports.judgeIsVaildUrl = exports.getModelUrl = exports.format = exports.createFile = exports.resolveOutPath = exports.rename = exports.getConfig = exports.loadPrettierConfig = exports.findDiffPath = exports.createType = exports.createDeepType = exports.getTypeList = exports.findType = exports.updateName = exports.firstToLower = exports.firstToUpper = exports.camel2Kebab = void 0;
 const fs_1 = __importDefault(require("fs"));
 const typescript_1 = __importDefault(require("typescript"));
 const log_1 = __importDefault(require("./log"));
@@ -338,3 +338,8 @@ function getModelUrl(origins) {
     });
 }
 exports.getModelUrl = getModelUrl;
+/** 检测是否是合法url */
+function judgeIsVaildUrl(url) {
+    return /^(http|https):.*?$/.test(url);
+}
+exports.judgeIsVaildUrl = judgeIsVaildUrl;

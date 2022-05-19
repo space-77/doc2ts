@@ -6,7 +6,6 @@ export default class Doc2Ts {
     modelList: ModelList[];
     StandardDataSourceList: StandardDataSourceLister[];
     config: Config;
-    configPath: string;
     constructor();
     init(): Promise<void>;
     getConfig(): Promise<void>;

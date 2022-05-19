@@ -1,5 +1,10 @@
 import prettier from 'prettier';
 import { Doc2TsConfig, ModuleConfig } from '../type';
+export declare const CONFIG_PATH = "doc2ts-config.ts";
+export declare enum Surrounding {
+    typeScript = "typeScript",
+    javaScript = "javaScript"
+}
 export declare enum PARAMS_NAME {
     BODY = "body",
     QUERY = "query",

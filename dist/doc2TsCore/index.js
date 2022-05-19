@@ -12,7 +12,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const fs_1 = __importDefault(require("fs"));
 const log_1 = __importDefault(require("../utils/log"));
 const api_1 = __importDefault(require("../utils/api"));
 const path_1 = __importDefault(require("path"));
@@ -27,15 +26,14 @@ class Doc2Ts {
         this.api = new api_1.default();
         this.modelList = [];
         this.StandardDataSourceList = [];
-        this.configPath = './doc2ts.config.ts';
         this.init();
     }
     init() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 yield this.getConfig();
-                // await this.getModelList()
-                // await this.initRemoteDataSource()
+                yield this.getModelList();
+                yield this.initRemoteDataSource();
                 this.generateFile();
             }
             catch (error) {
@@ -46,7 +44,7 @@ class Doc2Ts {
     getConfig() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const config = yield (0, utils_2.getConfig)(this.configPath);
+                const config = yield (0, utils_2.getConfig)(config_1.CONFIG_PATH);
                 this.config = new config_1.Config(config);
             }
             catch (error) {
@@ -160,14 +158,13 @@ class Doc2Ts {
     }
     generateFile() {
         return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const dataList = fs_1.default.readFileSync(path_1.default.join(__dirname, '../../dist/modelInfoList.json')).toString();
-                this.StandardDataSourceList = JSON.parse(dataList);
-            }
-            catch (error) {
-                console.error(error);
-                return;
-            }
+            // try {
+            //   const dataList = fs.readFileSync(path.join(__dirname, '../../dist/modelInfoList.json')).toString()
+            //   this.StandardDataSourceList = JSON.parse(dataList) as StandardDataSourceLister[]
+            // } catch (error) {
+            //   console.error(error)
+            //   return
+            // }
             const { render, outDir, hideMethod, prettierPath, baseClassName, baseClassPath, typeFileRender, resultTypeRender, moduleConfig = {} } = this.config;
             yield (0, utils_2.loadPrettierConfig)(prettierPath);
             const outputDir = (0, utils_2.resolveOutPath)(outDir);
@@ -187,7 +184,7 @@ class Doc2Ts {
                 mods.forEach(({ interfaces, name: fileName, description }) => {
                     const filePath = path_1.default.join(dirPath, `${fileName}.ts`);
                     filePathItems.push({ filePath, fileName });
-                    const diffClassPath = (0, utils_2.findDiffPath)(dirPath, tempClassPath).replace(/\.ts$/, '');
+                    const diffClassPath = (0, utils_2.findDiffPath)(dirPath, tempClassPath).replace(/\.[t|j]s$/, '');
                     const params = {
                         name,
                         render,

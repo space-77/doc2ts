@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const http_1 = __importDefault(require("http"));
 const https_1 = __importDefault(require("https"));
+const index_1 = require("./index");
 class Api {
     constructor() {
         // if (!Array.isArray(originUrl) || originUrl.length === 0) throw new Error('接口地址不存在')
@@ -14,7 +15,7 @@ class Api {
         // this.fetch = /^http:\/\//.test(baseURL) ? http : https
     }
     static get(url) {
-        if (!Api.urlReg)
+        if ((0, index_1.judgeIsVaildUrl)(url))
             throw new Error(`${url} 请求路径不合法`);
         const fetch = Api.httpsReg.test(url) ? https_1.default : http_1.default;
         return new Promise((resolve, reject) => {
@@ -57,5 +58,5 @@ class Api {
 }
 exports.default = Api;
 // static fetch: typeof https | typeof http
-Api.urlReg = /^https?:\/\//;
+// static urlReg = /^https?:\/\//
 Api.httpsReg = /^https:\/\//;

@@ -1,10 +1,11 @@
 import http from 'http'
 import https from 'https'
+import { judgeIsVaildUrl } from './index'
 import { Doc2TsConfig, ModelInfoList, ModelList } from '../type'
 
 export default class Api {
   // static fetch: typeof https | typeof http
-  static urlReg = /^https?:\/\//
+  // static urlReg = /^https?:\/\//
   static httpsReg = /^https:\/\//
   static baseURL: string
 
@@ -17,7 +18,7 @@ export default class Api {
   }
 
   static get<T = any>(url: string) {
-    if (!Api.urlReg) throw new Error(`${url} 请求路径不合法`)
+    if (judgeIsVaildUrl(url)) throw new Error(`${url} 请求路径不合法`)
     const fetch = Api.httpsReg.test(url) ? https : http
     return new Promise<T>((resolve, reject) => {
       let rawData = ''

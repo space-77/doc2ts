@@ -6,7 +6,7 @@
 
 ## 启动
 
-1. 在项目根目录新建 `doc2ts.config.ts` 文件，文件必须导出一个对象 ` export default = {}`， 对象必须是 `Doc2TsConfig` 类型。
+1. 在项目根目录新建 `doc2ts-config.ts` 文件，文件必须导出一个对象 ` export default = {}`， 对象必须是 `Doc2TsConfig` 类型。
 2. 创建一个 `class` 实现 `IApiClient`接口，用于类请求模块里的 class 继承，参考[基类名称](#基类名称)配置项。
 
 ## Doc2TsConfig 配置说明

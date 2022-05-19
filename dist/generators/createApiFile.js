@@ -206,6 +206,7 @@ function createIndexFilePath(outDir, filePathList) {
     const indexFilePath = path_1.default.join(outDir, 'index.ts');
     const fileNameList = [];
     const importPathCode = [];
+    // filePathList.sort((a,b) => a.)
     const filePathItems = filePathList.reduce((arr, item) => arr.concat(item.data), []);
     filePathItems.sort((a, b) => a.fileName.length - b.fileName.length);
     filePathItems.forEach(i => {
@@ -214,11 +215,35 @@ function createIndexFilePath(outDir, filePathList) {
         importPathCode.push(`import ${fileName} from '${apiFilePath}'`);
         fileNameList.push(fileName);
     });
+    // 无模块，直接导出
+    const noModelItems = filePathList
+        .filter(i => !i.moduleName)
+        .reduce((arr, i) => arr.concat(i.data), [])
+        .sort((a, b) => a.fileName.length - b.fileName.length)
+        .map(i => i.fileName)
+        .join(',\n');
+    // console.log(noModelItems)
+    // 有模块，再分模块导出
+    const hasModelItems = filePathList
+        .filter(i => i.moduleName)
+        .sort((a, b) => a.moduleName.length - b.moduleName.length)
+        .map(({ moduleName, data }) => {
+        data.sort((a, b) => a.fileName.length - b.fileName.length);
+        return `${moduleName}: {
+        ${data.map(i => i.fileName).join(',\n')}
+      }`;
+    })
+        .join(',\n');
+    // let exportContent = `
+    // ${hasModelItems.map(i => {})}
+    // `
     const content = `
   ${importPathCode.join('\n')}
 
   export default {
-    ${fileNameList.join(',\n')}
+    ${noModelItems}
+    ${noModelItems ? ',' : ''}
+    ${hasModelItems}
   }
   `;
     (0, utils_1.createFile)(indexFilePath, content);

@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const path_1 = __importDefault(require("path"));
 const utils_1 = require("../utils");
-const objMapType = `export type ObjectMap<Key extends string | number | symbol = any, Value = any> = {
+const objMapType = `type ObjectMap<Key extends string | number | symbol = any, Value = any> = {
   [key in Key]: Value;
 }
 `;
@@ -94,7 +94,12 @@ class CreateTypeFile {
     generateImportType() {
         const { importType, content } = this;
         const importTypeList = Array.from(importType).sort((a, b) => a.length - b.length);
-        this.content = `import { ${importTypeList.join(', ')} } from './type' \n${content}`;
+        // if (importType.has('ObjectMap')) {
+        //   // objMapType
+        //   const objectMapType = objMapType
+        // }
+        const objectMapTypeStr = importType.has('ObjectMap') ? `\n${objMapType}` : '';
+        this.content = `import { ${importTypeList.join(', ')} } from './type' ${objectMapTypeStr} \n${content}`;
     }
     getDescription(des) {
         return des ? `/** @description ${des}*/\n` : '';
@@ -110,7 +115,7 @@ class CreateTypeFile {
             const itemsValue = this.generateParamTypeValue(properties).join('\n');
             return `${this.getDescription(description)}export type ${name}${temStr} = {\n${itemsValue}}`;
         });
-        (0, utils_1.createFile)(path_1.default.join(typeDirPaht, `type.ts`), `${objMapType}${content.join('\n')}`);
+        (0, utils_1.createFile)(path_1.default.join(typeDirPaht, `type.ts`), content.join('\n'));
     }
 }
 exports.default = CreateTypeFile;

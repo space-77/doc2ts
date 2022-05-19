@@ -321,3 +321,8 @@ export async function getModelUrl(origins: Doc2TsConfig['origins']) {
   await Promise.all(reqs)
   return apiUrls
 }
+
+/** 检测是否是合法url */
+export function judgeIsVaildUrl(url: string) {
+  return /^(http|https):.*?$/.test(url)
+}

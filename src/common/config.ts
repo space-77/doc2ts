@@ -1,6 +1,13 @@
 import prettier from 'prettier'
 import { Doc2TsConfig, Doc2TsConfigKey, ModuleConfig } from '../type'
 
+export const CONFIG_PATH = 'doc2ts-config.ts'
+
+export enum Surrounding {
+  typeScript = 'typeScript',
+  javaScript = 'javaScript'
+}
+
 export enum PARAMS_NAME {
   BODY = 'body',
   QUERY = 'query',
@@ -18,7 +25,7 @@ export class Config {
   // readonly swaggerBootstrapUiUrl!: Doc2TsConfig['swaggerBootstrapUiUrl']  // swagger-bootstrap-ui 接口地址
   readonly baseClassName: string = 'ApiClient'
   readonly rename?: Doc2TsConfig['rename']
-  readonly moduleConfig?: ModuleConfig // doc2ts.config 配置信息
+  readonly moduleConfig?: ModuleConfig // doc2ts-config 配置信息
   readonly prettierPath?: string
   readonly baseClassPath!: string
   readonly hideMethod: boolean = false

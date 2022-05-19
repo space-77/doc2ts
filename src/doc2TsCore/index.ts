@@ -1,8 +1,7 @@
-import fs from 'fs'
 import log from '../utils/log'
 import Api from '../utils/api'
 import path from 'path'
-import { Config } from '../common/config'
+import { Config, CONFIG_PATH } from '../common/config'
 import CreateTypeFile from '../generators/createTypeFile'
 import { Surrounding, DataSourceConfig } from 'pont-engine/lib/utils'
 import { readRemoteDataSource, OriginType } from 'pont-engine/lib/scripts'
@@ -16,7 +15,6 @@ export default class Doc2Ts {
   StandardDataSourceList: StandardDataSourceLister[] = []
 
   config!: Config
-  configPath = './doc2ts.config.ts'
 
   constructor() {
     this.init()
@@ -35,7 +33,7 @@ export default class Doc2Ts {
 
   async getConfig() {
     try {
-      const config = await getConfig(this.configPath)
+      const config = await getConfig(CONFIG_PATH)
       this.config = new Config(config)
     } catch (error) {
       console.error(error)
@@ -193,7 +191,7 @@ export default class Doc2Ts {
         const filePath = path.join(dirPath, `${fileName}.ts`)
         filePathItems.push({ filePath, fileName })
 
-        const diffClassPath = findDiffPath(dirPath, tempClassPath).replace(/\.ts$/, '')
+        const diffClassPath = findDiffPath(dirPath, tempClassPath).replace(/\.[t|j]s$/, '')
         const params: ModelInfo = {
           name,
           render,

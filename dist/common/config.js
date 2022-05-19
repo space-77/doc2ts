@@ -1,6 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Config = exports.PrettierConfig = exports.PARAMS_NAME = void 0;
+exports.Config = exports.PrettierConfig = exports.PARAMS_NAME = exports.Surrounding = exports.CONFIG_PATH = void 0;
+exports.CONFIG_PATH = 'doc2ts-config.ts';
+var Surrounding;
+(function (Surrounding) {
+    Surrounding["typeScript"] = "typeScript";
+    Surrounding["javaScript"] = "javaScript";
+})(Surrounding = exports.Surrounding || (exports.Surrounding = {}));
 var PARAMS_NAME;
 (function (PARAMS_NAME) {
     PARAMS_NAME["BODY"] = "body";

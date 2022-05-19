@@ -4,16 +4,16 @@ import { PARAMS_NAME } from './common/config'
 
 export interface IApiClient {
   /**
-   * @param params
+   * @param config
    * @description 接口请求方法
    */
-  request<T = any>(params: IRequestParams): Promise<T>
+  request<T = any>(config: IRequestParams): Promise<T>
 
   /**
    *
    * @description 下载文件
    */
-  downloadFile(params: IRequestParams): Promise<any>
+  downloadFile(config: IRequestParams): Promise<any>
 }
 
 export type Method =
@@ -285,13 +285,25 @@ export type ModuleConfig = {
 
 export type Doc2TsConfig = {
   /**
+   * @description swagger 文档请求地址 eg: http://localhost:7001
+   */
+  origins: (ModelList & { isSwaggerBootstrapUi?: boolean })[]
+
+  /**
    * @description 文件输出位置
    */
   outDir: string
+
   /**
-   * @description swagger 文档请求地址 eg: http://localhost:7001
+   * @default ApiClient
+   * @description 每个模块继承的基类名称， 注意：基类必须 实现 IApiClient 接口
    */
-  origins: (ModelList & { isSwaggerBootstrapUi: boolean })[]
+  baseClassName: string
+
+  /**
+   * @description 基类路径
+   */
+  baseClassPath: string
   // /**
   //  * @description swagger bootstrap ui 文档请求地址 eg: http://localhost:7001
   //  */
@@ -312,17 +324,6 @@ export type Doc2TsConfig = {
    * @description 传入 正则类型或字符串类型则对模块名称进行 `name.replace` 操作
    */
   rename?: RegExp | string | ((modelName: string) => string)
-
-  /**
-   * @default ApiClient
-   * @description 每个模块继承的基类名称， 注意：基类必须 实现 IApiClient 接口
-   */
-  baseClassName: string
-
-  /**
-   * @description 基类路径
-   */
-  baseClassPath: string
 
   /**
    * @description 隐藏请求方法，达到简化代码

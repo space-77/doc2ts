@@ -56,3 +56,5 @@ export declare function createFile(filePath: string, content: string): Promise<u
  */
 export declare function format(fileContent: string, prettierOpts?: {}): string;
 export declare function getModelUrl(origins: Doc2TsConfig['origins']): Promise<ModelList[]>;
+/** 检测是否是合法url */
+export declare function judgeIsVaildUrl(url: string): boolean;
