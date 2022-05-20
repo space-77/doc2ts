@@ -2,16 +2,37 @@
 
 ## 功能
 
-- 根据 swagger 文档 生成 ts 接口请求工具
+- 根据 swagger 文档 生成 ts 或者 js 接口请求工具
 
 ## 启动
 
-1. 在项目根目录新建 `doc2ts-config.ts` 文件，文件必须导出一个对象 ` export default = {}`， 对象必须是 `Doc2TsConfig` 类型。
-2. 创建一个 `class` 实现 `IApiClient`接口，用于类请求模块里的 class 继承，参考[基类名称](#基类名称)配置项。
+### 安装
+``` sh
+npm i -g doc2ts
+# or
+yarn add -g doc2ts
+```
+### 初始化配置
+``` sh
+# 根据提示选择你的配置
+doc2ts init
+```
+- 输入命令后全按回车键，会生成一份实例配置。
+- 如果选项 `生成基类文件` 后会在对应的位置生成一个 `.ts`文件，该文件必须导出一个 基类，该基类必须实现 `IApiClient` 接口。
 
+### 生成文件
+``` sh
+doc2ts build
+```
+
+## 基类文件说明
+>  基类文件 必须导出一个 `数据请求类` 该 `类` 必须实现 `IApiClient` 接口，即添加 `request` 和 `downloadFile` 方法，每个接口最终都会这两个方法中的一个，默认走 `request` 方法，如果在配置文件配置了 [downloadFile](#修改某个接口为文件下载接口)则走`downloadFile`方法
+### request 和 downloadFile 方法参数说明
+[参数类型](./src/types/client.d.ts#L39)
 ## Doc2TsConfig 配置说明
+配置的位置在 初始化配置（运行 `doc2ts init` 命令）在根目录生成的 `doc2ts.config.ts` 文件，可以通过该配置控制生成最终生成文件的内容，另外该配置文件必须导出一个 `Doc2TsConfig` 类型的对象。
 
-> 使用建议：不要修改自动生成文件里的内容，应该尽量通过修改配置文件方式重新生成新的文件内容，因为每生成一次文件，文件里的内容都是新的，不会保留旧文件内容。
+> 使用建议：不要修改生成文件里的内容，应尽量通过修改配置文件方式控制生成新的文件内容，每次生成文件都会覆盖旧文件的内容。
 
 ### 配置 swagger 文档地址
 
@@ -289,7 +310,7 @@ export default {
 } as Doc2TsConfig
 ```
 
-#### 修改某个请求接口方法描述
+#### 修改某个接口为文件下载接口
 
 - 参数：`moduleConfig.methodConfig.isDownload`
 - 必传：`否`

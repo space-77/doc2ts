@@ -32,6 +32,12 @@ const promptList: QuestionCollection = [
     }
   },
   {
+    type: 'confirm',
+    message: '是否生成基类文件(请求方法需您自行实现)',
+    name: 'createBaseClass',
+    default: true
+  },
+  {
     type: 'input',
     message: '请设置基类存放相对路径',
     name: 'baseClassPath',
@@ -42,12 +48,6 @@ const promptList: QuestionCollection = [
     message: '请设置基类名称',
     name: 'baseClassName',
     default: 'ApiClient'
-  },
-  {
-    type: 'confirm',
-    message: '是否生成基类文件(请求方法需您自行实现)',
-    name: 'createBaseClass',
-    default: true
   },
   {
     type: 'input',

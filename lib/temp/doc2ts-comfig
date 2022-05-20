@@ -1,0 +1,11 @@
+import { Doc2TsConfig } from 'doc2ts'
+
+const doc2tsConfig: Doc2TsConfig = {
+  outDir: '{outDir}',
+  origins: {origins},
+  languageType: '{languageType}',
+  baseClassName: '{baseClassName}',
+  baseClassPath: '{baseClassPath}',
+}
+
+export default doc2tsConfig

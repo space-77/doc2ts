@@ -1,0 +1,10 @@
+import BaseClass from '{baseClassPath}'{typeFilePath}
+
+/**
+ * @description {description}
+ */
+export default class {className} extends BaseClass {
+  {classMethodStr}
+}
+
+export const {classNameLower} = new {className}()
