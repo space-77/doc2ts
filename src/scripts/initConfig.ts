@@ -68,6 +68,7 @@ function loadTempFile(filePath: string) {
 }
 
 export default async function init() {
+  console.log(CONFIG_FILE_PATH)
   const exists = fs.existsSync(CONFIG_FILE_PATH)
   if (exists) {
     const { confirm } = await inquirer.prompt({
