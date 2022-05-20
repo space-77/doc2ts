@@ -253,11 +253,15 @@ export default class Doc2Ts {
     if (!isJs) return
     try {
       const outDirPath = path.join(resolveOutPath(outDir), 'index.ts')
-      const filePath = findDiffPath(path.join(__dirname, '../../'), outDirPath)
+      const pkgPath = path.join(__dirname, '../../package.json')
+      const pkg = require(pkgPath)
+      // const filePath = findDiffPath(path.join(__dirname, '../../'), outDirPath)
       log.clear()
       log.info('正在转换 ts 文件为 js')
-      const cmd = `tsc ${filePath} --target esnext --module es6 ${declaration ? '--declaration' : ''} --skipLibCheck`
-      execSync(cmd).toString()
+      const cmd = `tsc ${outDirPath} --target esnext --module es6 ${declaration ? '--declaration' : ''} --skipLibCheck`
+      pkg.scripts.cmdtsc = cmd
+      fs.writeFileSync(pkgPath, JSON.stringify(pkg))
+      execSync('npm run cmdtsc').toString()
       log.success('转换成功')
     } catch (error: any) {
       log.error('转换失败')
