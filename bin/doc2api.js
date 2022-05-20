@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const program = require('commander')
-const { Doc2Ts, init } = require('../dist/scripts/index')
+const { Doc2Ts, init } = require('../lib/scripts/index')
 
 program
   .command('init')

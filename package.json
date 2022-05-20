@@ -2,17 +2,17 @@
   "name": "doc2ts",
   "version": "0.4.2",
   "description": "根据接口文档生成ts接口文件",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "bin": {
-    "doc2ts": "./bin/doc2api.js"
+    "doc2ts": "bin/doc2api.js"
   },
   "scripts": {
-    "build": "tsc && node ./scripts/build.js",
+    "build": "node ./scripts/build.js && tsc",
     "test": "node ./bin/doc2api.js",
     "init-doc": "node ./bin/init.js",
     "init-config": "ts-node ./src/scripts/initConfig.ts",
-    "start": "ts-node ./src/dev.ts"
+    "dev": "ts-node ./src/dev.ts"
   },
   "author": "space-77",
   "license": "MIT",
@@ -27,9 +27,13 @@
     "commander": "^9.2.0",
     "inquirer": "^8.2.4",
     "js-crypto-rsa": "^1.0.4",
-    "pont-engine": "git+https://gitee.com/next0186/pont-engine.git",
     "ts-node": "^10.7.0",
-    "typescript": "^4.6.3"
+    "typescript": "^4.6.3",
+    "fs-extra": "^5.0.0",
+    "lodash": "^4.17.5",
+    "node-fetch": "^2.6.7",
+    "prettier": "^2.4.1",
+    "translation.js": "^0.7.5"
   },
   "devDependencies": {
     "@types/fs-extra": "^9.0.13",

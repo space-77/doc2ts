@@ -3,7 +3,8 @@ import BaseClass from '{baseClassPath}'{typeFilePath}
 /**
  * @description {description}
  */
-class {className} extends BaseClass {
+export default class {className} extends BaseClass {
   {classMethodStr}
 }
-export default new {className}()
+
+export const {classNameLower} = new {className}()

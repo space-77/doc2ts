@@ -5,7 +5,7 @@ import log from './log'
 import path from 'path'
 import prettier from 'prettier'
 import { PrettierConfig } from '../common/config'
-import { Doc2TsConfig, ModelList } from '../type'
+import { Doc2TsConfig, ModelList } from '../types/type'
 
 /**
  * @param str
@@ -207,4 +207,29 @@ export async function getModelUrl(origins: Doc2TsConfig['origins']) {
 /** 检测是否是合法url */
 export function judgeIsVaildUrl(url: string) {
   return /^(http|https):.*?$/.test(url)
+}
+
+export function checkJsLang(lang: Doc2TsConfig['languageType'] = 'ts') {
+  return /js|javascript/i.test(lang)
+}
+
+type TraverseDirFileInfo = { filePath: string; name: string; stat: fs.Stats; prePath: string }
+type TraverseDir = (config: {
+  dirPath: string
+  prePath?: string
+  callback?: (fileInfo: TraverseDirFileInfo) => void
+}) => void
+/**
+ * @description 遍历文件夹下的文件
+ */
+export const traverseDir: TraverseDir = ({ dirPath, prePath = '', callback }) => {
+  fs.readdirSync(dirPath).forEach(name => {
+    const filePath = path.join(dirPath, name)
+    const stat = fs.statSync(filePath)
+    if (stat.isFile()) {
+      callback?.({ filePath, name, stat, prePath })
+    } else if (stat.isDirectory()) {
+      traverseDir({ dirPath: filePath, prePath: `${prePath}/${name}`, callback })
+    }
+  })
 }

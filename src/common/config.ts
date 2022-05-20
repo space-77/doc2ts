@@ -1,5 +1,5 @@
 import type prettier from 'prettier'
-import { Doc2TsConfig, Doc2TsConfigKey, ModuleConfig } from '../type'
+import { Doc2TsConfig, Doc2TsConfigKey, ModuleConfig } from '../types/type'
 
 export const CONFIG_PATH = 'doc2ts-config.ts'
 
@@ -26,6 +26,8 @@ export class Config {
   readonly baseClassName: string = 'ApiClient'
   readonly rename?: Doc2TsConfig['rename']
   readonly moduleConfig?: ModuleConfig // doc2ts-config 配置信息
+  readonly emitTs?: string
+  readonly declaration?: boolean
   readonly prettierPath?: string
   readonly baseClassPath!: string
   readonly languageType?: Doc2TsConfig['languageType']
@@ -46,3 +48,7 @@ export class Config {
       throw new Error('必要参数异常')
   }
 }
+
+const keyWordsList = 'Array,Date,eval,function,hasOwnProperty,Infinity,isFinite,isNaN,isPrototypeOf,length,Math,NaN,Number,Object,prototype,String,toString,undefined,valueOf,abstract,arguments,boolean,break,byte,case,catch,char,class,const,continue,debugger,default,delete,do,double,else,enum,export,extends,false,final,finally,float,for,goto,if,implements,import,in,instanceof,int,interface,let,long,native,new,null,package,private,protected,public,return,short,static,super,switch,synchronized,this,throw,throws,transient,true,try,typeof,var,void,volatile,while,with,yield'.split(',')
+keyWordsList.push(...Object.values(PARAMS_NAME))
+export const keyWords = new Set(keyWordsList)

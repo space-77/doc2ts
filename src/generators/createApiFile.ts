@@ -1,8 +1,9 @@
 import fs from 'fs'
 import path from 'path'
-import { Property } from 'pont-engine'
-import { PARAMS_NAME } from '../common/config'
-import { FilePathList, GetParamsStr, Method, ModelInfo } from '../type'
+import { keyWords, PARAMS_NAME } from '../common/config'
+import type { Property } from '../pont-engine'
+import type { Method } from '../types/client'
+import type { FilePathList, GetParamsStr, ModelInfo } from '../types/type'
 import { firstToUpper, findDiffPath, createFile, firstToLower } from '../utils'
 
 export class CreateApiFile {
@@ -17,6 +18,7 @@ export class CreateApiFile {
     const { fileName, dirPath, description, typeDirPaht, diffClassPath, isJs } = this.modelInfo
 
     const className = firstToUpper(fileName)
+    const classNameLower = firstToLower(fileName)
     let typeFilePath = ''
 
     if (!isJs) {
@@ -31,12 +33,14 @@ export class CreateApiFile {
     content = content.replace(/\{typeFilePath\}/g, typeFilePath)
     content = content.replace(/\{baseClassPath\}/g, diffClassPath)
     content = content.replace(/\{classMethodStr\}/g, classMethodStr)
+    content = content.replace(/\{classNameLower\}/g, classNameLower)
 
     this.fileContent = content
   }
 
   generateApiClassMethod() {
     const { config, hideMethod, interfaces, isJs } = this.modelInfo
+    interfaces.sort((a, b) => a.path.length - b.path.length)
     const methodsList = interfaces.map(i => {
       const { name: funName, method: met, path: _path, description, response, parameters } = i
       const { isDownload, config: metConfig, description: configDes } = config.methodConfig?.[funName] || {}
@@ -84,7 +88,7 @@ export class CreateApiFile {
   formatUrl(url: string, paramsInfo: GetParamsStr) {
     const { hasPath, hsaQuery, queryName } = paramsInfo
     if (hasPath || hsaQuery) {
-      if (hasPath) url = url.replace(/\{(\w+)\}/g, v => `$${v}`)
+      if (hasPath) url = url.replace(/\{(\w+)\}/g, v => `$${this.joinParams([v])}`)
       return `\`${url}${hsaQuery ? `?\${${queryName}}` : ''}\``
     }
     return `'${url}'`
@@ -92,6 +96,7 @@ export class CreateApiFile {
 
   getParamsStr(parameters: Property[]): GetParamsStr {
     // TODO 不同类型的参数重名存在 【bug】
+    const { joinParams } = this
 
     let methodBody = ''
     const bodyName = PARAMS_NAME.BODY
@@ -126,24 +131,26 @@ export class CreateApiFile {
     const hasHeader = headerParams.length > 0
     if (hasHeader) header = `, ${headerName}`
     const parametersList = new Set(parameters.map(i => i.in)) // .size === 1
+    const paramsList = parameters.map(({ name }) => name)
+    // const parametersSet = new Set(paramsList)
     // 判断是否存在 path 参数
     // 存在 path 参数 或者 存在两种及以上参数类型的需要 解构
     if (hasPath || parametersList.size > 1) {
       // 需要需要解构
-      methodBody = `\nconst { ${parameters.map(i => i.name).join(', ')} } = params`
+      methodBody = `\nconst { ${joinParams(paramsList)} } = params`
 
       // 组建各种请求类型参数
       // query
-      if (hsaQuery) methodBody += `\nconst ${queryName} = this.serialize({${queryParams.join(', ')}})`
+      if (hsaQuery) methodBody += `\nconst ${queryName} = this.serialize({${joinParams(queryParams)}})`
 
       // body
-      if (hsaBody) methodBody += `\nconst ${bodyName} = {${bodyParams.join(', ')}}`
+      if (hsaBody) methodBody += `\nconst ${bodyName} = {${joinParams(bodyParams)}}`
 
       // formData
-      if (hasformData) methodBody += `\nconst ${formDataName} = this.formData({${formDataParams.join(', ')}})`
+      if (hasformData) methodBody += `\nconst ${formDataName} = this.formData({${joinParams(formDataParams)}})`
 
       // header
-      if (hasHeader) methodBody += `\nconst ${headerName} = {${headerParams.join(', ')}}`
+      if (hasHeader) methodBody += `\nconst ${headerName} = {${joinParams(headerParams)}}`
     } else {
       // 只有一个类型的请求参数
       // 不需要解构
@@ -204,34 +211,37 @@ export class CreateApiFile {
   filterParams(parameters: Property[], type: Property['in']) {
     return parameters.filter(i => i.in === type).map(({ name }) => name)
   }
+
+  joinParams(keyList: string[]) {
+    return keyList.map(i => (keyWords.has(i) ? `${i}:_${i}` : i)).join(',')
+  }
 }
 
-type BaseClassConfig = { tempClassPath: string; targetPath: string; importBaseCalssName: string; isJs: boolean }
+type BaseClassConfig = { tempClassPath: string; targetPath: string; importBaseCalssName: string }
 /**
  *
  * @param tempClassPath
  * @param targetPath
  * @param importBaseCalssName '{xxx}' or 'xxx'
  */
-export function createBaseClassFile(config: BaseClassConfig) {
-  const { tempClassPath, targetPath, importBaseCalssName, isJs } = config
+export async function createBaseClassFile(config: BaseClassConfig) {
+  const { tempClassPath, targetPath, importBaseCalssName } = config
   const tempClassDirList = tempClassPath.split(path.sep)
   const tempClassDir = path.join(...tempClassDirList.slice(0, tempClassDirList.length - 1))
   const importPath = findDiffPath(tempClassDir, targetPath).replace(/\.ts/, '')
   const baseClassName = importBaseCalssName.replace(/^\{(.+)\}$/, (_, $1) => $1)
 
-  const tempFilePath = `../temp/baseClass${isJs ? 'js' : ''}`
-  let content = fs.readFileSync(path.join(__dirname, tempFilePath)).toString()
+  let content = fs.readFileSync(path.join(__dirname, '../temp/baseClass')).toString()
   content = content.replace(/\{BaseCalssName\}/g, baseClassName)
   content = content.replace(/\{BaseClassPath\}/g, importPath)
   content = content.replace(/\{ImportBaseCalssName\}/g, importBaseCalssName)
-  createFile(tempClassPath, content)
+  await createFile(tempClassPath, content)
 }
 
-type IndexFileConfig = { outDir: string; filePathList: FilePathList[]; indexFilePath: string; fileSuffix: string }
+type IndexFileConfig = { outDir: string; filePathList: FilePathList[]; indexFilePath: string }
 
 export async function createIndexFilePath(config: IndexFileConfig) {
-  const { outDir, filePathList, indexFilePath, fileSuffix } = config
+  const { outDir, filePathList, indexFilePath } = config
   const fileNameList: string[] = []
   const importPathCode: string[] = []
 
@@ -239,12 +249,10 @@ export async function createIndexFilePath(config: IndexFileConfig) {
 
   filePathItems.sort((a, b) => a.fileName.length - b.fileName.length)
 
-  const fixSuffix = new RegExp(`\\${fileSuffix}$`)
-
   filePathItems.forEach(i => {
     const { fileName, filePath } = i
-    const apiFilePath = findDiffPath(outDir, filePath).replace(fixSuffix, '')
-    importPathCode.push(`import ${fileName} from '${apiFilePath}'`)
+    const apiFilePath = findDiffPath(outDir, filePath).replace(/\.ts$/, '')
+    importPathCode.push(`import {${fileName}} from '${apiFilePath}'`)
     fileNameList.push(fileName)
   })
 

@@ -1,7 +1,7 @@
 import path from 'path'
-import { Doc2TsConfig } from '../type'
+import { Doc2TsConfig } from '../types/type'
 import { createFile, firstToUpper } from '../utils'
-import { BaseClass, Interface, Property, StandardDataType } from 'pont-engine'
+import { BaseClass, Interface, Property, StandardDataType } from '../pont-engine'
 
 type TypeFileInfo = {
   fileName: string
@@ -87,6 +87,7 @@ export default class CreateTypeFile {
   }
 
   private generateResTypeValue(responseType: StandardDataType) {
+    const { baseClasses } = this.fileInfo
     const { typeArgs, typeName, templateIndex, isDefsType } = responseType
 
     if (isDefsType || typeName === 'ObjectMap') this.importType.add(typeName)
@@ -94,10 +95,11 @@ export default class CreateTypeFile {
     if (typeArgs.length > 0) {
       const [firstType] = typeArgs
       content += `<${this.generateResTypeValue(firstType)}>`
+    } else if (content) {
+      // 添加未知类型的泛型
+      const templateArgs = baseClasses.find(i => i.name === typeName)?.templateArgs || []
+      if (templateArgs.length > 0) content += '<any>'
     }
-    //  if (!/\>$/.test(content) && isDefsType) {
-    //   console.log(content)
-    // }
     return content || 'any'
   }
 
@@ -139,7 +141,7 @@ export default class CreateTypeFile {
 
       if (properties.length === 0) return ''
 
-      const temList = templateArgs.map(i => `${i.typeName} = any`)
+      const temList = templateArgs.map(i => i.typeName)
       const temStr = temList.length > 0 ? `<${temList.join(', ')}>` : ''
       const itemsValue = this.generateParamTypeValue(properties).join('\n')
 

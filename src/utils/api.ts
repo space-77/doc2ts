@@ -1,6 +1,6 @@
 import http from 'http'
 import https from 'https'
-import { ModelList } from '../type'
+import { ModelList } from '../types/type'
 import { judgeIsVaildUrl } from './index'
 
 export default class Api {

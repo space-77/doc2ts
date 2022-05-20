@@ -3,13 +3,23 @@ import log from '../utils/log'
 import Api from '../utils/api'
 import path from 'path'
 import { execSync } from 'child_process'
-import { Config, CONFIG_PATH } from '../common/config'
+import { Config, CONFIG_PATH, Surrounding } from '../common/config'
 import CreateTypeFile from '../generators/createTypeFile'
-import { Surrounding, DataSourceConfig } from 'pont-engine/lib/utils'
-import { readRemoteDataSource, OriginType } from 'pont-engine/lib/scripts'
+import { DataSourceConfig } from '../pont-engine/utils'
+import { readRemoteDataSource, OriginType } from '../pont-engine/scripts'
 import { CreateApiFile, createBaseClassFile, createIndexFilePath } from '../generators/createApiFile'
-import { FilePathList, ModelInfo, ModelList, StandardDataSourceLister } from '../type'
-import { getConfig, resolveOutPath, loadPrettierConfig, rename, camel2Kebab, getModelUrl, findDiffPath } from '../utils'
+import { FilePathList, ModelInfo, ModelList, StandardDataSourceLister } from '../types/type'
+import {
+  getConfig,
+  resolveOutPath,
+  loadPrettierConfig,
+  rename,
+  camel2Kebab,
+  getModelUrl,
+  findDiffPath,
+  checkJsLang,
+  traverseDir
+} from '../utils'
 
 export default class Doc2Ts {
   api = new Api()
@@ -28,9 +38,10 @@ export default class Doc2Ts {
       // await this.getModelList()
       // await this.initRemoteDataSource()
       await this.generateFile()
-      // await this.transform2js()
+      await this.transform2js()
+      this.remveTsFile()
       // log.clear()
-      // log.success(log.done('---ALL DONE---'))
+      // log.success(log.done(' ALL DONE '))
     } catch (error) {
       console.error(error)
     }
@@ -146,7 +157,7 @@ export default class Doc2Ts {
       // const data = await readRemoteDataSource(config, (text: string) => {
       //   log.info(text)
       // })
-      // fs.writeFileSync(path.join(__dirname, `../../dist/modelInfoList.json`), JSON.stringify(this.StandardDataSourceList))
+      fs.writeFileSync(path.join(__dirname, `../../mock/modelInfoList.json`), JSON.stringify(this.StandardDataSourceList))
     } catch (error) {
       console.error(error)
     }
@@ -154,7 +165,7 @@ export default class Doc2Ts {
 
   async generateFile() {
     try {
-      const dataList = fs.readFileSync(path.join(__dirname, '../../dist/modelInfoList.json')).toString()
+      const dataList = fs.readFileSync(path.join(__dirname, '../../mock/modelInfoList.json')).toString()
       this.StandardDataSourceList = JSON.parse(dataList) as StandardDataSourceLister[]
     } catch (error) {
       console.error(error)
@@ -166,7 +177,6 @@ export default class Doc2Ts {
       outDir,
       hideMethod,
       prettierPath,
-      languageType,
       baseClassName,
       baseClassPath,
       typeFileRender,
@@ -174,16 +184,12 @@ export default class Doc2Ts {
       moduleConfig = {}
     } = this.config
 
-    const isJs = languageType === Surrounding.javaScript // 'javaScript'
-
-    const fileSuffix = `.${isJs ? 'j' : 't'}s`
-
     await loadPrettierConfig(prettierPath)
 
     const outputDir = resolveOutPath(outDir)
     const targetPath = resolveOutPath(baseClassPath)
-    const tempClassPath = path.join(outputDir, `module/baseClass${fileSuffix}`)
-    createBaseClassFile({ tempClassPath, targetPath, importBaseCalssName: baseClassName, isJs })
+    const tempClassPath = path.join(outputDir, 'module/baseClass.ts')
+    await createBaseClassFile({ tempClassPath, targetPath, importBaseCalssName: baseClassName })
     const filePathList: FilePathList[] = []
 
     const allProcess = this.StandardDataSourceList.map(async i => {
@@ -198,12 +204,11 @@ export default class Doc2Ts {
 
       const filePathItems: FilePathList['data'] = []
       const pros = mods.map(async ({ interfaces, name: fileName, description }) => {
-        const filePath = path.join(dirPath, `${fileName}${fileSuffix}`)
+        const filePath = path.join(dirPath, `${fileName}.ts`)
         filePathItems.push({ filePath, fileName })
 
         const diffClassPath = findDiffPath(dirPath, tempClassPath).replace(/\.[t|j]s$/, '')
         const params: ModelInfo = {
-          isJs,
           name,
           render,
           config,
@@ -227,37 +232,56 @@ export default class Doc2Ts {
           resultTypeRender
         })
 
-        await Promise.all(
-          [
-            createApiFile.createFile(),
-            !isJs && createTypeFile.generateFile(),
-            !isJs && createTypeFile.createBaseClasses()
-          ].filter(Boolean)
-        )
+        await Promise.all([
+          createApiFile.createFile(),
+          createTypeFile.generateFile(),
+          createTypeFile.createBaseClasses()
+        ])
       })
       filePathList.push({ moduleName, data: filePathItems })
       await Promise.all(pros)
     })
 
-    const indexFilePath = path.join(outDir, `index${fileSuffix}`)
-    allProcess.push(createIndexFilePath({ outDir: outputDir, filePathList, indexFilePath, fileSuffix }))
+    const indexFilePath = path.join(outDir, `index.ts`)
+    allProcess.push(createIndexFilePath({ outDir: outputDir, filePathList, indexFilePath }))
     await Promise.all(allProcess)
   }
 
-  // async transform2js() {
-  //   const { outDir } = this.config
-  //   try {
-  //     // console.log(path.join(resolveOutPath(outDir), 'index.ts'))
-  //     // findDiffPath()
-  //     // execSync('tsc ')
-  //     // console.log(path.join(__dirname, '../../'));
-  //     const filePath = findDiffPath(path.join(__dirname, '../../'), path.join(resolveOutPath(outDir), 'index.ts'))
-  //     // execSync(`tsc ${filePath} --target esnext --outDir dist11`)
-  //     const res = execSync(`tsc ${filePath} --target esnext --module commonjs --outDir dist11`).toString()
-  //     console.log(res)
-  //     // execSync(`tsc ${filePath} --target esnext --outDir dist11`)
-  //   } catch (error) {
-  //     return Promise.reject(error)
-  //   }
-  // }
+  async transform2js() {
+    const { outDir, languageType, declaration = true } = this.config
+    const isJs = checkJsLang(languageType)
+    if (!isJs) return
+    try {
+      const outDirPath = path.join(resolveOutPath(outDir), 'index.ts')
+      const filePath = findDiffPath(path.join(__dirname, '../../'), outDirPath)
+      log.clear()
+      log.info('正在转换 ts 文件为 js')
+      const cmd = `tsc ${filePath} --target esnext --module es6 ${declaration ? '--declaration' : ''} --skipLibCheck`
+      execSync(cmd).toString()
+      log.success('转换成功')
+    } catch (error: any) {
+      log.error('转换失败')
+      return Promise.reject(error)
+    }
+  }
+
+  remveTsFile() {
+    const { emitTs = false, outDir, languageType } = this.config
+    const isJs = checkJsLang(languageType)
+    if (!isJs || emitTs) return
+    const removeTypeReg = /.+(?<!\.d)\.ts$/
+    const outDirPath = resolveOutPath(outDir)
+    const dirPath = path.join(outDirPath, 'module')
+    const indexFilePath = path.join(outDirPath, 'index.ts')
+
+    if (fs.existsSync(indexFilePath)) fs.unlinkSync(indexFilePath)
+
+    traverseDir({
+      dirPath,
+      callback(fileInfo) {
+        const { filePath } = fileInfo
+        if (removeTypeReg.test(filePath)) fs.unlinkSync(filePath)
+      }
+    })
+  }
 }

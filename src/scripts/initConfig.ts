@@ -98,19 +98,16 @@ async function generateConfig(answers: InitConfig) {
 
     await createFile(CONFIG_FILE_PATH, content)
     log.success('配置文件已生成')
-    if (createBaseClass) {
-      generateBacsClass(baseClassPath, baseClassName, languageType)
-    }
+    if (createBaseClass) generateBacsClass(baseClassPath, baseClassName)
   } catch (error) {
     console.error(error)
   }
 }
 
-async function generateBacsClass(baseClassPath: string, baseClassName: string, languageType: string) {
+async function generateBacsClass(baseClassPath: string, baseClassName: string) {
   log.info('基类文件生成中...')
-  const isJs = languageType === 'javaScript'
   try {
-    let content = loadTempFile(`../temp/baseClassFile${isJs ? 'js' : ''}`)
+    let content = loadTempFile('../temp/baseClassFile')
     content = content.replace(/\{baseClassName\}/, baseClassName)
     await createFile(path.join(process.cwd(), baseClassPath), content)
     log.success('基类文件已生成')
