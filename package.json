@@ -8,18 +8,27 @@
     "doc2ts": "bin/doc2api.js"
   },
   "scripts": {
-    "build": "node ./scripts/build.js && tsc",
+    "build": "ts-node ./scripts/build.ts && tsc",
     "test": "node ./bin/doc2api.js",
-    "init-doc": "node ./bin/init.js",
+    "init-doc": "ts-node ./src/dev-init.ts",
     "init-config": "ts-node ./src/scripts/initConfig.ts",
     "dev": "ts-node ./src/dev.ts"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/space-77/doc2ts"
+  },
+  "bugs": {
+    "url": "https://github.com/space-77/doc2ts/issues"
+  },
+  "homepage": "https://github.com/space-77/doc2ts",
   "author": "space-77",
   "license": "MIT",
   "keywords": [
+    "API",
     "doc2ts",
     "swagger",
-    "API"
+    "swagger-bootstrap-ui"
   ],
   "dependencies": {
     "axios": "^0.27.2",

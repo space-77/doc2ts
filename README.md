@@ -30,7 +30,7 @@ doc2ts build
 ### request 和 downloadFile 方法参数说明
 [参数类型](./src/types/client.d.ts#L39)
 ## Doc2TsConfig 配置说明
-配置的位置在 初始化配置（运行 `doc2ts init` 命令）在根目录生成的 `doc2ts.config.ts` 文件，可以通过该配置控制生成最终生成文件的内容，另外该配置文件必须导出一个 `Doc2TsConfig` 类型的对象。
+配置的位置在 初始化配置（运行 `doc2ts init` 命令）在根目录生成的 `doc2ts-config.ts` 文件，可以通过该配置控制生成最终生成文件的内容，另外该配置文件必须导出一个 `Doc2TsConfig` 类型的对象。
 
 > 使用建议：不要修改生成文件里的内容，应尽量通过修改配置文件方式控制生成新的文件内容，每次生成文件都会覆盖旧文件的内容。
 
