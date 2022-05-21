@@ -36,12 +36,12 @@ export default class Doc2Ts {
   async init() {
     try {
       await this.getConfig()
-      // await this.getModelList()
-      // await this.initRemoteDataSource()
+      await this.getModelList()
+      await this.initRemoteDataSource()
       await this.generateFile()
       await this.transform2js()
-      // log.clear()
-      // log.success(log.done(' ALL DONE '))
+      log.clear()
+      log.success(log.done(' ALL DONE '))
     } catch (error) {
       console.error(error)
     }
@@ -142,13 +142,13 @@ export default class Doc2Ts {
   }
 
   async generateFile() {
-    try {
-      const dataList = fs.readFileSync(path.join(__dirname, '../../mock/modelInfoList.json')).toString()
-      this.StandardDataSourceList = JSON.parse(dataList) as StandardDataSourceLister[]
-    } catch (error) {
-      console.error(error)
-      return
-    }
+    // try {
+    //   const dataList = fs.readFileSync(path.join(__dirname, '../../mock/modelInfoList.json')).toString()
+    //   this.StandardDataSourceList = JSON.parse(dataList) as StandardDataSourceLister[]
+    // } catch (error) {
+    //   console.error(error)
+    //   return
+    // }
 
     const {
       render,
