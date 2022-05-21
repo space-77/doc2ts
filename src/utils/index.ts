@@ -130,15 +130,16 @@ export function resolveOutPath(...paths: string[]) {
 /**
  * @description 创建文件
  */
-export async function createFile(filePath: string, content: string) {
+export async function createFile(filePath: string, content: string, nolog = false) {
   try {
     const dirList = filePath.split(path.sep)
     const fileName = dirList[dirList.length - 1]
     const dirPath = path.join(...dirList.slice(0, dirList.length - 1))
 
     if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true })
-    log.info(`正在创建：${fileName} 文件`)
-    fs.writeFileSync(filePath, format(content, PrettierConfig.config))
+    !nolog && log.info(`正在创建：${fileName} 文件`)
+    const isTsFile = /\.ts/.test(filePath)
+    fs.writeFileSync(filePath, format(content, PrettierConfig.config, isTsFile))
   } catch (error) {
     log.error('创建失败')
     console.error(error)
@@ -149,16 +150,10 @@ export async function createFile(filePath: string, content: string) {
 /**
  * @description 格式化代码
  */
-export function format(fileContent: string, prettierOpts = {}) {
+export function format(fileContent: string, prettierOpts = {}, isTsFile: boolean) {
   try {
     return prettier.format(fileContent, {
-      parser: 'typescript',
-      // semi: false,
-      // tabWidth: 2,
-      // arrowParens: 'avoid',
-      // singleQuote: true,
-      // printWidth: 120,
-      // trailingComma: 'none',
+      parser: isTsFile ? 'typescript' : 'babel',
       ...prettierOpts
     })
   } catch (e: any) {
@@ -261,9 +256,10 @@ export function ts2Js(filesNames: string[], declaration: boolean) {
   }
 
   const host = ts.createCompilerHost(options)
-  // host.writeFile = (fileName, content) => {
-  //   ts.sys.writeFile(fileName, content)
-  // }
+  host.writeFile = (fileName, content) => {
+    createFile(fileName, content, true)
+    // ts.sys.writeFile(fileName, content)
+  }
   // host.readFile = fileName => {
   //   return ts.sys.readFile(fileName)
   // }

@@ -23,7 +23,7 @@ export class CreateApiFile {
 
     if (!isJs) {
       typeFilePath = findDiffPath(dirPath, path.join(typeDirPaht, fileName))
-      typeFilePath = `\nimport * as mT from '${typeFilePath}'`
+      typeFilePath = `\nimport type * as mT from '${typeFilePath}'`
     }
 
     const classMethodStr = this.generateApiClassMethod()

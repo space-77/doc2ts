@@ -33,11 +33,11 @@ export declare function resolveOutPath(...paths: string[]): string;
 /**
  * @description 创建文件
  */
-export declare function createFile(filePath: string, content: string): Promise<undefined>;
+export declare function createFile(filePath: string, content: string, nolog?: boolean): Promise<undefined>;
 /**
  * @description 格式化代码
  */
-export declare function format(fileContent: string, prettierOpts?: {}): string;
+export declare function format(fileContent: string, prettierOpts: {} | undefined, isTsFile: boolean): string;
 export declare function getModelUrl(origins: Doc2TsConfig['origins']): Promise<ModelList[]>;
 /** 检测是否是合法url */
 export declare function judgeIsVaildUrl(url: string): boolean;

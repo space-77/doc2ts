@@ -107,7 +107,7 @@ export default class CreateTypeFile {
     const { typeList, content } = this
     const resTypeList = typeList.map(i => {
       const { paramTypeName, parameters } = i
-      return `export type ${paramTypeName} = {\n${this.generateParamTypeValue(parameters).join('\n')}}`
+      return `export interface ${paramTypeName} {\n${this.generateParamTypeValue(parameters).join('\n')}}`
     })
 
     this.content = `${resTypeList.join('\n')}\n${content}`
@@ -127,11 +127,11 @@ export default class CreateTypeFile {
     const importTypeList = Array.from(importType).sort((a, b) => a.length - b.length)
     const objectMapTypeStr = hasObjectMap ? `\n${objMapType}` : ''
 
-    this.content = `import { ${importTypeList.join(', ')} } from './type' ${objectMapTypeStr} \n${content}`
+    this.content = `import type { ${importTypeList.join(', ')} } from './type' ${objectMapTypeStr} \n${content}`
   }
 
   getDescription(des?: string) {
-    return des ? `/** @description ${des}*/\n` : ''
+    return des ? `/** @description ${des} */\n` : ''
   }
 
   async createBaseClasses() {

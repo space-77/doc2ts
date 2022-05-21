@@ -1,4 +1,4 @@
-import { IApiClient, IRequestParams } from 'doc2ts'
+import type { IApiClient, IRequestParams } from 'doc2ts'
 
 export default class {baseClassName} implements IApiClient {
   request(config: IRequestParams): Promise<any> {

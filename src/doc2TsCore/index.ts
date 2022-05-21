@@ -2,10 +2,9 @@ import fs from 'fs'
 import log from '../utils/log'
 import Api from '../utils/api'
 import path from 'path'
-// import { execSync } from 'child_process'
-import { Config, CONFIG_PATH, Surrounding } from '../common/config'
 import CreateTypeFile from '../generators/createTypeFile'
 import { DataSourceConfig } from '../pont-engine/utils'
+import { Config, CONFIG_PATH, Surrounding } from '../common/config'
 import { readRemoteDataSource, OriginType } from '../pont-engine/scripts'
 import { CreateApiFile, createBaseClassFile, createIndexFilePath } from '../generators/createApiFile'
 import { FilePathList, ModelInfo, ModelList, StandardDataSourceLister } from '../types/type'
@@ -150,6 +149,9 @@ export default class Doc2Ts {
     //   return
     // }
 
+    const { StandardDataSourceList } = this
+    if (!Array.isArray(StandardDataSourceList) || StandardDataSourceList.length === 0) throw new Error('没有数据源')
+
     const {
       render,
       outDir,
@@ -170,7 +172,7 @@ export default class Doc2Ts {
     await createBaseClassFile({ tempClassPath, targetPath, importBaseCalssName: baseClassName })
     const filePathList: FilePathList[] = []
 
-    const allProcess = this.StandardDataSourceList.map(async i => {
+    const allProcess = StandardDataSourceList.map(async i => {
       const { data, name } = i
       const { mods, baseClasses } = data
       const config = name ? moduleConfig[name] || {} : {}
@@ -237,7 +239,7 @@ export default class Doc2Ts {
 
       const indexFilePath = path.join(outDirPath, 'index.ts')
       ts2Js([indexFilePath], declaration)
-      
+
       if (!emitTs) {
         // 不保留 ts 源文件，删除源ts文件
         const filesInfo: string[] = getTsFiles(modeleDir)
