@@ -2,7 +2,7 @@ import fs from 'fs'
 import log from '../utils/log'
 import Api from '../utils/api'
 import path from 'path'
-import { execSync } from 'child_process'
+// import { execSync } from 'child_process'
 import { Config, CONFIG_PATH, Surrounding } from '../common/config'
 import CreateTypeFile from '../generators/createTypeFile'
 import { DataSourceConfig } from '../pont-engine/utils'
@@ -10,15 +10,16 @@ import { readRemoteDataSource, OriginType } from '../pont-engine/scripts'
 import { CreateApiFile, createBaseClassFile, createIndexFilePath } from '../generators/createApiFile'
 import { FilePathList, ModelInfo, ModelList, StandardDataSourceLister } from '../types/type'
 import {
-  getConfig,
-  resolveOutPath,
-  loadPrettierConfig,
+  ts2Js,
   rename,
+  getConfig,
+  getTsFiles,
   camel2Kebab,
   getModelUrl,
-  findDiffPath,
   checkJsLang,
-  traverseDir
+  findDiffPath,
+  resolveOutPath,
+  loadPrettierConfig
 } from '../utils'
 
 export default class Doc2Ts {
@@ -39,7 +40,6 @@ export default class Doc2Ts {
       await this.initRemoteDataSource()
       await this.generateFile()
       await this.transform2js()
-      this.remveTsFile()
       log.clear()
       log.success(log.done(' ALL DONE '))
     } catch (error) {
@@ -242,50 +242,35 @@ export default class Doc2Ts {
       await Promise.all(pros)
     })
 
-    const indexFilePath = path.join(outDir, `index.ts`)
+    const indexFilePath = path.join(outDir, 'index.ts')
     allProcess.push(createIndexFilePath({ outDir: outputDir, filePathList, indexFilePath }))
     await Promise.all(allProcess)
   }
 
   async transform2js() {
-    const { outDir, languageType, declaration = true } = this.config
+    const { outDir, languageType, declaration = true, emitTs = false } = this.config
     const isJs = checkJsLang(languageType)
     if (!isJs) return
     try {
-      const outDirPath = path.join(resolveOutPath(outDir), 'index.ts')
-      const pkgPath = path.join(__dirname, '../../package.json')
-      const pkg = require(pkgPath)
-      // const filePath = findDiffPath(path.join(__dirname, '../../'), outDirPath)
+      const outDirPath = resolveOutPath(outDir)
+      const modeleDir = path.join(outDirPath, 'module')
       log.clear()
       log.info('正在转换 ts 文件为 js')
-      const cmd = `tsc ${outDirPath} --target esnext --module es6 ${declaration ? '--declaration' : ''} --skipLibCheck`
-      pkg.scripts.cmdtsc = cmd
-      fs.writeFileSync(pkgPath, JSON.stringify(pkg))
-      execSync('npm run cmdtsc').toString()
+
+      const filesInfo = getTsFiles(modeleDir)
+      filesInfo.push({ fileName: '__modelIndexFile__', filePath: path.join(outDirPath, 'index.ts') })
+      ts2Js(filesInfo, declaration)
+
+      if (!emitTs) {
+        filesInfo.forEach(({ filePath }) => {
+          if (fs.existsSync(filePath)) fs.unlinkSync(filePath) // 删除源ts文件
+        })
+      }
+
       log.success('转换成功')
     } catch (error: any) {
       log.error('转换失败')
       return Promise.reject(error)
     }
-  }
-
-  remveTsFile() {
-    const { emitTs = false, outDir, languageType } = this.config
-    const isJs = checkJsLang(languageType)
-    if (!isJs || emitTs) return
-    const removeTypeReg = /.+(?<!\.d)\.ts$/
-    const outDirPath = resolveOutPath(outDir)
-    const dirPath = path.join(outDirPath, 'module')
-    const indexFilePath = path.join(outDirPath, 'index.ts')
-
-    if (fs.existsSync(indexFilePath)) fs.unlinkSync(indexFilePath)
-
-    traverseDir({
-      dirPath,
-      callback(fileInfo) {
-        const { filePath } = fileInfo
-        if (removeTypeReg.test(filePath)) fs.unlinkSync(filePath)
-      }
-    })
   }
 }

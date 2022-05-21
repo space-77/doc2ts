@@ -13,5 +13,4 @@ export default class Doc2Ts {
     initRemoteDataSource(): Promise<void>;
     generateFile(): Promise<void>;
     transform2js(): Promise<undefined>;
-    remveTsFile(): void;
 }

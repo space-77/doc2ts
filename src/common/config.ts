@@ -26,7 +26,7 @@ export class Config {
   readonly baseClassName: string = 'ApiClient'
   readonly rename?: Doc2TsConfig['rename']
   readonly moduleConfig?: ModuleConfig // doc2ts-config 配置信息
-  readonly emitTs?: string
+  readonly emitTs?: boolean
   readonly declaration?: boolean
   readonly prettierPath?: string
   readonly baseClassPath!: string

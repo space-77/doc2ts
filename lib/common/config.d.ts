@@ -20,7 +20,7 @@ export declare class Config {
     readonly baseClassName: string;
     readonly rename?: Doc2TsConfig['rename'];
     readonly moduleConfig?: ModuleConfig;
-    readonly emitTs?: string;
+    readonly emitTs?: boolean;
     readonly declaration?: boolean;
     readonly prettierPath?: string;
     readonly baseClassPath: string;

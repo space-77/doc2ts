@@ -1,8 +1,9 @@
 import fs from 'fs'
-import ts from 'typescript'
+import ts, { ModuleKind, ScriptTarget } from 'typescript'
 import Api from './api'
 import log from './log'
 import path from 'path'
+import crypto from 'crypto'
 import prettier from 'prettier'
 import { PrettierConfig } from '../common/config'
 import { Doc2TsConfig, ModelList } from '../types/type'
@@ -232,4 +233,65 @@ export const traverseDir: TraverseDir = ({ dirPath, prePath = '', callback }) =>
       traverseDir({ dirPath: filePath, prePath: `${prePath}/${name}`, callback })
     }
   })
+}
+
+type FileInfo = { fileName: string; filePath: string }
+
+export function getTsFiles(dirPath: string) {
+  const tsFileReg = /.+(?<!\.d)\.ts$/
+  const filesInfo: FileInfo[] = []
+  traverseDir({
+    dirPath,
+    callback(info) {
+      const { filePath, name } = info
+      if (tsFileReg.test(name)) {
+        const md5 = crypto.createHash('md5')
+        const fileName = md5.update(filePath).digest('hex')
+        filesInfo.push({ fileName, filePath })
+      }
+    }
+  })
+  return filesInfo
+}
+
+export function ts2Js(filesInfo: FileInfo[], declaration: boolean) {
+  const getFilePath = (fileName: string) => {
+    return filesInfo.find(i => new RegExp(i.fileName).test(fileName))?.filePath
+  }
+
+  const options = {
+    target: ScriptTarget.ESNext,
+    module: ModuleKind.ES2015,
+    declaration,
+    skipLibCheck: true
+  }
+
+  const jsType = '.js'
+  const dsType = '.d.ts'
+
+  const host = ts.createCompilerHost(options)
+  host.writeFile = (fileName, contents) => {
+    const originFilePath = getFilePath(fileName)
+    if (!originFilePath) return
+
+    let filePath = originFilePath.replace('.ts', '')
+    if (fileName.endsWith(jsType)) {
+      filePath = `${filePath}${jsType}`
+    } else if (fileName.endsWith(dsType)) {
+      filePath = `${filePath}${dsType}`
+    } else return
+    fs.writeFileSync(filePath, contents, 'utf-8')
+  }
+  host.readFile = fileName => {
+    const filePath = getFilePath(fileName)
+    if (!filePath) {
+      if (fs.existsSync(fileName)) return fs.readFileSync(fileName).toString()
+      return
+    }
+    return fs.readFileSync(filePath).toString()
+  }
+
+  const filesName = filesInfo.map(i => i.fileName)
+  const program = ts.createProgram(filesName, options, host)
+  program.emit()
 }
