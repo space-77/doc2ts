@@ -145,7 +145,7 @@ export default class CreateTypeFile {
       const temStr = temList.length > 0 ? `<${temList.join(', ')}>` : ''
       const itemsValue = this.generateParamTypeValue(properties).join('\n')
 
-      return `${this.getDescription(description)}export type ${name}${temStr} = {\n${itemsValue}}`
+      return `${this.getDescription(description)}export interface ${name}${temStr} {\n${itemsValue}}`
     })
 
     await createFile(path.join(typeDirPaht, `type.d.ts`), content.join('\n'))
