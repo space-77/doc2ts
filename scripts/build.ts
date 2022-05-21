@@ -15,5 +15,5 @@ copyList.forEach(p => {
     console.error(error)
   }
 })
-log.info('资源完成')
+log.info('资源复制完成')
 log.info('文件编译中...')

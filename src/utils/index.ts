@@ -235,11 +235,9 @@ export const traverseDir: TraverseDir = ({ dirPath, prePath = '', callback }) =>
   })
 }
 
-type FileInfo = { fileName: string; filePath: string }
-
 export function getTsFiles(dirPath: string) {
   const tsFileReg = /.+(?<!\.d)\.ts$/
-  const filesInfo: FileInfo[] = []
+  const filesInfo: string[] = []
   traverseDir({
     dirPath,
     callback(info) {
@@ -247,18 +245,14 @@ export function getTsFiles(dirPath: string) {
       if (tsFileReg.test(name)) {
         const md5 = crypto.createHash('md5')
         const fileName = md5.update(filePath).digest('hex')
-        filesInfo.push({ fileName, filePath })
+        filesInfo.push(filePath)
       }
     }
   })
   return filesInfo
 }
 
-export function ts2Js(filesInfo: FileInfo[], declaration: boolean) {
-  const getFilePath = (fileName: string) => {
-    return filesInfo.find(i => new RegExp(i.fileName).test(fileName))?.filePath
-  }
-
+export function ts2Js(filesNames: string[], declaration: boolean) {
   const options = {
     target: ScriptTarget.ESNext,
     module: ModuleKind.ES2015,
@@ -266,32 +260,18 @@ export function ts2Js(filesInfo: FileInfo[], declaration: boolean) {
     skipLibCheck: true
   }
 
-  const jsType = '.js'
-  const dsType = '.d.ts'
-
   const host = ts.createCompilerHost(options)
-  host.writeFile = (fileName, contents) => {
-    const originFilePath = getFilePath(fileName)
-    if (!originFilePath) return
+  // host.writeFile = (fileName, content) => {
+  //   ts.sys.writeFile(fileName, content)
+  // }
+  // host.readFile = fileName => {
+  //   return ts.sys.readFile(fileName)
+  // }
 
-    let filePath = originFilePath.replace('.ts', '')
-    if (fileName.endsWith(jsType)) {
-      filePath = `${filePath}${jsType}`
-    } else if (fileName.endsWith(dsType)) {
-      filePath = `${filePath}${dsType}`
-    } else return
-    fs.writeFileSync(filePath, contents, 'utf-8')
-  }
-  host.readFile = fileName => {
-    const filePath = getFilePath(fileName)
-    if (!filePath) {
-      if (fs.existsSync(fileName)) return fs.readFileSync(fileName).toString()
-      return
-    }
-    return fs.readFileSync(filePath).toString()
-  }
+  // host.fileExists = fileName => {
+  //   return ts.sys.fileExists(fileName)
+  // }
 
-  const filesName = filesInfo.map(i => i.fileName)
-  const program = ts.createProgram(filesName, options, host)
+  const program = ts.createProgram(filesNames, options, host)
   program.emit()
 }

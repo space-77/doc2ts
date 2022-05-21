@@ -36,12 +36,12 @@ export default class Doc2Ts {
   async init() {
     try {
       await this.getConfig()
-      await this.getModelList()
-      await this.initRemoteDataSource()
+      // await this.getModelList()
+      // await this.initRemoteDataSource()
       await this.generateFile()
       await this.transform2js()
-      log.clear()
-      log.success(log.done(' ALL DONE '))
+      // log.clear()
+      // log.success(log.done(' ALL DONE '))
     } catch (error) {
       console.error(error)
     }
@@ -63,28 +63,6 @@ export default class Doc2Ts {
       log.error('获取API接口数据失败')
       console.error(error)
     }
-    // try {
-    //   log.info('正在拉取 swagger 文档信息')
-    //   let data: ModelList[] = []
-    //   const { originUrl } = this.config
-    //   if (Array.isArray(originUrl) && originUrl.length > 0) {
-    //     // data = await this.api.getModelList()
-    //   } else {
-    //   }
-    //   if (data.length === 0 && count <= 4) {
-    //     await this.getModelList(count + 1)
-    //     return
-    //   }
-
-    //   if (!data || !Array.isArray(data) || data.length === 0) {
-    //     log.error('数据加载失败')
-    //     throw new Error('数据加载异常')
-    //   }
-    //   log.ok()
-    // } catch (error) {
-    //   log.error('数据加载失败')
-    //   return Promise.reject(error)
-    // }
   }
 
   async initRemoteDataSource() {
@@ -164,13 +142,13 @@ export default class Doc2Ts {
   }
 
   async generateFile() {
-    // try {
-    //   const dataList = fs.readFileSync(path.join(__dirname, '../../mock/modelInfoList.json')).toString()
-    //   this.StandardDataSourceList = JSON.parse(dataList) as StandardDataSourceLister[]
-    // } catch (error) {
-    //   console.error(error)
-    //   return
-    // }
+    try {
+      const dataList = fs.readFileSync(path.join(__dirname, '../../mock/modelInfoList.json')).toString()
+      this.StandardDataSourceList = JSON.parse(dataList) as StandardDataSourceLister[]
+    } catch (error) {
+      console.error(error)
+      return
+    }
 
     const {
       render,
@@ -257,14 +235,14 @@ export default class Doc2Ts {
       log.clear()
       log.info('正在转换 ts 文件为 js')
 
-      const filesInfo = getTsFiles(modeleDir)
-      filesInfo.push({ fileName: '__modelIndexFile__', filePath: path.join(outDirPath, 'index.ts') })
-      ts2Js(filesInfo, declaration)
-
+      const indexFilePath = path.join(outDirPath, 'index.ts')
+      ts2Js([indexFilePath], declaration)
+      
       if (!emitTs) {
-        filesInfo.forEach(({ filePath }) => {
-          if (fs.existsSync(filePath)) fs.unlinkSync(filePath) // 删除源ts文件
-        })
+        // 不保留 ts 源文件，删除源ts文件
+        const filesInfo: string[] = getTsFiles(modeleDir)
+        filesInfo.push(indexFilePath)
+        filesInfo.map(filePath => fs.existsSync(filePath) && fs.unlinkSync(filePath))
       }
 
       log.success('转换成功')
