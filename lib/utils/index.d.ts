@@ -57,4 +57,10 @@ declare type TraverseDir = (config: {
  * @description 遍历文件夹下的文件
  */
 export declare const traverseDir: TraverseDir;
+declare type FileInfo = {
+    fileName: string;
+    filePath: string;
+};
+export declare function getTsFiles(dirPath: string): FileInfo[];
+export declare function ts2Js(filesInfo: FileInfo[], declaration: boolean): void;
 export {};
