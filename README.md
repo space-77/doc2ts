@@ -48,12 +48,12 @@ npm run doc2ts-build        # 项目上
 > 基类文件 必须导出一个 `数据请求类`， 该 `类` 必须实现 `IApiClient` 接口，即添加 `request`方法，每个接口把参数整理后都会传给 `request`方法，所以需要您自行在 `request`方法实现请求过程（axios、fetch、ajax ...）
 
 ### request 方法参数说明
-request 方法接收一个 [DocReqConfig ](https://github.com/space-77/doc2ts/blob/develop/src/types/client.d.ts#L39)类型的对象，详细说明如下：
+request 方法接收一个 [DocReqConfig ](https://github.com/space-77/doc2ts/blob/develop/src/types/client.d.ts#L33)类型的对象，详细说明如下：
 
 | 键值 | 类型 | 必传 | 说明 |
 | --- | --- | --- | --- |
 | url | String | 是 | 接口请求地址（不带 BaseURL） |
-| method | [Method](https://github.com/space-77/doc2ts/blob/develop/src/types/client.d.ts#L16) | 是 | 请求方法 |
+| method | [Method](https://github.com/space-77/doc2ts/blob/develop/src/types/client.d.ts#L9) | 是 | 请求方法 |
 | body | Object | 否 | 请求体， 根据文档接口入参定义 |
 | formData | FormData | 否 | 封装好的FormData 请求参数，根据文档接口入参定义 |
 | header | Object | 否 | header 请求参数，根据文档接口入参定义 |
