@@ -71,7 +71,7 @@ export class CreateApiFile {
       return content.replace(/\{requestMethod\}/g, requestMethod)
     })
 
-    return methodsList.join('\n')
+    return methodsList.join('\n\n')
   }
 
   /**
