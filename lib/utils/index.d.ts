@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import fs from 'fs';
-import { Doc2TsConfig, ModelList } from '../types/type';
+import { Doc2TsConfig } from '../types/type';
 /**
  * @param str
  * @description 烤串转驼峰
@@ -38,7 +38,6 @@ export declare function createFile(filePath: string, content: string, nolog?: bo
  * @description 格式化代码
  */
 export declare function format(fileContent: string, prettierOpts: {} | undefined, isTsFile: boolean): string;
-export declare function getModelUrl(origins: Doc2TsConfig['origins']): Promise<ModelList[]>;
 /** 检测是否是合法url */
 export declare function judgeIsVaildUrl(url: string): boolean;
 export declare function checkJsLang(lang?: Doc2TsConfig['languageType']): boolean;

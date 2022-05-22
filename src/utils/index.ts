@@ -183,22 +183,22 @@ async function getModelList(url: string, count = 0): Promise<ModelList[]> {
   }
 }
 
-export async function getModelUrl(origins: Doc2TsConfig['origins']) {
-  const urlBaseUrl = origins.filter(i => i.isSwaggerBootstrapUi).map(({ url }) => url)
-  const urlList = origins.filter(i => !i.isSwaggerBootstrapUi) // .map(i => ({ name: i.modelName, url: i.url }))
-  const apiUrls: ModelList[] = urlList.map(i => {
-    const [_, version = 2] = i.url.match(/\/v(\d)\//) || []
-    const swaggerVersion = `${version}.0` as ModelList['swaggerVersion']
-    return { ...i, swaggerVersion }
-  })
+// export async function getModelUrl(origins: Doc2TsConfig['origins']) {
+//   const urlBaseUrl = origins.filter(i => i.isSwaggerBootstrapUi).map(({ url }) => url)
+//   const urlList = origins.filter(i => !i.isSwaggerBootstrapUi) // .map(i => ({ name: i.modelName, url: i.url }))
+//   const apiUrls: ModelList[] = urlList.map(i => {
+//     const [_, version = 2] = i.url.match(/\/v(\d)\//) || []
+//     const swaggerVersion = `${version}.0` as ModelList['swaggerVersion']
+//     return { ...i, swaggerVersion }
+//   })
 
-  const reqs = urlBaseUrl.map(async url => {
-    const modelList = await getModelList(url)
-    apiUrls.push(...modelList)
-  })
-  await Promise.all(reqs)
-  return apiUrls
-}
+//   const reqs = urlBaseUrl.map(async url => {
+//     const modelList = await getModelList(url)
+//     apiUrls.push(...modelList)
+//   })
+//   await Promise.all(reqs)
+//   return apiUrls
+// }
 
 /** 检测是否是合法url */
 export function judgeIsVaildUrl(url: string) {

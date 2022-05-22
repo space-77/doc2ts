@@ -1,193 +1,162 @@
-# doc2ts
+<div align="center">
 
-## 功能
+# doc2ts - 构建接口请求工具
+</div>
 
-- 根据 swagger 文档 生成 ts 或者 js 接口请求工具
-
-## 启动
-
+😉 根据 swagger 文档生成请求工具（typeScript or javaScript）  
+😉 只需一条命令即可实现 接口定义、入参说明、参数整理、返回数据类型定义等工作，解放双手，提高摸鱼时间  
+😉 灵活配置，不干涉请求过程
+## 快速开始
 ### 安装
-``` sh
+#### 全局安装
+```shell
 npm i -g doc2ts
 # or
 yarn add -g doc2ts
 ```
+#### 项目上安装
+```shell
+npm i -D doc2ts
+# or
+yarn add -D doc2ts
+```
+项目上安装需要在 package.json 上添加一下脚本命令
+```json
+{
+  "scripts": {
+    "doc2ts-init": "doc2ts init",
+    "doc2ts-build": "doc2ts build"
+  }
+}
+```
 ### 初始化配置
-``` sh
+```shell
 # 根据提示选择你的配置
-doc2ts init
+doc2ts init                # 全局
+npm run doc2ts-init        # 项目上
 ```
-- 输入命令后全按回车键，会生成一份实例配置。
+
+- 输入命令后全按回车键，会生成一份示例配置。
 - 如果选项 `生成基类文件` 后会在对应的位置生成一个 `.ts`文件，该文件必须导出一个 基类，该基类必须实现 `IApiClient` 接口。
-
+- 执行完该命令后，会在项目根目录上生成一个  `doc2ts-config.ts` 文件，该文件必须导出一个 `Doc2TsConfig` 类型的对象， 详细配置信息请查看 [Doc2TsConfig 配置说明](#Doc2TsConfig 配置说明)。
 ### 生成文件
-``` sh
-doc2ts build
+```shell
+doc2ts build                # 全局
+npm run doc2ts-build        # 项目上
 ```
-
 ## 基类文件说明
->  基类文件 必须导出一个 `数据请求类` 该 `类` 必须实现 `IApiClient` 接口，即添加 `request` 和 `downloadFile` 方法，每个接口最终都会这两个方法中的一个，默认走 `request` 方法，如果在配置文件配置了 [downloadFile](#修改某个接口为文件下载接口)则走`downloadFile`方法
-### request 和 downloadFile 方法参数说明
-[参数类型](./src/types/client.d.ts#L39)
-## Doc2TsConfig 配置说明
-配置的位置在 初始化配置（运行 `doc2ts init` 命令）在根目录生成的 `doc2ts-config.ts` 文件，可以通过该配置控制生成最终生成文件的内容，另外该配置文件必须导出一个 `Doc2TsConfig` 类型的对象。
+> 基类文件 必须导出一个 `数据请求类`， 该 `类` 必须实现 `IApiClient` 接口，即添加 `request`方法，每个接口把参数整理后都会传给 `request`方法，所以需要您自行在 `request`方法实现请求过程（axios、fetch、ajax ...）
 
-> 使用建议：不要修改生成文件里的内容，应尽量通过修改配置文件方式控制生成新的文件内容，每次生成文件都会覆盖旧文件的内容。
+### request 方法参数说明
+request 方法接收一个 [DocReqConfig ](https://github.com/space-77/doc2ts/blob/develop/src/types/client.d.ts#L39)类型的对象，详细说明如下：
+
+| 键值 | 类型 | 必传 | 说明 |
+| --- | --- | --- | --- |
+| url | String | 是 | 接口请求地址（不带 BaseURL） |
+| method | [Method](https://github.com/space-77/doc2ts/blob/develop/src/types/client.d.ts#L16) | 是 | 请求方法 |
+| body | Object | 否 | 请求体， 根据文档接口入参定义 |
+| formData | FormData | 否 | 封装好的FormData 请求参数，根据文档接口入参定义 |
+| header | Object | 否 | header 请求参数，根据文档接口入参定义 |
+| config | Object | 否 | 自定义某个接口参数，详细配置请查看 [自定义接口配置参数](#自定义接口配置参数) |
+
+## Doc2TsConfig 配置说明
+通过修改 `doc2ts-config.ts` 里的配置信息，可以控制最终生成文件的内容。该配置文件必须导出一个 `Doc2TsConfig` 类型的对象。
+> 使用建议：不要修改生成文件里的内容，应尽量通过修改配置信息方式控制生成新的文件内容，每次生成文件都会覆盖旧文件的内容。
 
 ### 配置 swagger 文档地址
 
-- 参数：`originUrl`
-- 必传：`originUrl`和`swaggerBootstrapUiUrl`必填其中一个
-- 类型：`List<String>`
-- 默认：` `
-- 说明：配置 swagger 
+- 参数：`origins`
+- 必传：`是`
+- 类型：`List<[Origin](./src/types/client.d.ts#L39)>`
+- 默认：`-`
+- 说明：配置 swagger 的接口信息地址
+
+Origin 类型说明如下表：
+
+| 键值 | 类型 | 必传 | 说明 |
+| --- | --- | --- | --- |
+| url | String | 是 |  swagger 的接口信息地址，返回数据与[示例地址](https://petstore.swagger.io/v2/swagger.json)一致 |
+| version | String | 否 | swagger 版本 |
+| name | String | 否 | 模块名 |
 
 ```typescript
 export default {
-  originUrl: [{modelName: 'xxx', url: 'https://xxx/xxx'}]
+  origins: [
+    {name: 'xxx1', url: 'https://xxx/xxx1'},
+    {name: 'xxx2', url: 'https://xxx/xxx2'}
+  ]
 } as Doc2TsConfig
 ```
-### 配置 swagger-bootstrap-ui 文档地址
-
-- 参数：`swaggerBootstrapUiUrl`
-- 必传：`originUrl`和`swaggerBootstrapUiUrl`必填其中一个
-- 类型：`String`
-- 默认：` `
-- 说明：配置 swagger 文档的 eg: http://localhost:7001
-
-```typescript
-export default {
-  swaggerBootstrapUiUrl: 'xxx'
-} as Doc2TsConfig
-```
-
 ### 配置 文件输出的位置
 
 - 参数：`outDir`
-- 必传：`否`
+- 必传：`是`
 - 类型：`String`
-- 默认：`./services`
-
+- 默认：` `
 ```typescript
 export default {
   outDir: 'xxx'
 } as Doc2TsConfig
 ```
-
-### 修改模块名字
-
-- 参数：`rename`
-- 必传：`否`
-- 类型：`RegExp | String | Function`
-- 默认：` `
-- 说明：传入正则或字符串类型则对模块名称进行 `name.replace` 操作，`Function` 类型则是自定义操作
-
-```typescript
-export default {
-  rename: xxx
-} as Doc2TsConfig
-```
-
-### 基类名称
-
-- 参数：`baseClassName`
-- 必传：`是`
-- 类型：`String`
-- 默认：`ApiClient`
-- 说明：
-  1. 每个模块继承的基类名称，用于给每个模块的请求类继承
-  2. 基类必须 实现 IApiClient 接口
-  3. 如果基类使用 `export` 导出的 那么 `baseClassName` 的值则是 `'{XXX}'`，如果是使用 `export default` 导出的则是 `'XXX'`
-
-```typescript
-export default {
-  baseClassName: 'ApiClient'
-} as Doc2TsConfig
-```
-
 ### 基类位置
 
 - 参数：`baseClassPath`
 - 必传：`是`
 - 类型：`String`
-- 默认：` `
+- 默认：``
 - 说明：基类路径
-
 ```typescript
 export default {
   baseClassPath: 'xxx'
 } as Doc2TsConfig
 ```
+### 基类名称
 
+- 参数：`baseClassName`
+- 必传：`否`
+- 类型：`String`
+- 默认：`ApiClient`
+- 说明： 
+   1. 每个模块继承的基类名称，用于给每个模块的请求类继承
+   1. 基类文件导出基类的名字，基类使用`baseClassName`导出可以忽略这项配置，使用`export`导出需用`{}`包裹；eg:`{ClassName}` 
+```typescript
+export default {
+  baseClassName: '{ApiClient}' // 基类使用 export 导出
+} as Doc2TsConfig
+```
 ### prettier 配置文件位置
 
 - 参数：`prettierPath`
 - 必传：`否`
 - 类型：`String`
-- 默认：` `
-- 说明：prettier 配置文件路径，默认会读取项目上的 .prettierrc.js、 prettier.config.js、prettier.config.cjs、.prettierrc、.prettierrc.json、.prettierrc.json5 以及 package.json 里的 prettier 配置， 都获取不到则使用默认配置。
-
+- 默认：``
+- 说明：使用 prettier 格式化生成的文件，prettier 配置文件路径，默认会读取项目上的 .prettierrc.js、 prettier.config.js、prettier.config.cjs、.prettierrc、.prettierrc.json、.prettierrc.json5 以及 package.json 里的 prettier 配置， 都获取不到则使用默认配置。
 ```typescript
 export default {
   prettierPath: './.prettierrc.js'
 } as Doc2TsConfig
 ```
-
-### 隐藏请求方法
-
-- 参数：`hideMethod`
-- 必传：`否`
-- 类型：`Boolean`
-- 默认：`false`
-- 说明：隐藏请求方法，达到简化代码，如下两种类型的请求可以省略（注意：在 实现 `IApiClient` 的 `request` 和 `downloadFile`, 需要自行处理请求方法）。
-  1. `get` 请求: 在 `request`方法没接收到 `method` 和 `params` 值，此时该接口为 `get` 请求可以省略。
-  2. `post` 请求: 在 `request`方法没接收到 `method` 值，但接收到了 `params` 的值，此时该接口为 `post`, 可以省略。
-  3. 除了以上两点，其它情况 `method` 均不会隐藏。
-
-```typescript
-// 配置前结果
-class XXx extends ApiClient {
-  foo() {
-    return this.request({ url: 'path/xx', params, method: 'get' })
-  }
-}
-
-// eg
-export default {
-  hideMethod: true
-} as Doc2TsConfig
-// 配置后结果，省略了 method 的配置
-class XXx extends ApiClient {
-  foo() {
-    return this.request({ url: 'path/xx', params })
-  }
-}
-```
-
 ### 自定义请求方法返回类型
+
 - 参数：`resultTypeRender`
 - 必传：`否`
 - 类型：`(typeName: string, typeInfo: Property[]) => string`
-- 默认：` `
+- 默认：``
 - 说明：可以根据自己的需求去自定义返回类型
-
-``` typescript
+```typescript
 export default {
   resultTypeRender(typeName, typeInfo) {
     return `Promise<${resTypeName}>` // default
   }
 } as Doc2TsConfig
 ```
-
-
 ### 生成模块文件前的回调钩子
 
 - 参数：`render`
 - 必传：`否`
 - 类型：`(content: string, modelName: string, config: Doc2TsConfig['config']) => string`
-- 默认：` `
+- 默认：``
 - 说明：生成接口文件前的钩子，用于修改生成的内容
-
 ```typescript
 export default {
   render(content, modelName, config) {
@@ -196,15 +165,13 @@ export default {
   }
 } as Doc2TsConfig
 ```
-
 ### 生成接口类型文件前的钩子
 
 - 参数：`typeFileRender`
 - 必传：`否`
 - 类型：`(content: string, modelName: string, config: Doc2TsConfig['config']) => string`
-- 默认：` `
+- 默认：``
 - 说明：生成接口类型文件前的钩子，用于修改生成内容
-
 ```typescript
 export default {
   typeFileRender(content, modelName, config) {
@@ -213,49 +180,25 @@ export default {
   }
 } as Doc2TsConfig
 ```
-
 ### 模块配置
 
 - 参数：`moduleConfig`
 - 必传：`否`
 - 类型：`Object`
-- 默认：` `
-- 说明：每个模块对应的配置，`key`是模块名字，[rename](#修改模块名字) 处理后的名字优先模块默认名字
-
+- 默认：``
+- 说明：每个模块对应的配置，`key`是模块名字与 [配置 swagger 文档地址](#配置 swagger 文档地址) 的 `name` 对应。
 ```typescript
 export default {
   moduleConfig: {...}
 } as Doc2TsConfig
 ```
-
-### 修改某个模块文件的名字
-
-- 参数：`moduleConfig.moduleName`
-- 必传：`否`
-- 类型：`String`
-- 默认：` `
-- 说明：针对某个模块重命名， 优先级高于 [rename](#修改模块名字)
-  1. 和 [rename](#修改模块名字) 不同的是 [moduleName](#修改某个模块文件的名字) 是对某个模块的重命名， 而 [rename](#修改模块名字) 是对所有模块重命名
-  2. [moduleName](#修改某个模块文件的名字) 不会影响[moduleConfig](#模块配置) 对象的`key`，[rename](#修改模块名字) 则会
-
-```typescript
-export default {
-  moduleConfig: {
-    模块名称: {
-      moduleName: 'xxx'
-    }
-  }
-} as Doc2TsConfig
-```
-
 #### 请求接口方法配置
 
 - 参数：`moduleConfig.methodConfig`
 - 必传：`否`
 - 类型：`Object`
-- 默认：` `
+- 默认：``
 - 说明：每个方法对应的配置
-
 ```typescript
 export default {
   moduleConfig: {
@@ -265,15 +208,13 @@ export default {
   }
 } as Doc2TsConfig
 ```
-
 #### 修改某个请求接口方法名字
 
 - 参数：`moduleConfig.methodConfig.name`
 - 必传：`否`
 - 类型：`String`
-- 默认：` `
+- 默认：``
 - 说明：修改方法名称, `接口id` 在生的类型文件里每一个导出方法都会有个一注释的`id`，`注意`: 该 id 是固定的，但会随后端接口改变而改变。
-
 ```typescript
 export default {
   moduleConfig: {
@@ -287,15 +228,13 @@ export default {
   }
 } as Doc2TsConfig
 ```
-
 #### 修改某个请求接口方法描述
 
 - 参数：`moduleConfig.methodConfig.description`
 - 必传：`否`
 - 类型：`String`
-- 默认：` `
+- 默认：``
 - 说明：修改方法描述
-
 ```typescript
 export default {
   moduleConfig: {
@@ -309,37 +248,13 @@ export default {
   }
 } as Doc2TsConfig
 ```
-
-#### 修改某个接口为文件下载接口
-
-- 参数：`moduleConfig.methodConfig.isDownload`
-- 必传：`否`
-- 类型：`Boolean`
-- 默认：`false`
-- 说明：该接口是否是下载文件接口，如果是则会走 `IApiClient` 的 `downloadFile` 方法
-
-```typescript
-export default {
-  moduleConfig: {
-    模块名称: {
-      methodConfig: {
-        接口id: {
-          downloadFile: true
-        }
-      }
-    }
-  }
-} as Doc2TsConfig
-```
-
 #### 自定义接口配置参数
 
 - 参数：`moduleConfig.methodConfig.config`
 - 必传：`否`
 - 类型：`Object`
-- 默认：` `
+- 默认：``
 - 说明：接口的自定义配置，会传递到调用对应基类的方法里
-
 ```typescript
 export default {
   moduleConfig: {

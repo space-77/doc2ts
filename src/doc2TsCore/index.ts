@@ -14,7 +14,6 @@ import {
   getConfig,
   getTsFiles,
   camel2Kebab,
-  getModelUrl,
   checkJsLang,
   findDiffPath,
   resolveOutPath,
@@ -23,7 +22,7 @@ import {
 
 export default class Doc2Ts {
   api = new Api()
-  modelList: ModelList[] = []
+  // modelList: ModelList[] = []
   StandardDataSourceList: StandardDataSourceLister[] = []
 
   config!: Config
@@ -35,7 +34,7 @@ export default class Doc2Ts {
   async init() {
     try {
       await this.getConfig()
-      await this.getModelList()
+      // await this.getModelList()
       await this.initRemoteDataSource()
       await this.generateFile()
       await this.transform2js()
@@ -55,14 +54,14 @@ export default class Doc2Ts {
     }
   }
 
-  async getModelList() {
-    try {
-      this.modelList = await getModelUrl(this.config.origins)
-    } catch (error) {
-      log.error('获取API接口数据失败')
-      console.error(error)
-    }
-  }
+  // async getModelList() {
+  //   try {
+  //     this.modelList = await getModelUrl(this.config.origins)
+  //   } catch (error) {
+  //     log.error('获取API接口数据失败')
+  //     console.error(error)
+  //   }
+  // }
 
   async initRemoteDataSource() {
     const config: DataSourceConfig = {
@@ -103,11 +102,11 @@ export default class Doc2Ts {
     }
 
     try {
-      const reqs = this.modelList.map(async ({ url, name, swaggerVersion }) => {
+      const reqs = this.config.origins.map(async ({ url, name, version }) => {
         name = name ? camel2Kebab(name) : ''
         if (this.config.rename) name = rename(name, this.config.rename)
         let originType: OriginType
-        switch (swaggerVersion) {
+        switch (version) {
           case '3.0':
             originType = OriginType.SwaggerV3
             break

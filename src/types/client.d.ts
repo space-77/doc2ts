@@ -3,13 +3,7 @@ export interface IApiClient {
    * @param config
    * @description 接口请求方法
    */
-  request<T = any>(config: IRequestParams): Promise<T>
-
-  /**
-   *
-   * @description 下载文件
-   */
-  downloadFile(config: IRequestParams): Promise<any>
+  request<T = any>(config: DocReqConfig): Promise<T>
 }
 
 export type Method =
@@ -36,7 +30,7 @@ export type Method =
 
 export type TData = Record<string, any>
 
-export interface IRequestParams {
+export interface DocReqConfig {
   /**
    * @description 接口请求路径
    */

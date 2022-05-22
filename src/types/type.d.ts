@@ -4,8 +4,7 @@ import type { Interface, Property, StandardDataSource } from '../pont-engine/sta
 export interface ModelList {
   url: string
   name?: string
-  location?: string
-  swaggerVersion?: '3.0' | '2.0' | '1.0'
+  version?: '3.0' | '2.0' | '1.0'
 }
 
 export type MethodConfig = {
@@ -48,11 +47,13 @@ export type ModuleConfig = {
   [key: string]: ModuleConfigInfo
 }
 
+export type Origin = ModelList
+
 export type Doc2TsConfig = {
   /**
    * @description swagger 文档请求地址 eg: http://localhost:7001
    */
-  origins: (ModelList & { isSwaggerBootstrapUi?: boolean })[]
+  origins: Origin[]
 
   /**
    * @description 文件输出位置
@@ -63,7 +64,7 @@ export type Doc2TsConfig = {
    * @default ApiClient
    * @description 每个模块继承的基类名称， 注意：基类必须 实现 IApiClient 接口
    */
-  baseClassName: string
+  baseClassName?: string
 
   /**
    * @description 生成的文件类型
