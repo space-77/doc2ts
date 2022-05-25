@@ -231,19 +231,20 @@ export default class Doc2Ts {
   createFiles() {
     if (fileList.length === 0) return
     const { outDir, baseClassPath } = this.config
-    const outDirPath = path.join(resolveOutPath(outDir), 'index')
+    const outDirPath = resolveOutPath(outDir)
     const targetPath = resolveOutPath(baseClassPath)
+    const outDirIndexPath = path.join(outDirPath, 'index')
 
     // 删除清空文件夹
     fs.rmdirSync(path.join(outDirPath, 'types'), { recursive: true })
     fs.rmdirSync(path.join(outDirPath, 'module'), { recursive: true })
 
     const removeFiles = [
-      `${outDirPath}.d.ts`,
-      `${outDirPath}.ts`,
-      `${outDirPath}.js`,
       `${targetPath}.js`,
-      `${targetPath}.d.ts`
+      `${targetPath}.d.ts`,
+      `${outDirIndexPath}.ts`,
+      `${outDirIndexPath}.js`,
+      `${outDirIndexPath}.d.ts`
     ]
 
     removeFiles.forEach(filePath => {
