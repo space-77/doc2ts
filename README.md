@@ -1,9 +1,9 @@
 <div align="center">
 
-# doc2ts - 构建接口请求工具
+# doc2ts - 构建接口请求代码
 </div>
 
-😉 根据 swagger 文档生成请求工具（typeScript or javaScript）  
+😉 根据 swagger 文档生成请求数据的代码（typeScript or javaScript）  
 😉 只需一条命令即可实现 接口定义、入参说明、参数整理、返回数据类型定义等工作，解放双手，提高摸鱼时间  
 😉 灵活配置，不干涉请求过程  
 ## 快速开始
