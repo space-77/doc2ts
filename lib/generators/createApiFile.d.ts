@@ -13,7 +13,7 @@ export declare class CreateApiFile {
     fixParamsType(parameters: Property[], method: Method): void;
     formatUrl(url: string, paramsInfo: GetParamsStr): string;
     getParamsStr(parameters: Property[]): GetParamsStr;
-    createFile(): Promise<void>;
+    createFile(): void;
     getTempData(filePath: string): string;
     filterParams(parameters: Property[], type: Property['in']): string[];
     joinParams(keyList: string[]): string;
@@ -23,13 +23,7 @@ declare type BaseClassConfig = {
     targetPath: string;
     importBaseCalssName: string;
 };
-/**
- *
- * @param tempClassPath
- * @param targetPath
- * @param importBaseCalssName '{xxx}' or 'xxx'
- */
-export declare function createBaseClassFile(config: BaseClassConfig): Promise<void>;
+export declare function createBaseClassFile(config: BaseClassConfig): void;
 declare type IndexFileConfig = {
     outDir: string;
     filePathList: FilePathList[];

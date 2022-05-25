@@ -9,6 +9,7 @@ export default class Doc2Ts {
     init(): Promise<void>;
     getConfig(): Promise<void>;
     initRemoteDataSource(): Promise<void>;
-    generateFile(): Promise<void>;
+    generateFileData(): Promise<void>;
+    createFiles(): void;
     transform2js(): Promise<undefined>;
 }

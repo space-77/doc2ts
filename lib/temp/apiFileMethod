@@ -1,4 +1,5 @@
 /**
+ * @id {id}
  * @description {description}
  */
 {funName}{funTypeName} = {paramsName} => {{methodBody}

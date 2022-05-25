@@ -26,9 +26,11 @@ export declare class Config {
     readonly baseClassPath: string;
     readonly languageType?: Doc2TsConfig['languageType'];
     readonly hideMethod: boolean;
+    readonly methodConfig?: Doc2TsConfig['methodConfig'];
     readonly render: Doc2TsConfig['render'];
     readonly typeFileRender: Doc2TsConfig['typeFileRender'];
     readonly resultTypeRender: Doc2TsConfig['resultTypeRender'];
     constructor(config: Doc2TsConfig);
 }
+export declare const keyWordsListSet: Set<string>;
 export declare const keyWords: Set<string>;

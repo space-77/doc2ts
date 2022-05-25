@@ -21,7 +21,7 @@ export default class CreateTypeFile {
     importType: Set<string>;
     fileInfo: TypeFileInfo;
     constructor(params: TypeFileInfo);
-    generateFile(): Promise<void>;
+    generateFile(): void;
     private generateApiClassType;
     private generateTypeValue;
     private generateTypes;
@@ -29,7 +29,7 @@ export default class CreateTypeFile {
     private generateParamType;
     private generateParamTypeValue;
     private generateImportType;
-    getDescription(des?: string): string;
-    createBaseClasses(): Promise<void>;
+    getDescription(des?: string, example?: string): string;
+    createBaseClasses(): void;
 }
 export {};

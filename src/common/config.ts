@@ -32,9 +32,12 @@ export class Config {
   readonly baseClassPath!: string
   readonly languageType?: Doc2TsConfig['languageType']
   readonly hideMethod: boolean = false
+  readonly methodConfig?: Doc2TsConfig['methodConfig']
   readonly render: Doc2TsConfig['render']
   readonly typeFileRender: Doc2TsConfig['typeFileRender']
   readonly resultTypeRender: Doc2TsConfig['resultTypeRender']
+
+  // baseClassPath
 
   constructor(config: Doc2TsConfig) {
     Object.entries(config).forEach(([key, value]) => {
@@ -44,11 +47,22 @@ export class Config {
       }
     })
     Object.assign(this, { ...config })
+
     if (!this.baseClassPath || !Array.isArray(this.origins) || this.origins.length === 0)
       throw new Error('必要参数异常')
+
+    this.baseClassPath = this.baseClassPath.replace(/.ts/, '')
   }
 }
 
-const keyWordsList = 'Array,Date,eval,function,hasOwnProperty,Infinity,isFinite,isNaN,isPrototypeOf,length,Math,NaN,Number,Object,prototype,String,toString,undefined,valueOf,abstract,arguments,boolean,break,byte,case,catch,char,class,const,continue,debugger,default,delete,do,double,else,enum,export,extends,false,final,finally,float,for,goto,if,implements,import,in,instanceof,int,interface,let,long,native,new,null,package,private,protected,public,return,short,static,super,switch,synchronized,this,throw,throws,transient,true,try,typeof,var,void,volatile,while,with,yield'.split(',')
+const keyWordsList =
+  'Array,Date,eval,function,hasOwnProperty,Infinity,isFinite,isNaN,isPrototypeOf,length,Math,NaN,Number,Object,prototype,String,toString,undefined,valueOf,abstract,arguments,boolean,break,byte,case,catch,char,class,const,continue,debugger,default,delete,do,double,else,enum,export,extends,false,final,finally,float,for,goto,if,implements,import,in,instanceof,int,interface,let,long,native,new,null,package,private,protected,public,return,short,static,super,switch,synchronized,this,throw,throws,transient,true,try,typeof,var,void,volatile,while,with,yield'.split(
+    ','
+  )
+// js  关键字组合可用于判断声明的变量是否包含关键字
+export const keyWordsListSet = new Set(keyWordsList)
+
 keyWordsList.push(...Object.values(PARAMS_NAME))
+
+// js  关键字组合 外加 请求方法里用上的几个变量名字 可用于判断声明的变量是否包含关键字
 export const keyWords = new Set(keyWordsList)

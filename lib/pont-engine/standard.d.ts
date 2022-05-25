@@ -38,6 +38,7 @@ export declare class Property extends Contextable {
     description?: string;
     name: string;
     required: boolean;
+    example?: string;
     in: 'query' | 'body' | 'path' | 'formData' | 'header';
     setContext(context: any): void;
     constructor(prop: Partial<Property>);
@@ -53,6 +54,7 @@ export declare class Interface extends Contextable {
     method: string;
     name: string;
     path: string;
+    id?: string;
     get responseType(): any;
     getParamsCode(className?: string, surrounding?: Surrounding): string;
     getParamList(): ({

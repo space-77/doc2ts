@@ -130,7 +130,7 @@ export function resolveOutPath(...paths: string[]) {
 /**
  * @description 创建文件
  */
-export async function createFile(filePath: string, content: string, nolog = false) {
+export function createFile(filePath: string, content: string, nolog = false) {
   try {
     const dirList = filePath.split(path.sep)
     const fileName = dirList[dirList.length - 1]

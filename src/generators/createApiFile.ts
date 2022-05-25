@@ -1,10 +1,11 @@
 import fs from 'fs'
 import path from 'path'
-import { keyWords, PARAMS_NAME } from '../common/config'
+import { fileList } from './fileList'
 import type { Property } from '../pont-engine'
 import type { Method } from '../types/client'
 import type { FilePathList, GetParamsStr, ModelInfo } from '../types/type'
-import { firstToUpper, findDiffPath, createFile, firstToLower } from '../utils'
+import { firstToUpper, findDiffPath, firstToLower } from '../utils'
+import { keyWords, keyWordsListSet, PARAMS_NAME } from '../common/config'
 
 export class CreateApiFile {
   modelInfo!: ModelInfo
@@ -39,17 +40,19 @@ export class CreateApiFile {
   }
 
   generateApiClassMethod() {
-    const { config, hideMethod, interfaces, isJs } = this.modelInfo
+    const { config = {}, hideMethod, interfaces, isJs, methodConfig } = this.modelInfo
     interfaces.sort((a, b) => a.path.length - b.path.length)
     const methodsList = interfaces.map(i => {
-      const { name: funName, method: met, path: _path, description, response, parameters } = i
-      const { isDownload, config: metConfig, description: configDes } = config.methodConfig?.[funName] || {}
+      const { name: funName, method: met, path: _path, description, response, parameters, id = '' } = i
+      const funcConfig = config.methodConfig || methodConfig
+      // console.log(funcConfig)
+      const { isDownload, config: metConfig, description: configDes } = funcConfig?.[id] || {}
 
       this.fixParamsType(parameters, met as Method)
       const paramsInfo = this.getParamsStr(parameters)
-      const { methodBody, onlyType, hsaBody, bodyName, body, header, formData } = paramsInfo
+      const { methodBody, body, header, formData, paramsName } = paramsInfo
 
-      const paramsName = parameters.length === 0 ? '()' : onlyType && hsaBody ? bodyName : 'params'
+      // const paramsName = parameters.length === 0 ? '()' : onlyType && hasBody ? bodyName : 'params'
 
       const requestMethod = isDownload ? 'downloadFile' : 'request'
       const url = `url:${this.formatUrl(_path, paramsInfo)}`
@@ -62,6 +65,7 @@ export class CreateApiFile {
       const funConfig = `${url}${body}${otherConfig}${method}${requestConfig}`
 
       let content = this.getTempData('../temp/apiFileMethod')
+      content = content.replace(/\{id\}/g, id)
       content = content.replace(/\{funName\}/g, firstToLower(funName))
       content = content.replace(/\{funConfig\}/g, funConfig)
       content = content.replace(/\{methodBody\}/g, methodBody)
@@ -86,10 +90,21 @@ export class CreateApiFile {
   }
 
   formatUrl(url: string, paramsInfo: GetParamsStr) {
-    const { hasPath, hsaQuery, queryName } = paramsInfo
-    if (hasPath || hsaQuery) {
-      if (hasPath) url = url.replace(/\{(\w+)\}/g, v => `$${this.joinParams([v])}`)
-      return `\`${url}${hsaQuery ? `?\${${queryName}}` : ''}\``
+    const { hasPath, hasQuery, queryValue, onlyType } = paramsInfo
+    if (hasPath || hasQuery) {
+      if (hasPath)
+        url = url.replace(/\{(\w+)\}/g, v => {
+          let val = v
+          if (onlyType) {
+            // 只有一个参数的时候 形参是否包含 关键字用的是  keyWordsListSet
+            val = keyWordsListSet.has(v) ? `_${v}` : v
+          } else {
+            // 多个参数的时候 形参是否包含 关键字用的是  keyWords
+            val = this.joinParams([v])
+          }
+          return `$${val}`
+        })
+      return `\`${url}${hasQuery ? `?\${${queryValue}}` : ''}\``
     }
     return `'${url}'`
   }
@@ -100,9 +115,10 @@ export class CreateApiFile {
 
     let methodBody = ''
     const bodyName = PARAMS_NAME.BODY
-    const queryName = PARAMS_NAME.QUERY
+    // const queryName = PARAMS_NAME.QUERY
     const headerName = PARAMS_NAME.HEADER
     const formDataName = PARAMS_NAME.FORMDATA
+    let queryValue: string | undefined
 
     let body = ''
     let header = ''
@@ -114,12 +130,12 @@ export class CreateApiFile {
 
     // query
     const queryParams = this.filterParams(parameters, 'query') // .map(name => `${name}=\${${name}}`) // ['aaa=${aaa}']
-    const hsaQuery = queryParams.length > 0
+    const hasQuery = queryParams.length > 0
 
     // body
     const bodyParams = this.filterParams(parameters, 'body')
-    const hsaBody = bodyParams.length > 0
-    if (hsaBody) body = `, ${bodyName}`
+    const hasBody = bodyParams.length > 0
+    if (hasBody) body = `, ${bodyName}`
 
     // formData
     const formDataParams = this.filterParams(parameters, 'formData')
@@ -130,21 +146,39 @@ export class CreateApiFile {
     const headerParams = this.filterParams(parameters, 'header') // .map(i => `'${i}': ${i}`) // [ "'aaa': aaa" ]
     const hasHeader = headerParams.length > 0
     if (hasHeader) header = `, ${headerName}`
-    const parametersList = new Set(parameters.map(i => i.in)) // .size === 1
+    const parametersList = new Set(parameters.map(i => i.in))
+    const onlyType = parametersList.size === 1
+    const onlyParam = parameters.length === 1
     const paramsList = parameters.map(({ name }) => name)
+    let paramsStr = 'params'
+    let onlyParamName: string | undefined
+
+    // 请求方法的形参
+    let paramsName = '()'
+    if (parameters.length > 0) {
+      if (onlyParam) {
+        const { name } = parameters[0]
+        onlyParamName = keyWordsListSet.has(name) ? `_${name}` : name
+        paramsName = `${onlyParamName}`
+        paramsStr = name !== onlyParamName ? `{${name}: ${onlyParamName}}` : `{${onlyParamName}}`
+      } else {
+        paramsName = onlyType && hasBody ? bodyName : paramsStr
+      }
+    }
+
     // const parametersSet = new Set(paramsList)
     // 判断是否存在 path 参数
     // 存在 path 参数 或者 存在两种及以上参数类型的需要 解构
     if (hasPath || parametersList.size > 1) {
       // 需要需要解构
-      methodBody = `\nconst { ${joinParams(paramsList)} } = params`
+      if (!onlyParam) methodBody = `\nconst { ${joinParams(paramsList)} } = ${paramsStr}`
 
       // 组建各种请求类型参数
       // query
-      if (hsaQuery) methodBody += `\nconst ${queryName} = this.serialize({${joinParams(queryParams)}})`
+      if (hasQuery) queryValue += `this.serialize({${joinParams(queryParams)}})`
 
       // body
-      if (hsaBody) methodBody += `\nconst ${bodyName} = {${joinParams(bodyParams)}}`
+      if (hasBody) methodBody += `\nconst ${bodyName} = {${joinParams(bodyParams)}}`
 
       // formData
       if (hasformData) methodBody += `\nconst ${formDataName} = this.formData({${joinParams(formDataParams)}})`
@@ -157,45 +191,51 @@ export class CreateApiFile {
 
       // 组建各种请求类型参数
       // query
-      if (hsaQuery) methodBody = `\nconst ${queryName} = this.serialize(params)`
+      if (hasQuery) queryValue = `this.serialize(${paramsStr})`
 
       // body
       // 直接把 params 传给 request方法即可
+      if (hasBody && onlyParam) {
+        // methodBody = `\nconst ${bodyName} = ${paramsStr}`
+        body = `,body: ${paramsStr}`
+      }
 
       // formData
       if (hasformData) {
         formData = `, ${formDataName}`
-        methodBody = `\nconst ${formDataName} = this.formData(params)`
+        methodBody = `\nconst ${formDataName} = this.formData(${paramsStr})`
       }
 
       // header
       // 直接把 params 传给 request方法即可
     }
+
     return {
       body,
       header,
       formData,
       methodBody,
       hasPath,
-      hsaBody,
-      hsaQuery,
+      hasBody,
+      hasQuery,
       hasHeader,
       bodyName,
-      queryName,
+      onlyType,
+      queryValue,
       headerName,
+      paramsName,
       hasformData,
-      formDataName,
-      onlyType: parametersList.size === 1
+      formDataName
     }
   }
 
-  async createFile() {
+  createFile() {
     const { fileContent, modelInfo } = this
     const { filePath, render, name, config } = modelInfo
 
     const modelName = config.moduleName || name || ''
     const content = render ? render(fileContent, modelName, config) : fileContent
-    await createFile(filePath, content)
+    fileList.push({ filePath, content })
   }
 
   getTempData(filePath: string) {
@@ -218,24 +258,19 @@ export class CreateApiFile {
 }
 
 type BaseClassConfig = { tempClassPath: string; targetPath: string; importBaseCalssName: string }
-/**
- *
- * @param tempClassPath
- * @param targetPath
- * @param importBaseCalssName '{xxx}' or 'xxx'
- */
-export async function createBaseClassFile(config: BaseClassConfig) {
+
+export function createBaseClassFile(config: BaseClassConfig) {
   const { tempClassPath, targetPath, importBaseCalssName } = config
   const tempClassDirList = tempClassPath.split(path.sep)
   const tempClassDir = path.join(...tempClassDirList.slice(0, tempClassDirList.length - 1))
-  const importPath = findDiffPath(tempClassDir, targetPath).replace(/\.ts/, '')
+  const importPath = findDiffPath(tempClassDir, targetPath) // .replace(/\.ts/, '')
   const baseClassName = importBaseCalssName.replace(/^\{(.+)\}$/, (_, $1) => $1)
 
   let content = fs.readFileSync(path.join(__dirname, '../temp/baseClass')).toString()
   content = content.replace(/\{BaseCalssName\}/g, baseClassName)
   content = content.replace(/\{BaseClassPath\}/g, importPath)
   content = content.replace(/\{ImportBaseCalssName\}/g, importBaseCalssName)
-  await createFile(tempClassPath, content)
+  fileList.push({ filePath: tempClassPath, content })
 }
 
 type IndexFileConfig = { outDir: string; filePathList: FilePathList[]; indexFilePath: string }
@@ -290,5 +325,6 @@ export async function createIndexFilePath(config: IndexFileConfig) {
     ${hasModelItems}
   }
   `
-  await createFile(indexFilePath, content)
+  fileList.push({ filePath: indexFilePath, content })
+  // await createFile(indexFilePath, content)
 }

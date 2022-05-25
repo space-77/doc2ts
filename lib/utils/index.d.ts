@@ -33,7 +33,7 @@ export declare function resolveOutPath(...paths: string[]): string;
 /**
  * @description 创建文件
  */
-export declare function createFile(filePath: string, content: string, nolog?: boolean): Promise<undefined>;
+export declare function createFile(filePath: string, content: string, nolog?: boolean): Promise<never> | undefined;
 /**
  * @description 格式化代码
  */

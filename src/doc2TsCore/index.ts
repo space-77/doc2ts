@@ -2,6 +2,7 @@ import fs from 'fs'
 import log from '../utils/log'
 import Api from '../utils/api'
 import path from 'path'
+import { fileList } from '../generators/fileList'
 import CreateTypeFile from '../generators/createTypeFile'
 import { DataSourceConfig } from '../pont-engine/utils'
 import { Config, CONFIG_PATH, Surrounding } from '../common/config'
@@ -17,7 +18,8 @@ import {
   checkJsLang,
   findDiffPath,
   resolveOutPath,
-  loadPrettierConfig
+  loadPrettierConfig,
+  createFile
 } from '../utils'
 
 export default class Doc2Ts {
@@ -36,7 +38,8 @@ export default class Doc2Ts {
       await this.getConfig()
       // await this.getModelList()
       await this.initRemoteDataSource()
-      await this.generateFile()
+      await this.generateFileData()
+      this.createFiles()
       await this.transform2js()
       log.clear()
       log.success(log.done(' ALL DONE '))
@@ -139,7 +142,7 @@ export default class Doc2Ts {
     }
   }
 
-  async generateFile() {
+  async generateFileData() {
     // try {
     //   const dataList = fs.readFileSync(path.join(__dirname, '../../mock/modelInfoList.json')).toString()
     //   this.StandardDataSourceList = JSON.parse(dataList) as StandardDataSourceLister[]
@@ -159,6 +162,7 @@ export default class Doc2Ts {
       baseClassName,
       baseClassPath,
       typeFileRender,
+      methodConfig,
       resultTypeRender,
       moduleConfig = {}
     } = this.config
@@ -168,10 +172,10 @@ export default class Doc2Ts {
     const outputDir = resolveOutPath(outDir)
     const targetPath = resolveOutPath(baseClassPath)
     const tempClassPath = path.join(outputDir, 'module/baseClass.ts')
-    await createBaseClassFile({ tempClassPath, targetPath, importBaseCalssName: baseClassName })
+    createBaseClassFile({ tempClassPath, targetPath, importBaseCalssName: baseClassName })
     const filePathList: FilePathList[] = []
 
-    const allProcess = StandardDataSourceList.map(async i => {
+    StandardDataSourceList.forEach(async i => {
       const { data, name } = i
       const { mods, baseClasses } = data
       const config = name ? moduleConfig[name] || {} : {}
@@ -182,7 +186,7 @@ export default class Doc2Ts {
       const typeDirPaht = path.join(outputDir, `types${modulePath}`)
 
       const filePathItems: FilePathList['data'] = []
-      const pros = mods.map(async ({ interfaces, name: fileName, description }) => {
+      mods.forEach(({ interfaces, name: fileName, description }) => {
         const filePath = path.join(dirPath, `${fileName}.ts`)
         filePathItems.push({ filePath, fileName })
 
@@ -198,9 +202,11 @@ export default class Doc2Ts {
           interfaces,
           description,
           typeDirPaht,
-          diffClassPath
+          diffClassPath,
+          methodConfig
         }
         const createApiFile = new CreateApiFile(params)
+        createApiFile.createFile()
 
         const createTypeFile = new CreateTypeFile({
           fileName,
@@ -211,19 +217,42 @@ export default class Doc2Ts {
           resultTypeRender
         })
 
-        await Promise.all([
-          createApiFile.createFile(),
-          createTypeFile.generateFile(),
-          createTypeFile.createBaseClasses()
-        ])
+        createTypeFile.generateFile()
+        createTypeFile.createBaseClasses()
       })
       filePathList.push({ moduleName, data: filePathItems })
-      await Promise.all(pros)
+      // await Promise.all(pros)
     })
 
     const indexFilePath = path.join(outDir, 'index.ts')
-    allProcess.push(createIndexFilePath({ outDir: outputDir, filePathList, indexFilePath }))
-    await Promise.all(allProcess)
+    createIndexFilePath({ outDir: outputDir, filePathList, indexFilePath })
+  }
+
+  createFiles() {
+    if (fileList.length === 0) return
+    const { outDir, baseClassPath } = this.config
+    const outDirPath = path.join(resolveOutPath(outDir), 'index')
+    const targetPath = resolveOutPath(baseClassPath)
+
+    // 删除清空文件夹
+    fs.rmdirSync(path.join(outDirPath, 'types'), { recursive: true })
+    fs.rmdirSync(path.join(outDirPath, 'module'), { recursive: true })
+
+    const removeFiles = [
+      `${outDirPath}.d.ts`,
+      `${outDirPath}.ts`,
+      `${outDirPath}.js`,
+      `${targetPath}.js`,
+      `${targetPath}.d.ts`
+    ]
+
+    removeFiles.forEach(filePath => {
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
+    })
+
+    fileList.forEach(({ filePath, content }) => {
+      createFile(filePath, content)
+    })
   }
 
   async transform2js() {
@@ -244,6 +273,11 @@ export default class Doc2Ts {
         const filesInfo: string[] = getTsFiles(modeleDir)
         filesInfo.push(indexFilePath)
         filesInfo.map(filePath => fs.existsSync(filePath) && fs.unlinkSync(filePath))
+      }
+
+      if (!declaration) {
+        // 删除 types 里的 .d.ts 文件
+        fs.rmdirSync(path.join(outDirPath, 'types'), { recursive: true })
       }
 
       log.success('转换成功')

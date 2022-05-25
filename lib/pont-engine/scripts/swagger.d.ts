@@ -33,6 +33,7 @@ declare class SwaggerParameter {
         $ref?: string;
     };
     schema: Schema;
+    'x-example'?: string;
 }
 declare class Schema {
     enum?: string[];

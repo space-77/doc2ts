@@ -8,10 +8,11 @@ export interface ModelList {
 }
 
 export type MethodConfig = {
-  /**
-   * @description 修改方法名称
-   */
-  name?: string
+  // /**
+  //  * @deprecated 弃用
+  //  * @description 修改方法名称
+  //  */
+  // name?: string
 
   /**
    * @description 修改描述
@@ -34,6 +35,8 @@ export type ModuleConfigInfo = {
    * @description 模块重命名， 优先级高于 config.rename
    */
   moduleName?: string
+
+  // render?(funName: string, context: string): string
 
   methodConfig?: {
     [key: string]: MethodConfig
@@ -75,13 +78,13 @@ export type Doc2TsConfig = {
    * @default false
    * @description 是否输出 ts 文件【languageType 为 js 模式下有效】
    */
-   emitTs?: boolean
+  emitTs?: boolean
 
   /**
    * @default true
    * @description 是否输出 js 的生成声明文件 d.ts 文件【languageType 为 js 模式下有效】
    */
-   declaration?: boolean
+  declaration?: boolean
 
   /**
    * @description 基类路径
@@ -100,7 +103,7 @@ export type Doc2TsConfig = {
   /**
    * @description 接口返回数据类型钩子
    */
-  resultTypeRender?(typeName: string, typeInfo: Property[]): string
+  resultTypeRender?: string | ((typeName: string, typeInfo: Property[]) => string)
 
   /**
    * @description 模块改名
@@ -129,6 +132,10 @@ export type Doc2TsConfig = {
   typeFileRender?(content: string, modelName: string): string
 
   moduleConfig?: ModuleConfig
+
+  methodConfig?: {
+    [key: string]: MethodConfig
+  }
 }
 
 export type Doc2TsConfigKey = keyof Doc2TsConfig
@@ -148,6 +155,9 @@ export type ModelInfo = {
   description: string
   diffClassPath: string
   render: Doc2TsConfig['render']
+  methodConfig?: {
+    [key: string]: MethodConfig
+  }
   // resultTypeRender: Doc2TsConfig['resultTypeRender']
 }
 
@@ -155,17 +165,21 @@ export type GetParamsStr = {
   methodBody: string
   onlyType: boolean
   hasPath: boolean
-  hsaQuery: boolean
-  hsaBody: boolean
+  hasQuery: boolean
+  hasBody: boolean
   hasHeader: boolean
   hasformData: boolean
   bodyName: PARAMS_NAME.BODY
-  queryName: PARAMS_NAME.QUERY
+  // queryName: PARAMS_NAME.QUERY
   headerName: PARAMS_NAME.HEADER
   formDataName: PARAMS_NAME.FORMDATA
   body: string
   header: string
   formData: string
+  paramsName: string
+  queryValue?: string
 }
 
 export type FilePathList = { moduleName?: string; data: { fileName: string; filePath: string }[] }
+
+export type FileListItem = { filePath: string; content: string }

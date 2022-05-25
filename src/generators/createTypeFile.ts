@@ -1,6 +1,8 @@
 import path from 'path'
+import { fileList } from './fileList'
 import { Doc2TsConfig } from '../types/type'
-import { createFile, firstToUpper } from '../utils'
+import { firstToUpper } from '../utils'
+import { resTypeDataKey, resTypeNameKey } from '../common/reg'
 import { BaseClass, Interface, Property, StandardDataType } from '../pont-engine'
 
 type TypeFileInfo = {
@@ -34,7 +36,7 @@ export default class CreateTypeFile {
     // this.generateFile()
   }
 
-  public async generateFile() {
+  public generateFile() {
     const { typeDirPaht, fileName, typeFileRender } = this.fileInfo
     this.generateApiClassType() // 创建 接口请求方法的类型
     this.generateTypeValue() // 创建 返回类型
@@ -42,7 +44,8 @@ export default class CreateTypeFile {
     this.generateParamType() // 创建 参数的类型
     this.generateImportType() // 创建 返回数据类型和参数类型 需要引入的类型
     this.content = typeof typeFileRender === 'function' ? typeFileRender(this.content, fileName) : this.content
-    await createFile(path.join(typeDirPaht, `${fileName}.d.ts`), this.content)
+    const filePath = path.join(typeDirPaht, `${fileName}.d.ts`)
+    fileList.push({ filePath, content: this.content })
   }
 
   private generateApiClassType() {
@@ -50,12 +53,21 @@ export default class CreateTypeFile {
     const { interfaces } = fileInfo
     const methodList = interfaces.map(i => {
       const { response, parameters } = i
+      const onlyParam = parameters.length === 1
+
       const name = firstToUpper(i.name)
       const resTypeName = `${name}Body`
       const metReturnTypeName = `${name}Response`
       const paramTypeName = `${name}Param`
+
+      let paramsStr = `(params: ${paramTypeName})`
+      if (onlyParam) {
+        const { name } = parameters[0]
+        paramsStr = `(${name} :${paramTypeName}['${name}'])`
+      }
+
       typeList.push({ resTypeName, response, paramTypeName, parameters, metReturnTypeName })
-      return `export type ${name} = (params: ${paramTypeName}) => ${metReturnTypeName}\n`
+      return `export type ${name} = ${paramsStr} => ${metReturnTypeName}\n`
     })
     this.content = methodList.join('\n')
   }
@@ -66,10 +78,25 @@ export default class CreateTypeFile {
     const typeValueList = typeList.map(i => {
       const { resTypeName, response, metReturnTypeName } = i
       let promType = `Promise<${resTypeName}>`
-      if (typeof render === 'function') {
-        const { typeName } = response
-        const typeInfo = baseClasses.find(i => i.name === typeName)
-        if (typeInfo) promType = render(resTypeName, typeInfo.properties)
+
+      const { typeName } = response
+      const typeInfo = baseClasses.find(i => i.name === typeName)
+      if (render && typeInfo) {
+        if (typeof render === 'function') {
+          if (typeInfo) promType = render(resTypeName, typeInfo.properties)
+        } else if (typeof render === 'string') {
+          // '[err, {dataKey}, {typeName}]'
+          let tempStr = render
+          const [_, dataKey, keyValue] = render.match(resTypeDataKey) || []
+          if (dataKey) {
+            const hasKey = typeInfo.properties.some(i => i.name === keyValue)
+            if (hasKey) {
+              tempStr = tempStr.replace(resTypeDataKey, keyValue)
+              tempStr = tempStr.replace(/\{typeName\}/g, resTypeName)
+              promType = tempStr
+            }
+          }
+        }
       }
       return `type ${metReturnTypeName} = ${promType}`
     })
@@ -130,11 +157,15 @@ export default class CreateTypeFile {
     this.content = `import type { ${importTypeList.join(', ')} } from './type' ${objectMapTypeStr} \n${content}`
   }
 
-  getDescription(des?: string) {
-    return des ? `/** @description ${des} */\n` : ''
+  getDescription(des?: string, example?: string) {
+    if (!example && !des) return ''
+    if (des) {
+      return example ? `/** \n* @example ${example}\n* @description ${des}\n */\n` : `/** @description ${des} */\n`
+    }
+    return `/** @example ${example} */\n`
   }
 
-  async createBaseClasses() {
+  createBaseClasses() {
     const { typeDirPaht, baseClasses } = this.fileInfo
     const content = baseClasses.map(i => {
       const { name, properties, templateArgs, description } = i
@@ -148,6 +179,7 @@ export default class CreateTypeFile {
       return `${this.getDescription(description)}export interface ${name}${temStr} {\n${itemsValue}}`
     })
 
-    await createFile(path.join(typeDirPaht, `type.d.ts`), content.join('\n'))
+    const filePath = path.join(typeDirPaht, `type.d.ts`)
+    fileList.push({ filePath, content: content.join('\n') })
   }
 }
