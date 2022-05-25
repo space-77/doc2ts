@@ -5,7 +5,7 @@
 
 😉 根据 swagger 文档生成请求工具（typeScript or javaScript）  
 😉 只需一条命令即可实现 接口定义、入参说明、参数整理、返回数据类型定义等工作，解放双手，提高摸鱼时间  
-😉 灵活配置，不干涉请求过程
+😉 灵活配置，不干涉请求过程  
 ## 快速开始
 ### 安装
 #### 全局安装
@@ -20,7 +20,7 @@ npm i -D doc2ts
 # or
 yarn add -D doc2ts
 ```
-项目上安装需要在 package.json 上添加一下脚本命令
+项目上安装需要在 package.json 添加以下脚本命令
 ```json
 {
   "scripts": {
@@ -48,12 +48,12 @@ npm run doc2ts-build        # 项目上
 > 基类文件 必须导出一个 `数据请求类`， 该 `类` 必须实现 `IApiClient` 接口，即添加 `request`方法，每个接口把参数整理后都会传给 `request`方法，所以需要您自行在 `request`方法实现请求过程（axios、fetch、ajax ...）
 
 ### request 方法参数说明
-request 方法接收一个 [DocReqConfig ](https://github.com/space-77/doc2ts/blob/develop/src/types/client.d.ts#L33)类型的对象，详细说明如下：
+request 方法接收一个 [DocReqConfig ](./src/types/client.d.ts#L39)类型的对象，详细说明如下：
 
 | 键值 | 类型 | 必传 | 说明 |
 | --- | --- | --- | --- |
 | url | String | 是 | 接口请求地址（不带 BaseURL） |
-| method | [Method](https://github.com/space-77/doc2ts/blob/develop/src/types/client.d.ts#L9) | 是 | 请求方法 |
+| method | [Method](./src/types/client.d.ts#L16) | 是 | 请求方法 |
 | body | Object | 否 | 请求体， 根据文档接口入参定义 |
 | formData | FormData | 否 | 封装好的FormData 请求参数，根据文档接口入参定义 |
 | header | Object | 否 | header 请求参数，根据文档接口入参定义 |
@@ -124,7 +124,35 @@ export default {
   baseClassName: '{ApiClient}' // 基类使用 export 导出
 } as Doc2TsConfig
 ```
-### prettier 配置文件位置
+### Js模式下是否生成 .d.ts 类型文件（建议默认）
+
+- 参数：`declaration`
+- 必传：`否`
+- 类型： `Boolean`
+- 默认：`true`
+- 说明： 
+   1. 该配置在 `languageType`  为 js 模式下生效
+   1. 是否输出 `.d.ts`类型文件，与 `tsconfig.json`的 `declaration`配置一致
+```typescript
+export default {
+  declaration: true
+} as Doc2TsConfig
+```
+### Js 模式下是否保留 ts 文件（建议默认）
+
+- 参数：`emitTs`
+- 必传：`否`
+- 类型： `Boolean`
+- 默认：`false`
+- 说明：
+   1. 该配置在 `languageType`  为 js 模式下生效
+   1. 是否保留转换为 js 的 ts源文件
+```typescript
+export default {
+  emitTs: false
+} as Doc2TsConfig
+```
+### 代码格式化 prettier 配置文件位置
 
 - 参数：`prettierPath`
 - 必传：`否`
@@ -142,13 +170,59 @@ export default {
 - 必传：`否`
 - 类型：`(typeName: string, typeInfo: Property[]) => string`
 - 默认：``
-- 说明：可以根据自己的需求去自定义返回类型
+- 说明：
+   1. 可以根据自己的需求去自定义返回类型
+   1. 在基类实现 `IApiClient`接口的 `request` 方式时，如果不是返回默认的接口类型（默认是`Promise<XXX>`），而是自定义的类型如 `Promise<[err, data, res]>`这种格式，就可以用该项进行自定义返回数据类型
+
+回到函数方式
 ```typescript
+// 默认
 export default {
   resultTypeRender(typeName, typeInfo) {
-    return `Promise<${resTypeName}>` // default
+    return `Promise<${typeName}>` // default
   }
 } as Doc2TsConfig
+
+// 例子
+// 返回数据格式
+/*
+{
+  "code": "0",
+  "data": ["test"],
+  "msg": ""
+}
+*/
+
+// 回调函数方式
+export default {
+  resultTypeRender(typeName, typeInfo) {
+     // 检查返回类型里是否包含 'data' 字段，预防类型异常
+    const hasKey = typeInfo.some(i => i.name === 'data')
+    // 重新定义数据返回类型
+    return `Promise<${hasKey ? `[any, ${typeName}['data'], ${typeName}]` : typeName}>`
+  }
+} as Doc2TsConfig
+
+// 调用接口
+// 此时 response 的类型为 Promise<[any, Xxx['data'], Xxx]>
+const response = await api.xx.xxx()
+// 把错误信息和返回数据整理到一个数据里，可以省去 try-catch，但同时需要您在 request 做相应的处理
+// 此时的 data 类型为 array<string> , res 为完整的返回类型
+const [err, data, res] = response
+
+
+```
+字符串方式
+
+- `{typeName}`会被替换成返回数据类型名字
+- `{dataKey:xxx}` 这个结构会替换 `xxx`
+```typescript
+// 字符串方式, 以下方式结果是 Promise<[any, Xxx["data"], Xxx]>
+export default {
+  resultTypeRender: 'Promise<[any, {typeName}["{dataKey:data}"], {typeName}]>'
+} as Doc2TsConfig
+
+
 ```
 ### 生成模块文件前的回调钩子
 
@@ -180,6 +254,27 @@ export default {
   }
 } as Doc2TsConfig
 ```
+### 
+### 请求接口方法配置-没模块名称
+
+- 参数：`methodConfig`
+- 必传：`否`
+- 类型：`MethodConfig`
+- 默认：``
+- 说明：
+   1. `接口id` 每个接口请求方法上的一个 `@id xxx`的注释id
+   1. 在 [origins  ](#配置 swagger 文档地址)配置里的 `name`字段`为空`的情况下有效，如果`name`字段不为空，在模块里的 [methodConfig](#请求接口方法配置-有模块名) 的配置
+   1. 当前 `methodConfig`里的配置内容和 [请求接口方法配置-有模块名](#请求接口方法配置-有模块名)的 `methodConfig` 一致 
+```typescript
+export default {
+  methodConfig: {
+    "接口id": {
+      ...
+    }
+  }
+} as Doc2TsConfig
+```
+
 ### 模块配置
 
 - 参数：`moduleConfig`
@@ -192,43 +287,31 @@ export default {
   moduleConfig: {...}
 } as Doc2TsConfig
 ```
-#### 请求接口方法配置
+#### 请求接口方法配置-有模块名
 
 - 参数：`moduleConfig.methodConfig`
 - 必传：`否`
-- 类型：`Object`
+- 类型：`MethodConfig`
 - 默认：``
-- 说明：每个方法对应的配置
+- 说明：
+   1. `接口id` 每个接口请求方法上的一个 `@id xxx`的注释id
+   1. 在 [origins  ](#配置 swagger 文档地址)配置里的 `name`字段`不为空`的情况下有效，如果`name`字段为空，请查看 
+
+[请求接口方法配置-没模块名称](#请求接口方法配置-没模块名称) 的配置
 ```typescript
 export default {
   moduleConfig: {
      '模块名称': {
-       methodConfig: {...}
+       methodConfig: {
+         "接口id": {
+           ...
+         }
+       }
      }
   }
 } as Doc2TsConfig
 ```
-#### 修改某个请求接口方法名字
-
-- 参数：`moduleConfig.methodConfig.name`
-- 必传：`否`
-- 类型：`String`
-- 默认：``
-- 说明：修改方法名称, `接口id` 在生的类型文件里每一个导出方法都会有个一注释的`id`，`注意`: 该 id 是固定的，但会随后端接口改变而改变。
-```typescript
-export default {
-  moduleConfig: {
-    模块名称: {
-      methodConfig: {
-        接口id: {
-          name: 'xxx'
-        }
-      }
-    }
-  }
-} as Doc2TsConfig
-```
-#### 修改某个请求接口方法描述
+##### 修改某个请求接口方法描述
 
 - 参数：`moduleConfig.methodConfig.description`
 - 必传：`否`
@@ -248,7 +331,7 @@ export default {
   }
 } as Doc2TsConfig
 ```
-#### 自定义接口配置参数
+##### 自定义接口配置参数
 
 - 参数：`moduleConfig.methodConfig.config`
 - 必传：`否`
