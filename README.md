@@ -1,9 +1,9 @@
 <div align="center">
 
-# doc2ts - 构建接口请求代码
+# doc2ts - 构建接口请求工具
 </div>
 
-😉 根据 swagger 文档生成请求数据的代码（typeScript or javaScript）  
+😉 根据 swagger 文档生成请求工具（typeScript or javaScript）  
 😉 只需一条命令即可实现 接口定义、入参说明、参数整理、返回数据类型定义等工作，解放双手，提高摸鱼时间  
 😉 灵活配置，不干涉请求过程  
 ## 快速开始
@@ -48,12 +48,12 @@ npm run doc2ts-build        # 项目上
 > 基类文件 必须导出一个 `数据请求类`， 该 `类` 必须实现 `IApiClient` 接口，即添加 `request`方法，每个接口把参数整理后都会传给 `request`方法，所以需要您自行在 `request`方法实现请求过程（axios、fetch、ajax ...）
 
 ### request 方法参数说明
-request 方法接收一个 [DocReqConfig ](./src/types/client.d.ts#L33)类型的对象，详细说明如下：
+request 方法接收一个 [DocReqConfig ](./src/types/client.d.ts#L39)类型的对象，详细说明如下：
 
 | 键值 | 类型 | 必传 | 说明 |
 | --- | --- | --- | --- |
 | url | String | 是 | 接口请求地址（不带 BaseURL） |
-| method | [Method](./src/types/client.d.ts#L9) | 是 | 请求方法 |
+| method | [Method](./src/types/client.d.ts#L16) | 是 | 请求方法 |
 | body | Object | 否 | 请求体， 根据文档接口入参定义 |
 | formData | FormData | 否 | 封装好的FormData 请求参数，根据文档接口入参定义 |
 | header | Object | 否 | header 请求参数，根据文档接口入参定义 |
@@ -67,7 +67,7 @@ request 方法接收一个 [DocReqConfig ](./src/types/client.d.ts#L33)类型的
 
 - 参数：`origins`
 - 必传：`是`
-- 类型：List<[Origin](./src/types/type.d.ts#L53)>
+- 类型：`List<[Origin](./src/types/client.d.ts#L39)>`
 - 默认：`-`
 - 说明：配置 swagger 的接口信息地址
 

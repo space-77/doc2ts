@@ -43,8 +43,8 @@ export function findDiffPath(originPath: string, targetPath: string) {
 }
 
 function getRootFilePath(filePath: string) {
-  const prePath = findDiffPath(__dirname, `${process.cwd()}\\`)
-  return path.join(__dirname, prePath, filePath)
+  // const prePath = findDiffPath(__dirname, `${process.cwd()}\\`)
+  return path.join(process.cwd(), filePath)
 }
 
 export async function loadPrettierConfig(prettierPath?: string) {
@@ -106,7 +106,7 @@ export async function getConfig(configPath: string): Promise<Doc2TsConfig> {
   } catch (error) {
     log.error('读取配置文件失败')
     if (fs.existsSync(jsName)) fs.unlinkSync(jsName)
-    throw new Error('加载配置文件失败')
+    return Promise.reject(error)
   }
 }
 
@@ -134,7 +134,7 @@ export function createFile(filePath: string, content: string, nolog = false) {
   try {
     const dirList = filePath.split(path.sep)
     const fileName = dirList[dirList.length - 1]
-    const dirPath = path.join(...dirList.slice(0, dirList.length - 1))
+    const dirPath = dirList.slice(0, dirList.length - 1).join(path.sep)
 
     if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true })
     !nolog && log.info(`正在创建：${fileName} 文件`)
