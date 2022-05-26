@@ -49,12 +49,8 @@ export default class Doc2Ts {
   }
 
   async getConfig() {
-    try {
-      const config = await getConfig(CONFIG_PATH)
-      this.config = new Config(config)
-    } catch (error) {
-      console.error(error)
-    }
+    const config = await getConfig(CONFIG_PATH)
+    this.config = new Config(config)
   }
 
   // async getModelList() {
@@ -104,42 +100,38 @@ export default class Doc2Ts {
       }
     }
 
-    try {
-      const reqs = this.config.origins.map(async ({ url, name, version }) => {
-        name = name ? camel2Kebab(name) : ''
-        if (this.config.rename) name = rename(name, this.config.rename)
-        let originType: OriginType
-        switch (version) {
-          case '3.0':
-            originType = OriginType.SwaggerV3
-            break
-          case '2.0':
-            originType = OriginType.SwaggerV2
-            break
-          case '1.0':
-            originType = OriginType.SwaggerV1
-            break
-          default:
-            originType = OriginType.SwaggerV2
-        }
-        config.originUrl = url
-        config.originType = originType
+    const reqs = this.config.origins.map(async ({ url, name, version }) => {
+      name = name ? camel2Kebab(name) : ''
+      if (this.config.rename) name = rename(name, this.config.rename)
+      let originType: OriginType
+      switch (version) {
+        case '3.0':
+          originType = OriginType.SwaggerV3
+          break
+        case '2.0':
+          originType = OriginType.SwaggerV2
+          break
+        case '1.0':
+          originType = OriginType.SwaggerV1
+          break
+        default:
+          originType = OriginType.SwaggerV2
+      }
+      config.originUrl = url
+      config.originType = originType
 
-        const data = await readRemoteDataSource(config, (text: string) => {
-          log.info(`${name}-${text}`)
-        })
-        this.StandardDataSourceList.push({ data, name })
+      const data = await readRemoteDataSource(config, (text: string) => {
+        log.info(`${name}-${text}`)
       })
+      this.StandardDataSourceList.push({ data, name })
+    })
 
-      await Promise.all(reqs)
+    await Promise.all(reqs)
 
-      // const data = await readRemoteDataSource(config, (text: string) => {
-      //   log.info(text)
-      // })
-      // fs.writeFileSync(path.join(__dirname, `../../mock/modelInfoList.json`), JSON.stringify(this.StandardDataSourceList))
-    } catch (error) {
-      console.error(error)
-    }
+    // const data = await readRemoteDataSource(config, (text: string) => {
+    //   log.info(text)
+    // })
+    // fs.writeFileSync(path.join(__dirname, `../../mock/modelInfoList.json`), JSON.stringify(this.StandardDataSourceList))
   }
 
   async generateFileData() {
@@ -231,20 +223,19 @@ export default class Doc2Ts {
   createFiles() {
     if (fileList.length === 0) return
     const { outDir, baseClassPath } = this.config
-    const outDirPath = resolveOutPath(outDir)
+    const outDirPath = path.join(resolveOutPath(outDir), 'index')
     const targetPath = resolveOutPath(baseClassPath)
-    const outDirIndexPath = path.join(outDirPath, 'index')
 
     // 删除清空文件夹
     fs.rmdirSync(path.join(outDirPath, 'types'), { recursive: true })
     fs.rmdirSync(path.join(outDirPath, 'module'), { recursive: true })
 
     const removeFiles = [
+      `${outDirPath}.d.ts`,
+      `${outDirPath}.ts`,
+      `${outDirPath}.js`,
       `${targetPath}.js`,
-      `${targetPath}.d.ts`,
-      `${outDirIndexPath}.ts`,
-      `${outDirIndexPath}.js`,
-      `${outDirIndexPath}.d.ts`
+      `${targetPath}.d.ts`
     ]
 
     removeFiles.forEach(filePath => {
