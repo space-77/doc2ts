@@ -225,10 +225,12 @@ export default class Doc2Ts {
     const { outDir, baseClassPath } = this.config
     const outDirPath = path.join(resolveOutPath(outDir), 'index')
     const targetPath = resolveOutPath(baseClassPath)
+    const typesDir = path.join(outDirPath, 'types')
+    const modulesDir = path.join(outDirPath, 'module')
 
     // 删除清空文件夹
-    fs.rmdirSync(path.join(outDirPath, 'types'), { recursive: true })
-    fs.rmdirSync(path.join(outDirPath, 'module'), { recursive: true })
+    if (fs.existsSync(typesDir)) fs.rmdirSync(typesDir, { recursive: true })
+    if (fs.existsSync(modulesDir)) fs.rmdirSync(modulesDir, { recursive: true })
 
     const removeFiles = [
       `${outDirPath}.d.ts`,
