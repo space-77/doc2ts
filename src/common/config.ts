@@ -20,9 +20,11 @@ export class PrettierConfig {
 }
 
 export class Config {
+
   readonly outDir: string = './services' // 文件输出地址
   readonly origins!: Doc2TsConfig['origins'] // swagger 接口地址
   // readonly swaggerBootstrapUiUrl!: Doc2TsConfig['swaggerBootstrapUiUrl']  // swagger-bootstrap-ui 接口地址
+  readonly swaggerHeaders?: Doc2TsConfig['swaggerHeaders']
   readonly baseClassName: string = 'ApiClient'
   readonly rename?: Doc2TsConfig['rename']
   readonly moduleConfig?: ModuleConfig // doc2ts-config 配置信息

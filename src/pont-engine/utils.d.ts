@@ -31,6 +31,7 @@ export declare class DataSourceConfig {
     scannedRange: any[];
     transformPath: string;
     fetchMethodPath: string;
+    swaggerHeader?: Record<string, any>;
     prettierConfig: ResolveConfigOptions;
     pollingTime: number;
     mocks: Mocks;

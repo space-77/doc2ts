@@ -58,6 +58,8 @@ export type Doc2TsConfig = {
    */
   origins: Origin[]
 
+  swaggerHeaders?: Record<string, any>
+
   /**
    * @description 文件输出位置
    */

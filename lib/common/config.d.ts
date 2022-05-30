@@ -17,6 +17,7 @@ export declare class PrettierConfig {
 export declare class Config {
     readonly outDir: string;
     readonly origins: Doc2TsConfig['origins'];
+    readonly swaggerHeaders?: Doc2TsConfig['swaggerHeaders'];
     readonly baseClassName: string;
     readonly rename?: Doc2TsConfig['rename'];
     readonly moduleConfig?: ModuleConfig;

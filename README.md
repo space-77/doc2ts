@@ -38,7 +38,8 @@ npm run doc2ts-init        # 项目上
 
 - 输入命令后全按回车键，会生成一份示例配置。
 - 如果选项 `生成基类文件` 后会在对应的位置生成一个 `.ts`文件，该文件必须导出一个 基类，该基类必须实现 `IApiClient` 接口。
-- 执行完该命令后，会在项目根目录上生成一个  `doc2ts-config.ts` 文件，该文件必须导出一个 `Doc2TsConfig` 类型的对象， 详细配置信息请查看 [Doc2TsConfig 配置说明](#Doc2TsConfig 配置说明)。
+- 执行完该命令后，会在项目根目录上生成一个  `doc2ts-config.ts` 文件，该文件必须导出一个 `Doc2TsConfig` 类型的对象， 详细配置信息请查看 [Doc2TsConfig 配置说明](#Doc2TsConfig 配置说明)。
+
 ### 生成文件
 ```shell
 doc2ts build                # 全局
@@ -50,14 +51,14 @@ npm run doc2ts-build        # 项目上
 ### request 方法参数说明
 request 方法接收一个 [DocReqConfig ](./src/types/client.d.ts#L39)类型的对象，详细说明如下：
 
-| 键值 | 类型 | 必传 | 说明 |
-| --- | --- | --- | --- |
-| url | String | 是 | 接口请求地址（不带 BaseURL） |
-| method | [Method](./src/types/client.d.ts#L16) | 是 | 请求方法 |
-| body | Object | 否 | 请求体， 根据文档接口入参定义 |
-| formData | FormData | 否 | 封装好的FormData 请求参数，根据文档接口入参定义 |
-| header | Object | 否 | header 请求参数，根据文档接口入参定义 |
-| config | Object | 否 | 自定义某个接口参数，详细配置请查看 [自定义接口配置参数](#自定义接口配置参数) |
+| 键值     | 类型                                  | 必传 | 说明                                                                                                                                        |
+| -------- | ------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| url      | String                                | 是   | 接口请求地址（不带 BaseURL）                                                                                                                |
+| method   | [Method](./src/types/client.d.ts#L16) | 是   | 请求方法                                                                                                                                    |
+| body     | Object                                | 否   | 请求体， 根据文档接口入参定义                                                                                                               |
+| formData | FormData                              | 否   | 封装好的 FormData 请求参数，根据文档接口入参定义                                                                                            |
+| header   | Object                                | 否   | header 请求参数，根据文档接口入参定义                                                                                                       |
+| config   | Object                                | 否   | 自定义某个接口参数，详细配置请查看 [自定义接口配置参数](#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8E%A5%E5%8F%A3%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0) |
 
 ## Doc2TsConfig 配置说明
 通过修改 `doc2ts-config.ts` 里的配置信息，可以控制最终生成文件的内容。该配置文件必须导出一个 `Doc2TsConfig` 类型的对象。
@@ -73,18 +74,35 @@ request 方法接收一个 [DocReqConfig ](./src/types/client.d.ts#L39)类型的
 
 Origin 类型说明如下表：
 
-| 键值 | 类型 | 必传 | 说明 |
-| --- | --- | --- | --- |
-| url | String | 是 |  swagger 的接口信息地址，返回数据与[示例地址](https://petstore.swagger.io/v2/swagger.json)一致 |
-| version | String | 否 | swagger 版本 |
-| name | String | 否 | 模块名 |
+| 键值    | 类型   | 必传 | 说明                                                                                      |
+| ------- | ------ | ---- | ----------------------------------------------------------------------------------------- |
+| url     | String | 是   | swagger 的接口信息地址，返回数据与[示例地址](https://petstore.swagger.io/v2/swagger.json) |
+| 一致    |
+| version | String | 否   | swagger 版本                                                                              |
+| name    | String | 否   | 模块名                                                                                    |
 
 ```typescript
 export default {
   origins: [
-    {name: 'xxx1', url: 'https://xxx/xxx1'},
-    {name: 'xxx2', url: 'https://xxx/xxx2'}
+    { name: 'xxx1', url: 'https://xxx/xxx1' },
+    { name: 'xxx2', url: 'https://xxx/xxx2' }
   ]
+} as Doc2TsConfig
+```
+### 设置请求 swagger 数据的 headers
+- 参数：`swaggerHeaders`
+- 必传：`否`
+- 类型：`Object`
+- 默认：`-`
+- 说明：如果 `swagger` 文档有有权限校验，可以通过该项配置在请求文档数据时添加`header`信息，如 `token`、`cookie`、`Authorization`等信息（具体的认证信息需要手动在浏览器控制台复制过来）。
+```typescript
+export default {
+  swaggerHeaders: {
+    token: 'xxxx',
+    cookie: 'xxxx',
+    Authorization: 'xxxx'
+    ... // 或者其它类型的header信息
+  }
 } as Doc2TsConfig
 ```
 ### 配置 文件输出的位置
@@ -92,7 +110,7 @@ export default {
 - 参数：`outDir`
 - 必传：`是`
 - 类型：`String`
-- 默认：` `
+- 默认：``
 ```typescript
 export default {
   outDir: 'xxx'
@@ -116,9 +134,10 @@ export default {
 - 必传：`否`
 - 类型：`String`
 - 默认：`ApiClient`
-- 说明： 
-   1. 每个模块继承的基类名称，用于给每个模块的请求类继承
-   1. 基类文件导出基类的名字，基类使用`baseClassName`导出可以忽略这项配置，使用`export`导出需用`{}`包裹；eg:`{ClassName}` 
+- 说明：
+  1.  每个模块继承的基类名称，用于给每个模块的请求类继承
+  1.  基类文件导出基类的名字，基类使用`baseClassName`导出可以忽略这项配置，使用`export`导出需用`{}`包裹；eg:`{ClassName}`
+
 ```typescript
 export default {
   baseClassName: '{ApiClient}' // 基类使用 export 导出
@@ -136,15 +155,16 @@ export default {
   languageType: 'typeScript' // 可选 ts typeScript typescript js javaScript javascript
 } as Doc2TsConfig
 ```
-### Js模式下是否生成 .d.ts 类型文件（建议默认）
+### Js 模式下是否生成 .d.ts 类型文件（建议默认）
 
 - 参数：`declaration`
 - 必传：`否`
 - 类型： `Boolean`
 - 默认：`true`
-- 说明： 
-   1. 该配置在 `languageType`  为 js 模式下生效
-   1. 是否输出 `.d.ts`类型文件，与 `tsconfig.json`的 `declaration`配置一致
+- 说明：
+  1.  该配置在 `languageType`   为 js 模式下生效
+  1.  是否输出 `.d.ts`类型文件，与 `tsconfig.json`的 `declaration`配置一致
+
 ```typescript
 export default {
   declaration: true
@@ -157,8 +177,9 @@ export default {
 - 类型： `Boolean`
 - 默认：`false`
 - 说明：
-   1. 该配置在 `languageType`  为 js 模式下生效
-   1. 是否保留转换为 js 的 ts源文件
+  1.  该配置在 `languageType`   为 js 模式下生效
+  1.  是否保留转换为 js 的 ts 源文件
+
 ```typescript
 export default {
   emitTs: false
@@ -183,8 +204,8 @@ export default {
 - 类型：`(typeName: string, typeInfo: Property[]) => string`
 - 默认：``
 - 说明：
-   1. 可以根据自己的需求去自定义返回类型
-   1. 在基类实现 `IApiClient`接口的 `request` 方式时，如果不是返回默认的接口类型（默认是`Promise<XXX>`），而是自定义的类型如 `Promise<[err, data, res]>`这种格式，就可以用该项进行自定义返回数据类型
+  1.  可以根据自己的需求去自定义返回类型
+  1.  在基类实现 `IApiClient`接口的 `request` 方式时，如果不是返回默认的接口类型（默认是`Promise<XXX>`），而是自定义的类型如 `Promise<[err, data, res]>`这种格式，就可以用该项进行自定义返回数据类型
 
 回到函数方式
 ```typescript
@@ -208,7 +229,7 @@ export default {
 // 回调函数方式
 export default {
   resultTypeRender(typeName, typeInfo) {
-     // 检查返回类型里是否包含 'data' 字段，预防类型异常
+    // 检查返回类型里是否包含 'data' 字段，预防类型异常
     const hasKey = typeInfo.some(i => i.name === 'data')
     // 重新定义数据返回类型
     return `Promise<${hasKey ? `[any, ${typeName}['data'], ${typeName}]` : typeName}>`
@@ -221,8 +242,6 @@ const response = await api.xx.xxx()
 // 把错误信息和返回数据整理到一个数据里，可以省去 try-catch，但同时需要您在 request 做相应的处理
 // 此时的 data 类型为 array<string> , res 为完整的返回类型
 const [err, data, res] = response
-
-
 ```
 字符串方式
 
@@ -233,8 +252,6 @@ const [err, data, res] = response
 export default {
   resultTypeRender: 'Promise<[any, {typeName}["{dataKey:data}"], {typeName}]>'
 } as Doc2TsConfig
-
-
 ```
 ### 生成模块文件前的回调钩子
 
@@ -266,7 +283,6 @@ export default {
   }
 } as Doc2TsConfig
 ```
-### 
 ### 请求接口方法配置-没模块名称
 
 - 参数：`methodConfig`
@@ -274,9 +290,10 @@ export default {
 - 类型：`MethodConfig`
 - 默认：``
 - 说明：
-   1. `接口id` 每个接口请求方法上的一个 `@id xxx`的注释id
-   1. 在 [origins  ](#配置 swagger 文档地址)配置里的 `name`字段`为空`的情况下有效，如果`name`字段不为空，在模块里的 [methodConfig](#请求接口方法配置-有模块名) 的配置
-   1. 当前 `methodConfig`里的配置内容和 [请求接口方法配置-有模块名](#请求接口方法配置-有模块名)的 `methodConfig` 一致 
+  1.  `接口id` 每个接口请求方法上的一个 `@id xxx`的注释 id
+  1.  在 [origins  ](#配置 swagger 文档地址)配置里的 `name`字段`为空`的情况下有效，如果`name`字段不为空，在模块里的 [methodConfig](#%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E9%85%8D%E7%BD%AE-%E6%9C%89%E6%A8%A1%E5%9D%97%E5%90%8D) 的配置
+  1.  当前 `methodConfig`里的配置内容和 [请求接口方法配置-有模块名](#%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E9%85%8D%E7%BD%AE-%E6%9C%89%E6%A8%A1%E5%9D%97%E5%90%8D)的 `methodConfig` 一致
+
 ```typescript
 export default {
   methodConfig: {
@@ -306,10 +323,11 @@ export default {
 - 类型：`MethodConfig`
 - 默认：``
 - 说明：
-   1. `接口id` 每个接口请求方法上的一个 `@id xxx`的注释id
-   1. 在 [origins  ](#配置 swagger 文档地址)配置里的 `name`字段`不为空`的情况下有效，如果`name`字段为空，请查看 
+  1.  `接口id` 每个接口请求方法上的一个 `@id xxx`的注释 id
+  1.  在 [origins  ](#配置 swagger 文档地址)配置里的 `name`字段`不为空`的情况下有效，如果`name`字段为空，请查看
 
-[请求接口方法配置-没模块名称](#请求接口方法配置-没模块名称) 的配置
+[请求接口方法配置-没模块名称](#%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E9%85%8D%E7%BD%AE-%E6%B2%A1%E6%A8%A1%E5%9D%97%E5%90%8D%E7%A7%B0) 的配置
+
 ```typescript
 export default {
   moduleConfig: {
