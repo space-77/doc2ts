@@ -67,7 +67,7 @@ request 方法接收一个 [DocReqConfig ](./src/types/client.d.ts#L39)类型的
 
 - 参数：`origins`
 - 必传：`是`
-- 类型：`List<[Origin](./src/types/client.d.ts#L39)>`
+- 类型：List<[Origin](./src/types/client.d.ts#L39)>
 - 默认：`-`
 - 说明：配置 swagger 的接口信息地址
 
@@ -122,6 +122,18 @@ export default {
 ```typescript
 export default {
   baseClassName: '{ApiClient}' // 基类使用 export 导出
+} as Doc2TsConfig
+```
+### 输出文件格式（生成 ts 或 js）
+
+- 参数：`languageType`
+- 必传：`否`
+- 类型： `String`
+- 默认：`typeScript`
+- 说明： 生成 `.ts` 还是生成 `.js` 文件
+```typescript
+export default {
+  languageType: 'typeScript' // 可选 ts typeScript typescript js javaScript javascript
 } as Doc2TsConfig
 ```
 ### Js模式下是否生成 .d.ts 类型文件（建议默认）
