@@ -66,6 +66,7 @@ export default class Doc2Ts {
     const config: DataSourceConfig = {
       originType: OriginType.SwaggerV2,
       originUrl: '',
+      swaggerHeader: this.config.swaggerHeaders,
       // 使用operationId作为方法名
       usingOperationId: true,
       // pont 支持一个项目中配置多个 Swagger 来源。此处配置是否启用多数据源
