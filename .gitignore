@@ -11,3 +11,4 @@ doc2ts-config.ts
 pnpm-lock.yaml
 mock/
 examples/
+services/
