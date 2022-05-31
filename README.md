@@ -75,11 +75,10 @@ request 方法接收一个 [DocReqConfig ](./src/types/client.d.ts#L39)类型的
 Origin 类型说明如下表：
 
 | 键值    | 类型   | 必传 | 说明                                                                                      |
-| ------- | ------ | ---- | ----------------------------------------------------------------------------------------- |
-| url     | String | 是   | swagger 的接口信息地址，返回数据与[示例地址](https://petstore.swagger.io/v2/swagger.json) |
-| 一致    |
-| version | String | 否   | swagger 版本                                                                              |
-| name    | String | 否   | 模块名                                                                                    |
+| ------- | ------ | ---- | ----- |
+| url     | String | 是   | swagger 的接口信息地址，返回数据与[示例地址](https://petstore.swagger.io/v2/swagger.json) 一致 |
+| version | String | 否   | swagger 版本 |
+| name    | String | 否   | 模块名 |
 
 ```typescript
 export default {
