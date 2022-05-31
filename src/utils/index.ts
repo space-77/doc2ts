@@ -132,6 +132,7 @@ export function resolveOutPath(...paths: string[]) {
  */
 export function createFile(filePath: string, content: string, nolog = false) {
   try {
+    filePath = path.join(filePath)
     const dirList = filePath.split(path.sep)
     const fileName = dirList[dirList.length - 1]
     const dirPath = dirList.slice(0, dirList.length - 1).join(path.sep)
