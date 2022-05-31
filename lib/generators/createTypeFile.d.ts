@@ -25,6 +25,12 @@ export default class CreateTypeFile {
     private generateApiClassType;
     private generateTypeValue;
     private generateTypes;
+    /**
+     *
+     * @param typeName
+     * @description 判断是不是ts的基本类型，如果如果不是的 则是改为any类型【处理不规范的类型】
+     */
+    getDefType(typeName: string): string;
     private generateResTypeValue;
     private generateParamType;
     private generateParamTypeValue;

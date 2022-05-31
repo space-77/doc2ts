@@ -35,3 +35,4 @@ export declare class Config {
 }
 export declare const keyWordsListSet: Set<string>;
 export declare const keyWords: Set<string>;
+export declare const tsObjType: Set<string>;
