@@ -1,7 +1,8 @@
 import path from 'path'
 import { fileList } from './fileList'
-import { Doc2TsConfig } from '../types/type'
+import { tsObjType } from '../common/config'
 import { firstToUpper } from '../utils'
+import { Doc2TsConfig } from '../types/type'
 import { resTypeDataKey, resTypeNameKey } from '../common/reg'
 import { BaseClass, Interface, Property, StandardDataType } from '../pont-engine'
 
@@ -113,12 +114,21 @@ export default class CreateTypeFile {
     this.content = `${resTypeList.join('\n')}\n${content}`
   }
 
+  /**
+   *
+   * @param typeName
+   * @description 判断是不是ts的基本类型，如果如果不是的 则是改为any类型【处理不规范的类型】
+   */
+  getDefType(typeName: string) {
+    return tsObjType.has(typeName) ? typeName : 'any'
+  }
+
   private generateResTypeValue(responseType: StandardDataType) {
     const { baseClasses } = this.fileInfo
     const { typeArgs, typeName, templateIndex, isDefsType } = responseType
 
     if (isDefsType || typeName === 'ObjectMap') this.importType.add(typeName)
-    let content = typeName
+    let content = isDefsType ? typeName : this.getDefType(typeName)
     if (typeArgs.length > 0) {
       const [firstType] = typeArgs
       content += `<${this.generateResTypeValue(firstType)}>`

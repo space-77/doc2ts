@@ -68,3 +68,5 @@ keyWordsList.push(...Object.values(PARAMS_NAME))
 
 // js  关键字组合 外加 请求方法里用上的几个变量名字 可用于判断声明的变量是否包含关键字
 export const keyWords = new Set(keyWordsList)
+
+export const tsObjType = new Set(['Array', '[]', 'object', '{}', 'Date', 'number', 'string', 'boolean', 'ObjectMap'])
