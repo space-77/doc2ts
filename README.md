@@ -116,6 +116,8 @@ export default {
 - 默认：`-`
 - 说明：如果你觉得 `swaggerHeaders` 配置每次都获取一个 `swagger` 认证信息比较麻烦，同时你能拿到`swagger`登录接口，就可以使用该配置方法去获取接口信息，这个是个一劳永逸的方法。
 
+以`swagger`使用`alert`方式输入账号密码认证为例子
+> 使用 alert方式登录是通过 [www-authenticate](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Authentication) 方式认证，这是 HTTP 提供的一个鉴权方案，其内部会把信息进行编码，所有不能用过普通的方式进行登录。
 ```typescript
 import axios from 'axios'
 import type { Doc2TsConfig } from 'doc2ts'
