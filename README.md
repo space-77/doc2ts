@@ -128,11 +128,14 @@ class SwaggerToken {
       return SwaggerToken.token
     } else {
       try {
-        const { data } = await axios.post('http:xxx/api/login', {
-          username: 'username',
-          password: 'password'
-        })
-        SwaggerToken.token = data.token
+        const username = 'username'
+        const password = 'password'
+        const auth = `${username}:${password}@`
+        // 假如 文档地址为  https://xxxxxx/swagger-ui.html
+        const url = `https://${auth}xxxxxx/swagger-ui.html`
+        const { headers } = await axios.get(url)
+        const [token] = String(headers["set-cookie"]).match(/SESSION=\w+/) || []
+        SwaggerToken.token = token
         return SwaggerToken.token
       } catch (error) {
         console.error(error)
