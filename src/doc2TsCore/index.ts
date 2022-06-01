@@ -98,7 +98,8 @@ export default class Doc2Ts {
         basePath: '',
         port: 8080,
         wrapper: ''
-      }
+      },
+      fetchMethod: this.config.fetchSwaggerDataMethod
     }
 
     const reqs = this.config.origins.map(async ({ url, name, version }) => {

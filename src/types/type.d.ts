@@ -58,7 +58,15 @@ export type Doc2TsConfig = {
    */
   origins: Origin[]
 
+  /**
+   * @description 定义鉴权信息
+   */
   swaggerHeaders?: Record<string, any>
+
+  /**
+   * @description 自定义请求 swagger 数据信息接口
+   */
+  fetchSwaggerDataMethod?(url: string): Promise<string>
 
   /**
    * @description 文件输出位置
