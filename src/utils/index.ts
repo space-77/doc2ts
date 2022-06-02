@@ -5,7 +5,7 @@ import log from './log'
 import path from 'path'
 import crypto from 'crypto'
 import prettier from 'prettier'
-import { PrettierConfig } from '../common/config'
+import { keyWordsListSet, PrettierConfig } from '../common/config'
 import { Doc2TsConfig, ModelList } from '../types/type'
 
 /**
@@ -271,4 +271,8 @@ export function ts2Js(filesNames: string[], declaration: boolean) {
 
   const program = ts.createProgram(filesNames, options, host)
   program.emit()
+}
+
+export function getName(name: string) {
+  return keyWordsListSet.has(name) ? `_${name}` : name
 }
