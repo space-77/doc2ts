@@ -2,6 +2,7 @@ import { Doc2TsConfig } from '../types/type';
 import { BaseClass, Interface, Property, StandardDataType } from '../pont-engine';
 declare type TypeFileInfo = {
     fileName: string;
+    modelName?: string;
     interfaces: Interface[];
     baseClasses: BaseClass[];
     typeDirPaht: string;
@@ -9,6 +10,7 @@ declare type TypeFileInfo = {
     resultTypeRender?: Doc2TsConfig['resultTypeRender'];
 };
 declare type TypeList = {
+    id?: string;
     response: StandardDataType;
     parameters: Property[];
     resTypeName: string;

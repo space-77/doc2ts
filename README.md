@@ -198,6 +198,7 @@ export default {
 ### 输出文件格式（生成 ts 或 js）
 
 - 参数：`languageType`
+
 - 必传：`否`
 - 类型： `String`
 - 默认：`typeScript`

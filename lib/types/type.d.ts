@@ -113,7 +113,7 @@ export type Doc2TsConfig = {
   /**
    * @description 接口返回数据类型钩子
    */
-  resultTypeRender?: string | ((typeName: string, typeInfo: Property[]) => string)
+  resultTypeRender?: string | ((typeName: string, typeInfo: Property[], info: { modelName?: string, funId?: string }) => string)
 
   /**
    * @description 模块改名

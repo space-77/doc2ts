@@ -8,6 +8,7 @@ import { BaseClass, Interface, Property, StandardDataType } from '../pont-engine
 
 type TypeFileInfo = {
   fileName: string
+  modelName?: string
   interfaces: Interface[]
   baseClasses: BaseClass[]
   typeDirPaht: string
@@ -15,6 +16,7 @@ type TypeFileInfo = {
   resultTypeRender?: Doc2TsConfig['resultTypeRender']
 }
 type TypeList = {
+  id?: string
   response: StandardDataType
   parameters: Property[]
   resTypeName: string
@@ -53,7 +55,7 @@ export default class CreateTypeFile {
     const { fileInfo, typeList } = this
     const { interfaces } = fileInfo
     const methodList = interfaces.map(i => {
-      const { response, parameters } = i
+      const { response, parameters, id } = i
       const onlyParam = parameters.length === 1
 
       const name = firstToUpper(i.name)
@@ -67,7 +69,7 @@ export default class CreateTypeFile {
         paramsStr = `(${name} :${paramTypeName}['${name}'])`
       }
 
-      typeList.push({ resTypeName, response, paramTypeName, parameters, metReturnTypeName })
+      typeList.push({ id, resTypeName, response, paramTypeName, parameters, metReturnTypeName })
       return `export type ${name} = ${paramsStr} => ${metReturnTypeName}\n`
     })
     this.content = methodList.join('\n')
@@ -75,27 +77,29 @@ export default class CreateTypeFile {
 
   private generateTypeValue() {
     const { typeList, fileInfo } = this
-    const { baseClasses, resultTypeRender: render } = fileInfo
+    const { baseClasses, resultTypeRender: render, modelName } = fileInfo
     const typeValueList = typeList.map(i => {
-      const { resTypeName, response, metReturnTypeName } = i
+      const { id, resTypeName, response, metReturnTypeName } = i
+      // console.log(i)
       let promType = `Promise<${resTypeName}>`
 
       const { typeName } = response
       const typeInfo = baseClasses.find(i => i.name === typeName)
       if (render && typeInfo) {
-        if (typeof render === 'function') {
-          if (typeInfo) promType = render(resTypeName, typeInfo.properties)
-        } else if (typeof render === 'string') {
-          // '[err, {dataKey}, {typeName}]'
-          let tempStr = render
-          const [_, dataKey, keyValue] = render.match(resTypeDataKey) || []
-          if (dataKey) {
-            const hasKey = typeInfo.properties.some(i => i.name === keyValue)
-            if (hasKey) {
+        const { properties } = typeInfo
+        const isFile = properties.length === 1 && properties[0].dataType.typeName === 'Flie'
+        if (!isFile) {
+          if (typeof render === 'function') {
+            const info = { modelName, funId: id }
+            promType = render(resTypeName, typeInfo.properties, info)
+          } else if (typeof render === 'string') {
+            let tempStr = render
+            const [_, dataKey, keyValue] = render.match(resTypeDataKey) || []
+            if (dataKey) {
               tempStr = tempStr.replace(resTypeDataKey, keyValue)
-              tempStr = tempStr.replace(/\{typeName\}/g, resTypeName)
-              promType = tempStr
             }
+            tempStr = tempStr.replace(/\{typeName\}/g, resTypeName)
+            promType = tempStr
           }
         }
       }
