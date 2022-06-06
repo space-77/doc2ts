@@ -3,8 +3,8 @@ import path from 'path'
 import { fileList } from './fileList'
 import type { Property } from '../pont-engine'
 import type { Method } from '../types/client'
+import { firstToUpper, findDiffPath, firstToLower } from '../utils'
 import type { FilePathList, GetParamsStr, ModelInfo } from '../types/type'
-import { firstToUpper, findDiffPath, firstToLower, getName } from '../utils'
 import { keyWords, keyWordsListSet, PARAMS_NAME } from '../common/config'
 
 export class CreateApiFile {
@@ -18,8 +18,8 @@ export class CreateApiFile {
   formatFileData() {
     const { fileName, dirPath, description, typeDirPaht, diffClassPath, isJs } = this.modelInfo
 
-    const className = getName(firstToUpper(fileName))
-    const classNameLower = getName(firstToLower(fileName))
+    const className = firstToUpper(fileName)
+    const classNameLower = firstToLower(fileName)
     let typeFilePath = ''
 
     if (!isJs) {

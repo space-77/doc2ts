@@ -19,7 +19,8 @@ import {
   findDiffPath,
   resolveOutPath,
   loadPrettierConfig,
-  createFile
+  createFile,
+  getName
 } from '../utils'
 
 export default class Doc2Ts {
@@ -125,6 +126,13 @@ export default class Doc2Ts {
       const data = await readRemoteDataSource(config, (text: string) => {
         log.info(`${name}-${text}`)
       })
+      data.mods.forEach(item => {
+        item.name = getName(item.name)
+        item.interfaces.forEach(j => {
+          j.name = getName(j.name)
+        })
+      });
+
       this.StandardDataSourceList.push({ data, name })
     })
 

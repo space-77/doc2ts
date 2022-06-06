@@ -136,6 +136,8 @@ class SwaggerToken {
         // 假如 文档地址为  https://xxxxxx/swagger-ui.html
         const url = `https://${auth}xxxxxx/swagger-ui.html`
         const { headers } = await axios.get(url)
+
+        // 获取token,具体内容根据实际情况处理
         const [token] = String(headers["set-cookie"]).match(/SESSION=\w+/) || []
         SwaggerToken.token = token
         return SwaggerToken.token

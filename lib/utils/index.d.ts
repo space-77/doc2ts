@@ -58,4 +58,5 @@ declare type TraverseDir = (config: {
 export declare const traverseDir: TraverseDir;
 export declare function getTsFiles(dirPath: string): string[];
 export declare function ts2Js(filesNames: string[], declaration: boolean): void;
+export declare function getName(name: string): string;
 export {};

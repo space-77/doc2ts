@@ -274,5 +274,5 @@ export function ts2Js(filesNames: string[], declaration: boolean) {
 }
 
 export function getName(name: string) {
-  return keyWordsListSet.has(name) ? `_${name}` : name
+  return keyWordsListSet.has(name) ? `${name}_` : name
 }
