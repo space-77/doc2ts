@@ -11,7 +11,7 @@ export enum Surrounding {
 export enum PARAMS_NAME {
   BODY = 'body',
   QUERY = 'query',
-  HEADER = 'header',
+  HEADER = 'headers',
   FORMDATA = 'formData'
 }
 

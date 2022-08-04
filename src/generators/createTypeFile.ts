@@ -21,13 +21,15 @@ type TypeList = {
   parameters: Property[]
   resTypeName: string
   paramTypeName: string
-  metReturnTypeName: string
+  // metReturnTypeName: string
 }[]
 
 const objMapType = `type ObjectMap<Key extends string | number | symbol = any, Value = any> = {
   [key in Key]: Value;
 }
 `
+const ExportValue = `\ntype ExportValue<T, U> = U extends keyof T ? T[U] : T;\n`
+
 export default class CreateTypeFile {
   content = ''
   typeList: TypeList = []
@@ -42,7 +44,7 @@ export default class CreateTypeFile {
   public generateFile() {
     const { typeDirPaht, fileName, typeFileRender } = this.fileInfo
     this.generateApiClassType() // 创建 接口请求方法的类型
-    this.generateTypeValue() // 创建 返回类型
+    // this.generateTypeValue() // 创建 返回类型
     this.generateTypes() // 创建 返回数据的类型
     this.generateParamType() // 创建 参数的类型
     this.generateImportType() // 创建 返回数据类型和参数类型 需要引入的类型
@@ -60,7 +62,6 @@ export default class CreateTypeFile {
 
       const name = firstToUpper(i.name)
       const resTypeName = `${name}Body`
-      const metReturnTypeName = `${name}Response`
       const paramTypeName = `${name}Param`
 
       let paramsStr = `(params: ${paramTypeName})`
@@ -69,43 +70,40 @@ export default class CreateTypeFile {
         paramsStr = `(${name} :${paramTypeName}['${name}'])`
       }
 
-      typeList.push({ id, resTypeName, response, paramTypeName, parameters, metReturnTypeName })
-      return `export type ${name} = ${paramsStr} => ${metReturnTypeName}\n`
+      typeList.push({ id, resTypeName, response, paramTypeName, parameters })
+      const returnType = this.getReturnType(resTypeName, i, fileInfo)
+      return `export type ${name} = ${paramsStr} => ${returnType}\n`
     })
     this.content = methodList.join('\n')
   }
 
-  private generateTypeValue() {
-    const { typeList, fileInfo } = this
+  private getReturnType(resTypeName: string, item: Interface, fileInfo: TypeFileInfo) {
+    const { response, id } = item
     const { baseClasses, resultTypeRender: render, modelName } = fileInfo
-    const typeValueList = typeList.map(i => {
-      const { id, resTypeName, response, metReturnTypeName } = i
-      // console.log(i)
-      let promType = `Promise<${resTypeName}>`
 
-      const { typeName } = response
-      const typeInfo = baseClasses.find(i => i.name === typeName)
-      if (render && typeInfo) {
-        const { properties } = typeInfo
-        const isFile = properties.length === 1 && properties[0].dataType.typeName === 'Flie'
-        if (!isFile) {
-          if (typeof render === 'function') {
-            const info = { modelName, funId: id }
-            promType = render(resTypeName, typeInfo.properties, info)
-          } else if (typeof render === 'string') {
-            let tempStr = render
-            const [_, dataKey, keyValue] = render.match(resTypeDataKey) || []
-            if (dataKey) {
-              tempStr = tempStr.replace(resTypeDataKey, keyValue)
-            }
-            tempStr = tempStr.replace(/\{typeName\}/g, resTypeName)
-            promType = tempStr
+    let promType = `Promise<${resTypeName}>`
+
+    const { typeName } = response
+    const typeInfo = baseClasses.find(i => i.name === typeName)
+    if (render && typeInfo) {
+      const { properties } = typeInfo
+      const isFile = properties.length === 1 && properties[0].dataType.typeName === 'Flie'
+      if (!isFile) {
+        if (typeof render === 'function') {
+          const info = { modelName, funId: id }
+          promType = render(resTypeName, typeInfo.properties, info)
+        } else if (typeof render === 'string') {
+          let tempStr = render
+          const [_, dataKey, keyValue] = render.match(resTypeDataKey) || []
+          if (dataKey) {
+            tempStr = tempStr.replace(resTypeDataKey, `ExportValue<${resTypeName}, "${keyValue}">`)
           }
+          tempStr = tempStr.replace(/\{typeName\}/g, resTypeName)
+          promType = tempStr
         }
       }
-      return `type ${metReturnTypeName} = ${promType}`
-    })
-    this.content = `${typeValueList.join('\n')}\n${this.content}`
+    }
+    return promType
   }
 
   private generateTypes() {
@@ -165,10 +163,12 @@ export default class CreateTypeFile {
   private generateImportType() {
     const { importType, content } = this
     const hasObjectMap = importType.delete('ObjectMap')
-    const importTypeList = Array.from(importType).sort((a, b) => a.length - b.length)
+    const importTypeList = Array.from(importType)
+      .sort((a, b) => a.length - b.length)
+      .join(', ')
     const objectMapTypeStr = hasObjectMap ? `\n${objMapType}` : ''
 
-    this.content = `import type { ${importTypeList.join(', ')} } from './type' ${objectMapTypeStr} \n${content}`
+    this.content = `import type { ${importTypeList} } from './type' ${ExportValue} ${objectMapTypeStr} \n${content}`
   }
 
   getDescription(des?: string, example?: string) {

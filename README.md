@@ -57,7 +57,7 @@ request 方法接收一个 [DocReqConfig ](./src/types/client.d.ts#L39)类型的
 | method | [Method](./src/types/client.d.ts#L16) | 是 | 请求方法 |
 | body | Object | 否 | 请求体， 根据文档接口入参定义 |
 | formData | FormData | 否 | 封装好的 FormData 请求参数，根据文档接口入参定义 |
-| header | Object | 否 | header 请求参数，根据文档接口入参定义 |
+| headers | Object | 否 | headers 请求参数，根据文档接口入参定义 |
 | config | Object | 否 | 自定义某个接口参数，详细配置请查看 [自定义接口配置参数](#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8E%A5%E5%8F%A3%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0) |
 
 
@@ -95,7 +95,7 @@ export default {
 - 必传：`否`
 - 类型：`Object`
 - 默认：`-`
-- 说明：如果 `swagger` 文档有权限校验，可以通过该项配置在请求文档数据时添加`header`信息，如 `token`、`cookie`、`Authorization`等信息（具体的认证信息需要手动在浏览器控制台复制过来）。
+- 说明：如果 `swagger` 文档有权限校验，可以通过该项配置在请求文档数据时添加`headers`信息，如 `token`、`cookie`、`Authorization`等信息（具体的认证信息需要手动在浏览器控制台复制过来）。
 
 ```typescript
 export default {
