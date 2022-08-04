@@ -8,7 +8,7 @@ export declare enum Surrounding {
 export declare enum PARAMS_NAME {
     BODY = "body",
     QUERY = "query",
-    HEADER = "header",
+    HEADER = "headers",
     FORMDATA = "formData"
 }
 export declare class PrettierConfig {

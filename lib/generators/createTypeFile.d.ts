@@ -15,7 +15,6 @@ declare type TypeList = {
     parameters: Property[];
     resTypeName: string;
     paramTypeName: string;
-    metReturnTypeName: string;
 }[];
 export default class CreateTypeFile {
     content: string;
@@ -25,7 +24,7 @@ export default class CreateTypeFile {
     constructor(params: TypeFileInfo);
     generateFile(): void;
     private generateApiClassType;
-    private generateTypeValue;
+    private getReturnType;
     private generateTypes;
     /**
      *
