@@ -52,9 +52,9 @@ export interface DocReqConfig {
   method?: Method
 
   /***
-   * @description header 请求参数，根据文档接口入参定义
+   * @description headers 请求参数，根据文档接口入参定义
    */
-  header?: TData
+  headers?: TData
 
   /**
    * @description FormData 参数，根据文档接口入参定义
