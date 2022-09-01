@@ -259,15 +259,7 @@ export function ts2Js(filesNames: string[], declaration: boolean) {
   const host = ts.createCompilerHost(options)
   host.writeFile = (fileName, content) => {
     createFile(fileName, content, true)
-    // ts.sys.writeFile(fileName, content)
   }
-  // host.readFile = fileName => {
-  //   return ts.sys.readFile(fileName)
-  // }
-
-  // host.fileExists = fileName => {
-  //   return ts.sys.fileExists(fileName)
-  // }
 
   const program = ts.createProgram(filesNames, options, host)
   program.emit()

@@ -1,8 +1,8 @@
 import fs from 'fs'
-import log from '../utils//log'
+import log from '../utils/log'
 import path from 'path'
 import { CONFIG_PATH, Surrounding } from '../common/config'
-import { createFile, judgeIsVaildUrl } from '../utils'
+import { createFile, judgeIsVaildUrl, ts2Js } from '../utils'
 import inquirer, { QuestionCollection } from 'inquirer'
 
 type InitConfig = {
@@ -98,18 +98,28 @@ async function generateConfig(answers: InitConfig) {
 
     await createFile(CONFIG_FILE_PATH, content)
     log.success('配置文件已生成')
-    if (createBaseClass) generateBacsClass(baseClassPath, baseClassName)
+    if (createBaseClass) generateBacsClass(baseClassPath, baseClassName, languageType)
   } catch (error) {
     console.error(error)
   }
 }
 
-async function generateBacsClass(baseClassPath: string, baseClassName: string) {
+async function generateBacsClass(baseClassPath: string, baseClassName: string, languageType: Surrounding) {
   log.info('基类文件生成中...')
   try {
+    const isJs = /(js|javascript)/i.test(languageType)
+
     let content = loadTempFile('../temp/baseClassFile')
     content = content.replace(/\{baseClassName\}/, baseClassName)
-    await createFile(path.join(process.cwd(), baseClassPath), content)
+
+    const filePath = path.join(process.cwd(), baseClassPath)
+    await createFile(filePath, content)
+
+    if (isJs) {
+      ts2Js([filePath], true)
+      fs.unlinkSync(filePath)
+    }
+
     log.success('基类文件已生成')
   } catch (error) {
     console.error(error)
