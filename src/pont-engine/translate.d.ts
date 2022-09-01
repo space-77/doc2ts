@@ -8,6 +8,6 @@ export declare class Translate {
         en: string;
     }): void;
     startCaseClassName(result: any): string;
-    translateAsync(text: string, engineIndex?: number): any;
+    translateAsync(text: string, engineIndex?: number): Promise<string>;
 }
 export declare const Translator: Translate;

@@ -127,17 +127,17 @@ export default class CreateTypeFile {
 
   private generateResTypeValue(responseType: StandardDataType) {
     const { baseClasses } = this.fileInfo
-    const { typeArgs, typeName, templateIndex, isDefsType } = responseType
-
+    const { typeArgs, typeName, isDefsType } = responseType
     if (isDefsType || typeName === 'ObjectMap') this.importType.add(typeName)
-    let content = isDefsType ? typeName : this.getDefType(typeName)
+    let content = typeName
     if (typeArgs.length > 0) {
-      const [firstType] = typeArgs
-      content += `<${this.generateResTypeValue(firstType)}>`
+      content += `<${typeArgs.map(i => this.generateResTypeValue(i)).join(', ')}>`
     } else if (content) {
       // 添加未知类型的泛型
       const templateArgs = baseClasses.find(i => i.name === typeName)?.templateArgs || []
-      if (templateArgs.length > 0) content += '<any>'
+      if (templateArgs.length > 0) {
+        content += `<${templateArgs.map(i => this.generateResTypeValue(i)).join(', ')}>`
+      }
     }
     return content || 'any'
   }
@@ -162,13 +162,13 @@ export default class CreateTypeFile {
 
   private generateImportType() {
     const { importType, content } = this
-    const hasObjectMap = importType.delete('ObjectMap')
+    // const hasObjectMap = importType.delete('ObjectMap')
     const importTypeList = Array.from(importType)
       .sort((a, b) => a.length - b.length)
       .join(', ')
-    const objectMapTypeStr = hasObjectMap ? `\n${objMapType}` : ''
+    // const objectMapTypeStr = hasObjectMap ? `\n${objMapType}` : ''
 
-    this.content = `import type { ${importTypeList} } from './type' ${ExportValue} ${objectMapTypeStr} \n${content}`
+    this.content = `import type { ${importTypeList} } from './type' ${ExportValue} \n${content}`
   }
 
   getDescription(des?: string, example?: string) {
@@ -184,8 +184,6 @@ export default class CreateTypeFile {
     const content = baseClasses.map(i => {
       const { name, properties, templateArgs, description } = i
 
-      if (properties.length === 0) return ''
-
       const temList = templateArgs.map(i => i.typeName)
       const temStr = temList.length > 0 ? `<${temList.join(', ')}>` : ''
       const itemsValue = this.generateParamTypeValue(properties).join('\n')
@@ -194,6 +192,6 @@ export default class CreateTypeFile {
     })
 
     const filePath = path.join(typeDirPaht, `type.d.ts`)
-    fileList.push({ filePath, content: content.join('\n') })
+    fileList.push({ filePath, content: objMapType + content.join('\n') })
   }
 }

@@ -62,6 +62,7 @@ class Translate {
                 return enKey;
             }
             catch (err) {
+                if (engineIndex >= this.engines.length - 1) debugLog.error(err);
                 return this.translateAsync(text, index + 1);
             }
         });

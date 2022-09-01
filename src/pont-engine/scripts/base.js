@@ -8,9 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __asyncValues = (this && this.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const translate_1 = require("../translate");
 const _ = require("lodash");
+const debugLog = require("../debugLog");
 const utils_1 = require("../utils");
 const node_fetch_1 = require("node-fetch");
 class OriginBaseReader {
@@ -19,6 +27,7 @@ class OriginBaseReader {
         this.report = report;
     }
     translateChinese(jsonString) {
+        var e_1, _a;
         return __awaiter(this, void 0, void 0, function* () {
             let retString = jsonString;
             try {
@@ -30,7 +39,25 @@ class OriginBaseReader {
                 let chineseKeyCollect = matchItems.map((item) => item.replace(/["":]/g, ''));
                 chineseKeyCollect = _.uniq(chineseKeyCollect.map((item) => (item.includes('«') ? item.split('«')[0] : item)));
                 chineseKeyCollect.sort((pre, next) => next.length - pre.length);
-                let result = yield Promise.all(chineseKeyCollect.map((text) => translate_1.Translator.translateAsync(text)));
+                debugLog.info(`正在翻译中文类名，共 ${chineseKeyCollect.length} 条数据`);
+                const chineseKeyCollectList = _.chunk(chineseKeyCollect, 50);
+                debugLog.info(`共分为 ${chineseKeyCollectList.length} 批数据`);
+                const result = [];
+                try {
+                    for (var _b = __asyncValues(chineseKeyCollectList.entries()), _c; _c = yield _b.next(), !_c.done;) {
+                        const [index, keyList] = _c.value;
+                        debugLog.info(`正在翻译第 ${index + 1} 批数据，共 ${keyList.length} 条`);
+                        const translateResult = yield Promise.all(keyList.map((text) => translate_1.Translator.translateAsync(text)));
+                        result.push(...translateResult);
+                    }
+                }
+                catch (e_1_1) { e_1 = { error: e_1_1 }; }
+                finally {
+                    try {
+                        if (_c && !_c.done && (_a = _b.return)) yield _a.call(_b);
+                    }
+                    finally { if (e_1) throw e_1.error; }
+                }
                 const toRegStr = (str) => str.replace(/(\W)/g, '\\$1');
                 result.forEach((enKey, index) => {
                     const chineseKey = chineseKeyCollect[index];
