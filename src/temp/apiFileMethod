@@ -1,7 +1,10 @@
+
 /**
  * @id {id}
  * @description {description}
  */
 {funName}{funTypeName} = {paramsName} => {{methodBody}
-  return this.{requestMethod}({ {funConfig} })
+  const url = {url}
+  const config = { {funConfig} }
+  return this.{requestMethod}(config)
 }
