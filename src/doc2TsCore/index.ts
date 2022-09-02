@@ -38,7 +38,7 @@ export default class Doc2Ts {
     try {
       await this.getConfig()
       // await this.getModelList()
-      await this.initRemoteDataSource()
+      // await this.initRemoteDataSource()
       await this.generateFileData()
       this.createFiles()
       await this.transform2js()
@@ -145,13 +145,13 @@ export default class Doc2Ts {
   }
 
   async generateFileData() {
-    // try {
-    //   const dataList = fs.readFileSync(path.join(__dirname, '../../mock/modelInfoList.json')).toString()
-    //   this.StandardDataSourceList = JSON.parse(dataList) as StandardDataSourceLister[]
-    // } catch (error) {
-    //   console.error(error)
-    //   return
-    // }
+    try {
+      const dataList = fs.readFileSync(path.join(__dirname, '../../mock/modelInfoList.json')).toString()
+      this.StandardDataSourceList = JSON.parse(dataList) as StandardDataSourceLister[]
+    } catch (error) {
+      console.error(error)
+      return
+    }
 
     const { StandardDataSourceList } = this
     if (!Array.isArray(StandardDataSourceList) || StandardDataSourceList.length === 0) throw new Error('没有数据源')

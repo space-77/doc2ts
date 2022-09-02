@@ -18,16 +18,17 @@ declare type TypeList = {
 }[];
 export default class CreateTypeFile {
     content: string;
+    exportValue: string;
     typeList: TypeList;
     importType: Set<string>;
     fileInfo: TypeFileInfo;
     constructor(params: TypeFileInfo);
     generateFile(): void;
+    private generateImportType;
     private generateApiClassType;
     private getReturnType;
     private generateTypes;
     /**
-     *
      * @param typeName
      * @description 判断是不是ts的基本类型，如果如果不是的 则是改为any类型【处理不规范的类型】
      */
@@ -35,7 +36,6 @@ export default class CreateTypeFile {
     private generateResTypeValue;
     private generateParamType;
     private generateParamTypeValue;
-    private generateImportType;
     getDescription(des?: string, example?: string): string;
     createBaseClasses(): void;
 }
