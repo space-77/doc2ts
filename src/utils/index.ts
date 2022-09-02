@@ -248,7 +248,7 @@ export function getTsFiles(dirPath: string) {
   return filesInfo
 }
 
-export function ts2Js(filesNames: string[], declaration: boolean) {
+export function ts2Js(filesNames: string[], declaration: boolean, cb?: (fileName: string, context: string) => string) {
   const options = {
     target: ScriptTarget.ESNext,
     module: ModuleKind.ES2015,
@@ -258,6 +258,7 @@ export function ts2Js(filesNames: string[], declaration: boolean) {
 
   const host = ts.createCompilerHost(options)
   host.writeFile = (fileName, content) => {
+    if (typeof cb === 'function') content = cb(fileName, content)
     createFile(fileName, content, true)
   }
 

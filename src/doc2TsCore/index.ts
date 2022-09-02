@@ -131,7 +131,7 @@ export default class Doc2Ts {
         item.interfaces.forEach(j => {
           j.name = getName(j.name)
         })
-      });
+      })
 
       this.StandardDataSourceList.push({ data, name })
     })
@@ -232,9 +232,10 @@ export default class Doc2Ts {
 
   createFiles() {
     if (fileList.length === 0) return
-    const { outDir, baseClassPath } = this.config
+    const { outDir } = this.config
+    // const isJs = checkJsLang(languageType)
     const outDirPath = path.join(resolveOutPath(outDir), 'index')
-    const targetPath = resolveOutPath(baseClassPath)
+    // const targetPath = resolveOutPath(baseClassPath)
     const typesDir = path.join(outDirPath, 'types')
     const modulesDir = path.join(outDirPath, 'module')
 
@@ -245,9 +246,9 @@ export default class Doc2Ts {
     const removeFiles = [
       `${outDirPath}.d.ts`,
       `${outDirPath}.ts`,
-      `${outDirPath}.js`,
-      `${targetPath}.js`,
-      `${targetPath}.d.ts`
+      `${outDirPath}.js`
+      // isJs && `${targetPath}.js`,
+      // isJs && `${targetPath}.d.ts`
     ]
 
     removeFiles.forEach(filePath => {
@@ -270,7 +271,14 @@ export default class Doc2Ts {
       log.info('正在转换 ts 文件为 js')
 
       const indexFilePath = path.join(outDirPath, 'index.ts')
-      ts2Js([indexFilePath], declaration)
+      const indexFileJsPath = indexFilePath.replace(/\.ts$/, '.js')
+      ts2Js([indexFilePath], declaration, (fileName, content) => {
+        content = content.replace(/(\/\*\*)/g, '\n$1')
+        content = content.replace(/(export\s+const)/g, '\n$1')
+        content = content.replace(/(export\s+declare)/g, '\n$1')
+        if (path.resolve(fileName) === indexFileJsPath) content = content.replace(/(export)/, '\n$1')
+        return content
+      })
 
       if (!emitTs) {
         // 不保留 ts 源文件，删除源ts文件

@@ -55,17 +55,18 @@ export class CreateApiFile {
       // const paramsName = parameters.length === 0 ? '()' : onlyType && hasBody ? bodyName : 'params'
 
       const requestMethod = isDownload ? 'downloadFile' : 'request'
-      const url = `url:${this.formatUrl(_path, paramsInfo)}`
+      const url = this.formatUrl(_path, paramsInfo)
       const otherConfig = header + formData
       const funTypeName = isJs ? '' : `: mT.${firstToUpper(funName)}`
       const requestConfig = metConfig ? `, config: ${JSON.stringify(metConfig)}` : ''
       const hideMet = hideMethod ? /^get$/i.test(met) || (/^post$/i.test(met) && body) : false
       const method = hideMet ? '' : `, method: '${met}'`
       const des = configDes ? configDes : description.replace(/\n\r?/, '，') || ''
-      const funConfig = `${url}${body}${otherConfig}${method}${requestConfig}`
+      const funConfig = `url${body}${otherConfig}${method}${requestConfig}`
 
       let content = this.getTempData('../temp/apiFileMethod')
       content = content.replace(/\{id\}/g, id)
+      content = content.replace(/\{url\}/g, url)
       content = content.replace(/\{funName\}/g, firstToLower(funName))
       content = content.replace(/\{funConfig\}/g, funConfig)
       content = content.replace(/\{methodBody\}/g, methodBody)
