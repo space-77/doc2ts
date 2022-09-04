@@ -30,25 +30,6 @@ export type MethodConfig = {
   config?: object
 }
 
-export type ModuleConfigInfo = {
-  /**
-   * @description 模块重命名， 优先级高于 config.rename
-   */
-  moduleName?: string
-
-  // render?(funName: string, context: string): string
-
-  methodConfig?: {
-    [key: string]: MethodConfig
-  }
-}
-
-export type ModuleConfig = {
-  /**
-   * @description 每个模块自己的配置
-   */
-  [key: string]: ModuleConfigInfo
-}
 
 export type Origin = ModelList
 
@@ -128,11 +109,11 @@ export type Doc2TsConfig = {
 
   /**
    * @param content 即将生成文件的内容
-   * @param modelName 文件对应的模块名称
+   * @param moduleName 文件对应的模块名称
    * @param config  配置文件
    * @description 生成接口文件前的钩子，用于修改生成的内容
    */
-  render?(content: string, modelName: string, config: ModuleConfig['']): string
+  render?(content: string, moduleName?: string): string
 
   /**
    * @param content 即将生成文件的内容
@@ -141,7 +122,7 @@ export type Doc2TsConfig = {
    */
   typeFileRender?(content: string, modelName: string): string
 
-  moduleConfig?: ModuleConfig
+  // moduleConfig?: ModuleConfig
 
   methodConfig?: {
     [key: string]: MethodConfig
@@ -154,12 +135,12 @@ export type StandardDataSourceLister = { name?: string; data: StandardDataSource
 
 export type ModelInfo = {
   isJs?: boolean
-  name?: string
-  config: ModuleConfigInfo
+  // config: ModuleConfigInfo
   dirPath: string
   filePath: string
   fileName: string
   hideMethod: boolean
+  moduleName?: string
   interfaces: Interface[]
   typeDirPaht: string
   description: string

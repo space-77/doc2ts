@@ -3,7 +3,7 @@ import path from 'path'
 import { fileList } from './fileList'
 import type { Property } from '../pont-engine'
 import type { Method } from '../types/client'
-import { firstToUpper, findDiffPath, firstToLower } from '../utils'
+import { firstToUpper, findDiffPath, firstToLower, camel2Kebab } from '../utils'
 import type { FilePathList, GetParamsStr, ModelInfo } from '../types/type'
 import { keyWords, keyWordsListSet, PARAMS_NAME } from '../common/config'
 
@@ -40,13 +40,12 @@ export class CreateApiFile {
   }
 
   generateApiClassMethod() {
-    const { config = {}, hideMethod, interfaces, isJs, methodConfig } = this.modelInfo
+    const { hideMethod, interfaces, isJs, methodConfig, moduleName } = this.modelInfo
     interfaces.sort((a, b) => a.path.length - b.path.length)
     const methodsList = interfaces.map(i => {
       const { name: funName, method: met, path: _path, description, response, parameters, id = '' } = i
-      const funcConfig = config.methodConfig || methodConfig
-      // console.log(funcConfig)
-      const { isDownload, config: metConfig, description: configDes } = funcConfig?.[id] || {}
+      const funcName = camel2Kebab(`${moduleName}${moduleName ? '-' : ''}${id}`)
+      const { isDownload, config: metConfig, description: configDes } = methodConfig?.[funcName] || {}
 
       this.fixParamsType(parameters, met as Method)
       const paramsInfo = this.getParamsStr(parameters)
@@ -65,7 +64,7 @@ export class CreateApiFile {
       const funConfig = `url${body}${otherConfig}${method}${requestConfig}`
 
       let content = this.getTempData('../temp/apiFileMethod')
-      content = content.replace(/\{name\}/g, id)
+      content = content.replace(/\{name\}/g, funcName)
       content = content.replace(/\{url\}/g, url)
       content = content.replace(/\{funName\}/g, firstToLower(funName))
       content = content.replace(/\{funConfig\}/g, funConfig)
@@ -232,10 +231,10 @@ export class CreateApiFile {
 
   createFile() {
     const { fileContent, modelInfo } = this
-    const { filePath, render, name, config } = modelInfo
+    const { filePath, render, moduleName } = modelInfo
 
-    const modelName = config.moduleName || name || ''
-    const content = render ? render(fileContent, modelName, config) : fileContent
+    // const moduleName = config.moduleName || name || ''
+    const content = render ? render(fileContent, moduleName) : fileContent
     fileList.push({ filePath, content })
   }
 

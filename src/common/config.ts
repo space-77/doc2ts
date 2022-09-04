@@ -1,5 +1,5 @@
 import type prettier from 'prettier'
-import { Doc2TsConfig, Doc2TsConfigKey, ModuleConfig } from '../types/type'
+import { Doc2TsConfig, Doc2TsConfigKey } from '../types/type'
 
 export const CONFIG_PATH = 'doc2ts-config.ts'
 
@@ -28,7 +28,6 @@ export class Config {
   readonly fetchSwaggerDataMethod?: Doc2TsConfig['fetchSwaggerDataMethod']
   readonly baseClassName: string = 'ApiClient'
   readonly rename?: Doc2TsConfig['rename']
-  readonly moduleConfig?: ModuleConfig // doc2ts-config 配置信息
   readonly emitTs?: boolean
   readonly declaration?: boolean
   readonly prettierPath?: string

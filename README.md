@@ -338,101 +338,67 @@ export default {
   }
 } as Doc2TsConfig
 ```
-### 请求接口方法配置-没模块名称
+### 请求接口方法配置
 
-- 参数：`methodConfig`
+- 参数：`methodConfig.name`
 - 必传：`否`
 - 类型：`MethodConfig`
 - 默认：``
 - 说明： 
-   1. `接口name` 每个接口请求方法上的一个 `@name xxx`的注释 name
-   2. 在 `origins`配置里的 `name`字段`为空`的情况下有效，如果`name`字段不为空，在模块里的 [methodConfig](#%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E9%85%8D%E7%BD%AE-%E6%9C%89%E6%A8%A1%E5%9D%97%E5%90%8D) 的配置
-   3. 当前 `methodConfig`里的配置内容和 [请求接口方法配置-有模块名](#%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E9%85%8D%E7%BD%AE-%E6%9C%89%E6%A8%A1%E5%9D%97%E5%90%8D)的 `methodConfig` 一致
+   1. `xxxName` 每个接口请求方法上的一个 `@name xxx`的注释 xxxName
 
 ```typescript
 export default {
   methodConfig: {
-    "name": {
+    "xxxName": {
       ...
     }
   }
 } as Doc2TsConfig
 ```
-
-### 模块配置
-
-- 参数：`moduleConfig`
-- 必传：`否`
-- 类型：`Object`
-- 默认：``
-- 说明：每个模块对应的配置，`key`是模块名字与 [配置 swagger 文档地址](#配置 swagger 文档地址) 的 `name` 对应。
-```typescript
-export default {
-  moduleConfig: {...}
-} as Doc2TsConfig
-```
-#### 请求接口方法配置-有模块名
-
-- 参数：`moduleConfig.methodConfig`
-- 必传：`否`
-- 类型：`MethodConfig`
-- 默认：``
-- 说明： 
-   1. `接口name` 每个接口请求方法上的一个 `@name xxx`的注释 name
-   1. 在 [origins  ](#配置 swagger 文档地址)配置里的 `name`字段`不为空`的情况下有效，如果`name`字段为空，请查看
-
-[请求接口方法配置-没模块名称](#%E8%AF%B7%E6%B1%82%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E9%85%8D%E7%BD%AE-%E6%B2%A1%E6%A8%A1%E5%9D%97%E5%90%8D%E7%A7%B0) 的配置
-
-```typescript
-export default {
-  moduleConfig: {
-     '模块名称': {
-       methodConfig: {
-         "name": {
-           ...
-         }
-       }
-     }
-  }
-} as Doc2TsConfig
-```
 ##### 修改某个请求接口方法描述
 
-- 参数：`moduleConfig.methodConfig.description`
+- 参数：`moduleConfig.name.description`
 - 必传：`否`
 - 类型：`String`
 - 默认：``
-- 说明：修改方法描述
+- 说明：
+  1. 修改方法描述
+  2. `xxxName` 每个接口请求方法上的一个 `@name xxx`的注释 xxxName
 ```typescript
 export default {
-  moduleConfig: {
-    模块名称: {
-      methodConfig: {
-        接口id: {
-          description: 'xxx'
-        }
-      }
+  methodConfig: {
+    "xxxName": {
+      description: 'xxx'
     }
   }
 } as Doc2TsConfig
 ```
 ##### 自定义接口配置参数
 
-- 参数：`moduleConfig.methodConfig.config`
+- 参数：`moduleConfig.name.config`
 - 必传：`否`
 - 类型：`Object`
 - 默认：``
-- 说明：接口的自定义配置，会传递到调用对应基类的方法里
+- 说明：
+  1. 接口的自定义配置，会传递到调用对应基类的方法里
+  2. `xxxName` 每个接口请求方法上的一个 `@name xxx`的注释 xxxName
+  3. 在基类里的 `request` 方法可以的入参 `params.config` 拿到该方法的 `config` 信息
+
 ```typescript
 export default {
   moduleConfig: {
-     '模块名称': {
-       methodConfig: {
-         '接口id': {
-           config: {...}
-         }
-       }
-     }
+    'xxxName': {
+      config: {...}
+    }
   }
 } as Doc2TsConfig
+
+// 基类文件
+export default class ApiClient implements IApiClient {
+  request(params: DocReqConfig): Promise<any> {
+    const { config } = params
+    // config 即特定方法，自定义接口配置参数
+  }
+}
 ```
