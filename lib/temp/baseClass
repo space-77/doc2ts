@@ -1,5 +1,8 @@
 import {ImportBaseCalssName} from '{BaseClassPath}'
 
+/**
+ * @description 基础工具类
+ */
 export default class BaseClass extends {BaseCalssName} {
   /**
    * @description 拼接参数
