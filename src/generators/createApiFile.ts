@@ -192,7 +192,7 @@ export class CreateApiFile {
 
       // 组建各种请求类型参数
       // query
-      if (hasQuery) queryValue = `this.serialize(${paramsStr})`
+      if (hasQuery) queryValue = `this.serialize({${paramsStr}})`
 
       // body
       // 直接把 params 传给 request方法即可
@@ -204,7 +204,7 @@ export class CreateApiFile {
       // formData
       if (hasformData) {
         formData = `, ${formDataName}`
-        methodBody = `\nconst ${formDataName} = this.formData(${paramsStr})`
+        methodBody = `\nconst ${formDataName} = this.formData({${paramsStr}})`
       }
 
       // header
