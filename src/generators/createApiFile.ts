@@ -65,7 +65,7 @@ export class CreateApiFile {
       const funConfig = `url${body}${otherConfig}${method}${requestConfig}`
 
       let content = this.getTempData('../temp/apiFileMethod')
-      content = content.replace(/\{id\}/g, id)
+      content = content.replace(/\{name\}/g, id)
       content = content.replace(/\{url\}/g, url)
       content = content.replace(/\{funName\}/g, firstToLower(funName))
       content = content.replace(/\{funConfig\}/g, funConfig)
