@@ -161,7 +161,7 @@ export class CreateApiFile {
         const { name } = parameters[0]
         onlyParamName = keyWordsListSet.has(name) ? `_${name}` : name
         paramsName = `${onlyParamName}`
-        paramsStr = name !== onlyParamName ? `{${name}: ${onlyParamName}}` : `{${onlyParamName}}`
+        paramsStr = name !== onlyParamName ? `{${name}: ${onlyParamName}}` : onlyParamName
       } else {
         paramsName = onlyType && hasBody ? bodyName : paramsStr
       }
