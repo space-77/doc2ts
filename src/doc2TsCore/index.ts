@@ -166,7 +166,7 @@ export default class Doc2Ts {
       typeFileRender,
       methodConfig,
       resultTypeRender,
-      moduleConfig = {}
+      // moduleConfig = {}
     } = this.config
 
     await loadPrettierConfig(prettierPath)
@@ -178,11 +178,8 @@ export default class Doc2Ts {
     const filePathList: FilePathList[] = []
 
     StandardDataSourceList.forEach(async i => {
-      const { data, name } = i
+      const { data, name: moduleName } = i
       const { mods, baseClasses } = data
-      const config = name ? moduleConfig[name] || {} : {}
-
-      const moduleName = config.moduleName || name
       const modulePath = moduleName ? `/${moduleName}` : ''
       const dirPath = path.join(outputDir, `module${modulePath}`)
       const typeDirPaht = path.join(outputDir, `types${modulePath}`)
@@ -194,12 +191,11 @@ export default class Doc2Ts {
 
         const diffClassPath = findDiffPath(dirPath, tempClassPath).replace(/\.[t|j]s$/, '')
         const params: ModelInfo = {
-          name,
           render,
-          config,
           dirPath,
           filePath,
           fileName,
+          moduleName,
           hideMethod,
           interfaces,
           description,

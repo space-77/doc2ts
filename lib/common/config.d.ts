@@ -1,5 +1,5 @@
 import type prettier from 'prettier';
-import { Doc2TsConfig, ModuleConfig } from '../types/type';
+import { Doc2TsConfig } from '../types/type';
 export declare const CONFIG_PATH = "doc2ts-config.ts";
 export declare enum Surrounding {
     typeScript = "typeScript",
@@ -21,7 +21,6 @@ export declare class Config {
     readonly fetchSwaggerDataMethod?: Doc2TsConfig['fetchSwaggerDataMethod'];
     readonly baseClassName: string;
     readonly rename?: Doc2TsConfig['rename'];
-    readonly moduleConfig?: ModuleConfig;
     readonly emitTs?: boolean;
     readonly declaration?: boolean;
     readonly prettierPath?: string;
