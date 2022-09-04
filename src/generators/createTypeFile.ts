@@ -69,7 +69,7 @@ export default class CreateTypeFile {
 
   private generateApiClassType() {
     const { fileInfo, typeList } = this
-    const { interfaces } = fileInfo
+    const { interfaces, baseClasses } = fileInfo
     const methodList = interfaces.map(i => {
       const { response, parameters, id } = i
       const onlyParam = parameters.length === 1
@@ -80,8 +80,19 @@ export default class CreateTypeFile {
 
       let paramsStr = `(params: ${paramTypeName})`
       if (onlyParam) {
-        const { name } = parameters[0]
-        paramsStr = `(${name} :${paramTypeName}['${name}'])`
+        const [firstParam] = parameters
+        const { name, dataType } = firstParam
+        const { isDefsType } = dataType
+          const { properties = [] } = baseClasses.find(i => i.name === dataType.typeName) ?? {}
+        if (!isDefsType || properties.length > 0 ) {
+          paramsStr = `(${name} :${paramTypeName}['${name}'])`
+        } else {
+          // 不需要穿传参
+          paramsStr = `()`
+        }
+      } else if (parameters.length === 0) {
+        // 不需要穿传参
+        paramsStr = '()'
       }
 
       typeList.push({ id, resTypeName, response, paramTypeName, parameters })
