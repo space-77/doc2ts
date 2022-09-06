@@ -11,6 +11,7 @@
     "build": "ts-node ./scripts/build.ts && tsc",
     "test": "node ./bin/doc2api.js",
     "init-doc": "ts-node ./src/dev-init.ts",
+    "manage": "nodemon --watch ./src/scripts/manage.ts --ext ts --exec nodemon src/scripts/manage.ts",
     "init-config": "ts-node ./src/scripts/initConfig.ts",
     "dev": "ts-node ./src/dev.ts"
   },
@@ -34,8 +35,10 @@
     "@types/node": "^17.0.25",
     "babel": "^6.23.0",
     "chalk": "^4.1.2",
+    "child_process": "^1.0.2",
     "commander": "^9.2.0",
     "fs-extra": "^10.1.0",
+    "iconv-lite": "^0.6.3",
     "inquirer": "^8.2.4",
     "js-crypto-rsa": "^1.0.4",
     "lodash": "^4.17.5",
