@@ -1,5 +1,5 @@
 import iconv from 'iconv-lite'
-import { GET_CHECKOUT, GET_REV_PARSE, GIT_ADD, GIT_COMMIT, GIT_STATUS, GIT_VERSION } from './commands'
+import { GET_CHECKOUT, GET_REV_PARSE, GIT_ADD, GIT_BRANCH, GIT_COMMIT, GIT_STATUS, GIT_VERSION } from './commands'
 import { exec, ExecException } from 'child_process'
 import { noChanges, notGit, nothingCommit } from './messagekey'
 import { CODE } from './config'
@@ -37,6 +37,10 @@ export async function getGitVersion(): Promise<ExecExceptions> {
 
 export async function getCommitId() {
   return await execSync(GET_REV_PARSE)
+}
+// originalBranchname
+export async function getBranchname() {
+  return await execSync(GIT_BRANCH)
 }
 
 export async function checkout(branchname: string) {

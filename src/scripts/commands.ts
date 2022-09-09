@@ -1,5 +1,6 @@
 export const GIT_VERSION = 'git --version'
 export const GET_REV_PARSE = 'git rev-parse HEAD'
+export const GIT_BRANCH= 'git branch --show-current'
 export const GET_CHECKOUT = 'git checkout '
 export const GIT_STATUS = 'git status '
 export const GIT_ADD = 'git add '
