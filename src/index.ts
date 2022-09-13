@@ -3,4 +3,5 @@ export type { IApiClient, DocReqConfig, Method, TData } from './types/client'
 export type { Surrounding } from './common/config'
 import Doc2Ts from './doc2TsCore'
 
-export default new Doc2Ts()
+const doc2ts =  new Doc2Ts()
+doc2ts.init()
