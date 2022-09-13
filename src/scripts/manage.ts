@@ -5,44 +5,18 @@
 //  解决：切换到 doc 分支前，复制 当前分支的 doc2ts-config.ts 内容到内存，等待分支切换成功后，把内容覆盖到 当前分支的 doc2ts-config.ts 文件
 
 import fs from 'fs-extra'
-import { Doc2TsConfig } from '../types/type'
-import { CONFIG_PATH } from '../common/config'
-import { getConfig, getRootFilePath } from '../utils'
-import { CODE, GIT_BRANCHNAME } from './config'
-import { checkGit, checkout, getBranchname, getCommitId, getGitVersion, gitAdd, gitCommit, gitStatus } from './utils'
+import Doc2Ts from '../doc2TsCore/index'
 import { notBranch } from './messagekey'
-import Doc2Ts from '../index'
-
-// async function loadConfig() {
-//   // 检测是不是使用 git 管理的代码
-//   const [err, stdout, stderr] = await checkGit()
-//   if (err) throw new Error(stderr)
-//   if (stdout === CODE.NOT_GIT) return CODE.NOT_GIT
-
-//   // 读取 配置文件
-//   const config = await getConfig(CONFIG_PATH)
-//   console.log(config.outDir)
-
-//   // 复制 切换分支前的 doc2ts-config.ts 文件内容到 内存
-//   const doc2tsConfigContent = fs.readFileSync(getRootFilePath(CONFIG_PATH))
-//   console.log(doc2tsConfigContent)
-// }
-
-// async function name() {
-//   // 切换分支到 doc 分支
-//   const [err, stdout, stderr] = await checkout(config.gitConfig?.branchname ?? GIT_BRANCHNAME)
-// }
-
-// async function start() {
-//   try {
-//     loadConfig()
-//   } catch (error) {
-//     console.error(error)
-//   }
-// }
+import { CONFIG_PATH } from '../common/config'
+import { Doc2TsConfig } from '../types/type'
+import { CODE, GIT_BRANCHNAME } from './config'
+import { getConfig, getRootFilePath, resolveOutPath } from '../utils'
+import { checkGit, checkout, getBranchname, gitAdd, gitCommit, gitMerge, gitStatus } from './utils'
 
 class Status {
   config!: Doc2TsConfig
+  includeFiles!: string
+  docBranchname!: string
   originalBranchname!: string
   doc2tsConfigContent!: Buffer
 
@@ -66,12 +40,29 @@ class Status {
       if (res === CODE.NOT_GIT) return
 
       // 生成接口信息
-      // new Doc2Ts()
+      const doc2ts = new Doc2Ts()
+      await doc2ts.init()
 
+      // commit 代码【检查有没有代码】
+      res = await this.checkStatus()
+      if (res === CODE.NOTHING_COMMIT) {
+        // 没有代码变更
+        // 切换源分支
+        await this.checkout2Base()
+        return
+      }
+
+      // add
+      await this.addFile()
+
+      // commit
+      await this.commitFile()
 
       // 切换源分支
+      await this.checkout2Base()
 
       // 合并 doc 分支代码
+      await this.mergeCode()
 
       // console.log(res)
     } catch (error) {
@@ -87,6 +78,10 @@ class Status {
 
     // 读取 配置文件
     this.config = await getConfig(CONFIG_PATH)
+
+    const { outDir, gitConfig = { branchname: undefined } } = this.config
+    this.includeFiles = `${outDir}/* ${CONFIG_PATH}`
+    this.docBranchname = gitConfig.branchname ?? GIT_BRANCHNAME
     // console.log(config.outDir)
 
     // 复制 切换分支前的 doc2ts-config.ts 文件内容到 内存
@@ -94,9 +89,16 @@ class Status {
     // console.log(doc2tsConfigContent)
   }
 
+  // 切换至源来分支
+  async checkout2Base() {
+    const { originalBranchname } = this
+    if (!originalBranchname) throw new Error('源分支不存在')
+    const [err, stdout, stderr] = await checkout(originalBranchname)
+    if (err) throw new Error(stderr)
+  }
+
   async checkout2Doc() {
-    const { gitConfig } = this.config
-    const [err, stdout, stderr] = await checkout(gitConfig?.branchname ?? GIT_BRANCHNAME)
+    const [err, stdout, stderr] = await checkout(this.docBranchname)
     if (notBranch.test(stderr)) return this.initBranchname()
     if (err) throw new Error(stderr)
   }
@@ -108,11 +110,34 @@ class Status {
   }
 
   async initBranchname() {
-    const { gitConfig } = this.config
-    const [err, stdout, stderr] = await checkout(`-b ${gitConfig?.branchname ?? GIT_BRANCHNAME}`)
+    const [err, stdout, stderr] = await checkout(`-b ${this.docBranchname}`)
     console.log(err, stdout, stderr)
     // if (notBranch.test(stdout)) return this.initBranchname()
     // console.log(err, stdout, stderr)
+  }
+
+  async checkStatus() {
+    const [err, stdout, stderr] = await gitStatus(this.includeFiles)
+    if (err) throw new Error(stderr)
+    return stdout
+  }
+
+  async addFile() {
+    const [err, stdout, stderr] = await gitAdd(this.includeFiles)
+    if (err) throw new Error(stderr)
+    return stdout
+  }
+
+  async commitFile() {
+    const [err, stdout, stderr] = await gitCommit('feat: update api file (doc2ts auto commmit).')
+    if (err) throw new Error(stderr)
+    return stdout
+  }
+
+  async mergeCode() {
+    const [err, stdout, stderr] = await gitMerge(this.docBranchname)
+    if (err) throw new Error(stderr)
+    return stdout
   }
 }
 

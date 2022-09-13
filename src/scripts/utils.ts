@@ -1,5 +1,5 @@
 import iconv from 'iconv-lite'
-import { GET_CHECKOUT, GET_REV_PARSE, GIT_ADD, GIT_BRANCH, GIT_COMMIT, GIT_STATUS, GIT_VERSION } from './commands'
+import { GET_CHECKOUT, GET_REV_PARSE, GIT_ADD, GIT_BRANCH, GIT_COMMIT, GIT_MERGE, GIT_STATUS, GIT_VERSION } from './commands'
 import { exec, ExecException } from 'child_process'
 import { noChanges, notGit, nothingCommit } from './messagekey'
 import { CODE } from './config'
@@ -79,4 +79,8 @@ export async function gitCommit(message: string): Promise<ExecExceptions> {
   }
 
   return [err, stdout, stderr]
+}
+
+export async function gitMerge(branchname: string): Promise<ExecExceptions> {
+  return await execSync(GIT_MERGE + branchname)
 }
