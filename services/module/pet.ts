@@ -11,6 +11,9 @@ export default class Pet extends BaseClass {
    */
   addPet: mT.AddPet = body => {
     const url = '/pet'
+    console.log(url)
+    console.log(url)
+    console.log(url)
     const config = { url, body: { body }, method: 'post' }
     return this.request(config)
   }

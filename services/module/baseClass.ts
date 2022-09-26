@@ -1,4 +1,4 @@
-import ApiClient from '../client'
+import ApiClient from '../../src/services/client'
 
 /**
  * @description 基础工具类

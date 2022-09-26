@@ -10,21 +10,32 @@ export default class Pet extends BaseClass {
    * @description Add a new pet to the store
    */
   addPet: mT.AddPet = body => {
+    console.log('object')
+    console.log('object')
+    console.log('object')
+    console.log('object')
+    console.log('object')
+    console.log('object')
     const url = '/pet'
     const config = { url, body: body, method: 'post' }
     return this.request(config)
   }
-
+  
   /**
    * @name testUpdatePet
    * @description Update an existing pet
    */
   updatePet: mT.UpdatePet = body => {
+    console.log('object')
+    console.log('object')
+    console.log('object')
     const url = '/pet'
     const config = { url, body: body, method: 'put' }
+    console.log('object')
+    console.log('object')
     return this.request(config)
   }
-
+  
   /**
    * @name testGetPetById
    * @description Find pet by ID，Returns a single pet
@@ -32,6 +43,7 @@ export default class Pet extends BaseClass {
   getPetById: mT.GetPetById = petId => {
     const url = `/pet/${petId}`
     const config = { url, method: 'get' }
+    console.log('object')
     return this.request(config)
   }
 
