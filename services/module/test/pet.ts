@@ -54,7 +54,7 @@ export default class Pet extends BaseClass {
    * @name testUpdatePetWithForm
    * @description Updates a pet in the store with form data
    */
-  updatePetWithForm: mT.UpdatePetWithForm = params => {
+  updatePetWithForm: mT.UpdatePetWithForm111 = params => {
     console.log('object')
     console.log('object')
     console.log('object')
