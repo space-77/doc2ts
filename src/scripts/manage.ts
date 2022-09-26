@@ -6,7 +6,7 @@
 
 import fs from 'fs-extra'
 import Doc2Ts from '../doc2TsCore/index'
-import { notBranch } from './messagekey'
+import { notBranch, replacedLF } from './messagekey'
 import { CONFIG_PATH } from '../common/config'
 import { Doc2TsConfig } from '../types/type'
 import { CODE, GIT_BRANCHNAME } from './config'
@@ -134,6 +134,8 @@ class Status {
 
   async addFile() {
     const [err, stdout, stderr] = await gitAdd(this.includeFiles)
+    // warning: LF will be replaced by CRLF
+    if (replacedLF.test(stderr)) return stdout
     if (err) throw new Error(stderr)
     return stdout
   }
