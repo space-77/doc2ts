@@ -143,7 +143,9 @@ export class CreateApiFile {
     if (hasformData) formData = `, ${formDataName}`
 
     // header
-    const headerParams = this.filterParams(parameters, 'header') // .map(i => `'${i}': ${i}`) // [ "'aaa': aaa" ]
+    const headerParams = this.filterParams(parameters, 'header')
+    if (hasformData) headerParams.push('Content-Type: \'application/x-www-form-urlencoded; charset=UTF-8\'')
+
     const hasHeader = headerParams.length > 0
     if (hasHeader) header = `, ${headerName}`
     const parametersList = new Set(parameters.map(i => i.in))
@@ -204,10 +206,11 @@ export class CreateApiFile {
       if (hasformData) {
         formData = `, ${formDataName}`
         methodBody = `\nconst ${formDataName} = this.formData({${paramsStr}})`
+        methodBody += `\nconst ${headerName} = {${joinParams(headerParams)}}`
       }
 
       // header
-      // 直接把 params 传给 request方法即可
+      if (hasHeader && !hasformData) methodBody = `\nconst ${headerName} = {${joinParams(headerParams)}}`
     }
 
     return {
