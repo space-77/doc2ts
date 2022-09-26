@@ -29,6 +29,8 @@ export default class Pet extends BaseClass {
     console.log('object')
     console.log('object')
     console.log('object')
+    console.log('object')
+    console.log('object')
     const url = '/pet'
     const config = { url, body: body, method: 'put' }
     console.log('object')
@@ -44,16 +46,25 @@ export default class Pet extends BaseClass {
     const url = `/pet/${petId}`
     const config = { url, method: 'get' }
     console.log('object')
+    console.log('object')
     return this.request(config)
   }
-
+  
   /**
    * @name testUpdatePetWithForm
    * @description Updates a pet in the store with form data
    */
   updatePetWithForm: mT.UpdatePetWithForm = params => {
+    console.log('object')
+    console.log('object')
+    console.log('object')
     const { petId, name, status } = params
+    console.log('object')
+    console.log('object')
     const formData = this.formData({ name, status })
+    console.log('object')
+    console.log('object')
+    console.log('object')
     const url = `/pet/${petId}`
     const config = { url, formData, method: 'post', config: { contentType: 'xxx' } }
     return this.request(config)
