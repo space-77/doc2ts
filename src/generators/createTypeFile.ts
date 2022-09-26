@@ -39,7 +39,7 @@ export default class CreateTypeFile {
   constructor(params: TypeFileInfo) {
     this.fileInfo = params
     const showEx = typeof params.resultTypeRender === 'string'
-    this.exportValue = showEx ? `export type ExportValue<T, U> = U extends keyof T ? T[U] : T;\n` : ''
+    this.exportValue = showEx ? `export type ExportValue<T, U> = U extends keyof T ? T[U] : T;\r\n` : ''
     // `\ntype ExportValue<T, U> = U extends keyof T ? T[U] : T;\n`
     // this.generateFile()
   }
@@ -64,7 +64,7 @@ export default class CreateTypeFile {
     //   .join(', ')
     // const objectMapTypeStr = hasObjectMap ? `\n${objMapType}` : ''
 
-    this.content = `import type * as defs from './type' \n${content}`
+    this.content = `import type * as defs from './type' \r\n${content}`
   }
 
   private generateApiClassType() {
@@ -97,9 +97,9 @@ export default class CreateTypeFile {
 
       typeList.push({ id, resTypeName, response, paramTypeName, parameters })
       const returnType = this.getReturnType(resTypeName, i, fileInfo)
-      return `export type ${name} = ${paramsStr} => ${returnType}\n`
+      return `export type ${name} = ${paramsStr} => ${returnType}\r\n`
     })
-    this.content = methodList.join('\n')
+    this.content = methodList.join('\r\n')
   }
 
   private getReturnType(resTypeName: string, item: Interface, fileInfo: TypeFileInfo) {
@@ -138,7 +138,7 @@ export default class CreateTypeFile {
       return `export type ${resTypeName} = ${this.generateResTypeValue(response, true)}`
     })
 
-    this.content = `${resTypeList.join('\n')}\n${content}`
+    this.content = `${resTypeList.join('\r\n')}\r\n${content}`
   }
 
   /**
@@ -170,10 +170,10 @@ export default class CreateTypeFile {
     const { typeList, content } = this
     const resTypeList = typeList.map(i => {
       const { paramTypeName, parameters } = i
-      return `export interface ${paramTypeName} {\n${this.generateParamTypeValue(parameters, true).join('\n')}}`
+      return `export interface ${paramTypeName} {\r\n${this.generateParamTypeValue(parameters, true).join('\n')}}`
     })
 
-    this.content = `${resTypeList.join('\n')}\n${content}`
+    this.content = `${resTypeList.join('\r\n')}\r\n${content}`
   }
 
   private generateParamTypeValue(parameters: Property[], hasDefs = false) {
@@ -187,9 +187,9 @@ export default class CreateTypeFile {
   getDescription(des?: string, example?: string) {
     if (!example && !des) return ''
     if (des) {
-      return example ? `/** \n* @example ${example}\n* @description ${des}\n */\n` : `/** @description ${des} */\n`
+      return example ? `/** \r\n* @example ${example}\r\n* @description ${des}\r\n */\r\n` : `/** @description ${des} */\r\n`
     }
-    return `/** @example ${example} */\n`
+    return `/** @example ${example} */\r\n`
   }
 
   createBaseClasses() {
@@ -200,14 +200,14 @@ export default class CreateTypeFile {
 
       const temList = templateArgs.map(i => i.typeName)
       const temStr = temList.length > 0 ? `<${temList.join(', ')}>` : ''
-      const itemsValue = this.generateParamTypeValue(properties).join('\n')
+      const itemsValue = this.generateParamTypeValue(properties).join('\r\n')
 
-      return `${this.getDescription(description)}export interface ${name}${temStr} {\n${itemsValue}}`
+      return `${this.getDescription(description)}export interface ${name}${temStr} {\r\n${itemsValue}}`
     })
 
     if (exportValue) content.unshift(exportValue)
 
     const filePath = path.join(typeDirPaht, `type.d.ts`)
-    fileList.push({ filePath, content: objMapType + content.join('\n') })
+    fileList.push({ filePath, content: objMapType + content.join('\r\n') })
   }
 }
