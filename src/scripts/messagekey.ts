@@ -9,3 +9,6 @@ export const nothingCommit = /nothing\s+to\s+commit/i
 
 // 没有代码commit
 export const notBranch = /did\s+not\s+match\s+any\s+file\(s\)\s+known\s+to\s+git/i
+
+// Git 更换换行符
+export const replacedLF = /warning:\s+LF\s+will\s+be\s+replaced\s+by\s+CRLF/i
