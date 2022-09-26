@@ -1,4 +1,4 @@
-import ApiClient from '../../src/services/client'
+import ApiClient from '../client'
 
 /**
  * @description 基础工具类
@@ -18,9 +18,9 @@ export default class BaseClass extends ApiClient {
    * @description 创建 formdata
    */
   protected formData(formData: Record<string, any>) {
-    const fd = new FormData()
+    const fd = new URLSearchParams()
     Object.entries(formData).forEach(([k, v]) => {
-      fd.append(k, v)
+      fd.set(k, v)
     })
     return fd
   }
