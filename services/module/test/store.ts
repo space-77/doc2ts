@@ -12,15 +12,20 @@ export default class Store extends BaseClass {
   placeOrder: mT.PlaceOrder = body => {
     const url = '/store/order'
     const config = { url, body: body, method: 'post' }
+    console.log('45454');
+    console.log('45454');
+    console.log('45454');
     return this.request(config)
   }
-
+  
   /**
    * @name testGetInventory
    * @description Returns pet inventories by status，Returns a map of status codes to quantities
    */
   getInventory: mT.GetInventory = () => {
     const url = '/store/inventory'
+    console.log('45454');
+    console.log('45454');
     const config = { url, method: 'get' }
     return this.request(config)
   }
@@ -31,6 +36,8 @@ export default class Store extends BaseClass {
    */
   getOrderById: mT.GetOrderById = orderId => {
     const url = `/store/order/${orderId}`
+    console.log('45454');
+    console.log('45454');
     const config = { url, method: 'get' }
     return this.request(config)
   }
