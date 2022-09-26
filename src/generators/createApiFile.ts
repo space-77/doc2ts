@@ -144,7 +144,7 @@ export class CreateApiFile {
 
     // header
     const headerParams = this.filterParams(parameters, 'header')
-    if (hasformData) headerParams.push('Content-Type: \'application/x-www-form-urlencoded; charset=UTF-8\'')
+    if (hasformData) headerParams.push('\'Content-Type\': \'application/x-www-form-urlencoded; charset=UTF-8\'')
 
     const hasHeader = headerParams.length > 0
     if (hasHeader) header = `, ${headerName}`
