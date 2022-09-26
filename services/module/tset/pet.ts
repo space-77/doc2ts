@@ -12,7 +12,7 @@ export default class Pet extends BaseClass {
  */
 addPet: mT.AddPet = body => {
   const url = '/pet'
-  const config = { '/pet',body: body, method: 'post' }
+  const config = { url,body: body, method: 'post' }
   return this.request(config)
 }
 
@@ -23,7 +23,7 @@ addPet: mT.AddPet = body => {
  */
 updatePet: mT.UpdatePet = body => {
   const url = '/pet'
-  const config = { '/pet',body: body, method: 'put' }
+  const config = { url,body: body, method: 'put' }
   return this.request(config)
 }
 
@@ -34,7 +34,7 @@ updatePet: mT.UpdatePet = body => {
  */
 getPetById: mT.GetPetById = petId => {
   const url = `/pet/${petId}`
-  const config = { `/pet/${petId}`, method: 'get' }
+  const config = { url, method: 'get' }
   return this.request(config)
 }
 
@@ -48,7 +48,7 @@ const { petId,name,status } = params
 const formData = this.formData({name,status})
 const headers = {Content-Type: 'application/x-www-form-urlencoded; charset=UTF-8'}
   const url = `/pet/${petId}`
-  const config = { `/pet/${petId}`, headers, formData, method: 'post' }
+  const config = { url, headers, formData, method: 'post' }
   return this.request(config)
 }
 
@@ -61,7 +61,7 @@ deletePet: mT.DeletePet = params => {
 const { api_key,petId } = params
 const headers = {api_key}
   const url = `/pet/${petId}`
-  const config = { `/pet/${petId}`, headers, method: 'delete' }
+  const config = { url, headers, method: 'delete' }
   return this.request(config)
 }
 
@@ -72,7 +72,7 @@ const headers = {api_key}
  */
 findPetsByTags: mT.FindPetsByTags = tags => {
   const url = `/pet/findByTags?${this.serialize({tags})}`
-  const config = { `/pet/findByTags?${this.serialize({tags})}`, method: 'get' }
+  const config = { url, method: 'get' }
   return this.request(config)
 }
 
@@ -83,7 +83,7 @@ findPetsByTags: mT.FindPetsByTags = tags => {
  */
 findPetsByStatus: mT.FindPetsByStatus = status => {
   const url = `/pet/findByStatus?${this.serialize({status})}`
-  const config = { `/pet/findByStatus?${this.serialize({status})}`, method: 'get' }
+  const config = { url, method: 'get' }
   return this.request(config)
 }
 
@@ -97,7 +97,7 @@ const { petId,additionalMetadata,file } = params
 const formData = this.formData({additionalMetadata,file})
 const headers = {Content-Type: 'application/x-www-form-urlencoded; charset=UTF-8'}
   const url = `/pet/${petId}/uploadImage`
-  const config = { `/pet/${petId}/uploadImage`, headers, formData, method: 'post' }
+  const config = { url, headers, formData, method: 'post' }
   return this.request(config)
 }
 }
