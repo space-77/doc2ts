@@ -28,7 +28,7 @@ class Status {
     try {
       let res: any
 
-      // 读取配置信息以及检测 git 是否能用
+      // 检测 git 是否能用 以及 读取配置信息
       res = await this.loadConfig()
       if (res === CODE.NOT_GIT) return
 
