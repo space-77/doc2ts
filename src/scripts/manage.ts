@@ -10,7 +10,7 @@ import { notBranch, replacedLF } from './messagekey'
 import { CONFIG_PATH } from '../common/config'
 import { Doc2TsConfig } from '../types/type'
 import { CODE, GIT_BRANCHNAME } from './config'
-import { getConfig, getRootFilePath, resolveOutPath } from '../utils'
+import { getConfig, getRootFilePath, resolveOutPath } from '../utils/index'
 import { checkGit, checkout, getBranchname, gitAdd, gitCommit, gitMerge, gitStatus } from './utils'
 import log from '../utils/log'
 
@@ -90,7 +90,7 @@ class Status {
     this.config = await getConfig(CONFIG_PATH)
 
     const { outDir, gitConfig = { branchname: undefined } } = this.config
-    this.includeFiles = `${outDir}/* ${CONFIG_PATH}`
+    this.includeFiles = `${outDir}/*`
     this.docBranchname = gitConfig.branchname ?? GIT_BRANCHNAME
     // console.log(config.outDir)
 
