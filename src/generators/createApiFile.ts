@@ -61,7 +61,7 @@ export class CreateApiFile {
       const hideMet = hideMethod ? /^get$/i.test(met) || (/^post$/i.test(met) && body) : false
       const method = hideMet ? '' : `, method: '${met}'`
       const des = configDes ? configDes : description.replace(/\r?\n/, '，') || ''
-      const funConfig = `${url}${body}${otherConfig}${method}${requestConfig}`
+      const funConfig = `url${body}${otherConfig}${method}${requestConfig}`
 
       let content = this.getTempData('../temp/apiFileMethod')
       content = content.replace(/\{name\}/g, funcName)
