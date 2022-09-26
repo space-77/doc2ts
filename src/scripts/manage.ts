@@ -12,6 +12,7 @@ import { Doc2TsConfig } from '../types/type'
 import { CODE, GIT_BRANCHNAME } from './config'
 import { getConfig, getRootFilePath, resolveOutPath } from '../utils'
 import { checkGit, checkout, getBranchname, gitAdd, gitCommit, gitMerge, gitStatus } from './utils'
+import log from '../utils/log'
 
 class Status {
   config!: Doc2TsConfig
@@ -30,39 +31,48 @@ class Status {
 
       // 检测 git 是否能用 以及 读取配置信息
       res = await this.loadConfig()
+      log.info('loadConfig')
       if (res === CODE.NOT_GIT) return
 
       // 获取当前分支并保留
       await this.getBranch()
-
+      log.info('getBranch')
       // 切换到 doc 分支
       res = await this.checkout2Doc()
+      log.info('checkout2Doc')
       if (res === CODE.NOT_GIT) return
 
       // 生成接口信息
       const doc2ts = new Doc2Ts()
       await doc2ts.init()
+      log.info('init')
 
       // commit 代码【检查有没有代码】
       res = await this.checkStatus()
+      log.info('checkStatus')
       if (res === CODE.NOTHING_COMMIT) {
         // 没有代码变更
         // 切换源分支
         await this.checkout2Base()
+        log.info('checkout2Base')
         return
       }
 
       // add
       await this.addFile()
+      log.info('addFile')
 
       // commit
       await this.commitFile()
+      log.info('commitFile')
 
       // 切换源分支
       await this.checkout2Base()
+      log.info('checkout2Base')
 
       // 合并 doc 分支代码
       await this.mergeCode()
+      log.info('mergeCode')
 
       // console.log(res)
     } catch (error) {
