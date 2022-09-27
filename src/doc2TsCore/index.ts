@@ -38,7 +38,7 @@ export default class Doc2Ts {
     try {
       await this.getConfig()
       // await this.getModelList()
-      // await this.initRemoteDataSource()
+      await this.initRemoteDataSource()
       await this.generateFileData()
       this.createFiles()
       await this.transform2js()
