@@ -11,8 +11,7 @@
     "build": "ts-node ./scripts/build.ts && tsc",
     "test": "node ./bin/doc2api.js",
     "init-doc": "ts-node ./src/dev-init.ts",
-    "manage": "nodemon --watch ./src/scripts/manage.ts --ext ts --exec nodemon src/scripts/manage.ts",
-    "dev-manage": "ts-node src/scripts/manage.ts",
+    "dev-manage": "ts-node src/scripts/manage-dev.ts",
     "init-config": "ts-node ./src/scripts/initConfig.ts",
     "dev": "ts-node ./src/dev.ts"
   },

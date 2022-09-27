@@ -5,7 +5,6 @@ export default class Doc2Ts {
     api: Api;
     StandardDataSourceList: StandardDataSourceLister[];
     config: Config;
-    constructor();
     init(): Promise<void>;
     getConfig(): Promise<void>;
     initRemoteDataSource(): Promise<void>;
