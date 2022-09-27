@@ -39,7 +39,7 @@ export interface DocReqConfig {
   /**
    * @description 请求体， 根据文档接口入参定义
    */
-  body?: TData
+  body?: Record<string, any>
 
   /**
    * @description 自定义配置信息
@@ -54,10 +54,10 @@ export interface DocReqConfig {
   /***
    * @description headers 请求参数，根据文档接口入参定义
    */
-  headers?: TData
+  headers?: Record<string, any>
 
   /**
    * @description FormData 参数，根据文档接口入参定义
    */
-  formData?: FormData
+  formData?: URLSearchParams
 }

@@ -14,7 +14,7 @@ import { getConfig, getRootFilePath, resolveOutPath } from '../utils/index'
 import { checkGit, checkout, getBranchname, gitAdd, gitCommit, gitMerge, gitStatus } from './utils'
 import log from '../utils/log'
 
-class Status {
+export default class Manage {
   config!: Doc2TsConfig
   includeFiles!: string
   docBranchname!: string
@@ -152,27 +152,3 @@ class Status {
     return stdout
   }
 }
-
-new Status()
-
-// ~(async () => {
-//   // const [err, version, stderr] = await getGitVersion()
-//   // if (err) throw new Error(stderr)
-//   // console.log(version)
-
-//   // const [err, id, stderr] = await getCommitId()
-//   // if (err) throw new Error(stderr)
-//   // console.log(id)
-
-//   // const [err, res, stderr] = await checkout('test1')
-//   // console.log(err, res, stderr)
-
-//   // const [err, res, stderr] = await gitStatus('src/common/')
-//   // console.log(err, res, stderr)
-
-//   const [err, res, stderr] = await gitAdd('src/common/')
-//   console.log(err, res, stderr)
-
-//   // const [err, res, stderr] = await gitCommit(`${CODE.COMMIT_TYPE}${CODE.COMMIT_MESSAGE}`)
-//   // console.log(err, res, stderr)
-// })()
