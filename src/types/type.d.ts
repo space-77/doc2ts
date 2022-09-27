@@ -40,10 +40,11 @@ export type GitConfig = {
 
 export type Origin = ModelList
 
+export type Doc2TsConfig = {
   /**
-   * @description 自定义请求 swagger 数据信息接口
+   * @description swagger 文档请求地址 eg: http://localhost:7001
    */
-  fetchSwaggerDataMethod?(url: string): Promise<string>
+  origins: Origin[]
 
   /**
    * @description 定义鉴权信息
