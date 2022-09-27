@@ -170,7 +170,7 @@ export default class CreateTypeFile {
     const { typeList, content } = this
     const resTypeList = typeList.map(i => {
       const { paramTypeName, parameters } = i
-      return `export interface ${paramTypeName} {\r\n${this.generateParamTypeValue(parameters, true).join('r\n')}}`
+      return `export interface ${paramTypeName} {\r\n${this.generateParamTypeValue(parameters, true).join('\n')}}`
     })
 
     this.content = `${resTypeList.join('\r\n')}\r\n${content}`
