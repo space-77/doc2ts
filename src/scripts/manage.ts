@@ -141,7 +141,7 @@ class Status {
   }
 
   async commitFile() {
-    const [err, stdout, stderr] = await gitCommit('"feat: update api file (doc2ts auto commmit)."')
+    const [err, stdout, stderr] = await gitCommit('"feat: update api files (doc2ts auto commmit)."')
     if (err) throw new Error(stderr)
     return stdout
   }
