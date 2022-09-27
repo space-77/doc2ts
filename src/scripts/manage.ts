@@ -31,15 +31,12 @@ export default class Manage {
 
       // 检测 git 是否能用 以及 读取配置信息
       res = await this.loadConfig()
-      log.info('loadConfig')
       if (res === CODE.NOT_GIT) return
 
       // 获取当前分支并保留
       await this.getBranch()
-      log.info('getBranch')
       // 切换到 doc 分支
       res = await this.checkout2Doc()
-      log.info('checkout2Doc')
       if (res === CODE.NOT_GIT) return
 
       // 生成接口信息
@@ -121,7 +118,8 @@ export default class Manage {
 
   async initBranchname() {
     const [err, stdout, stderr] = await checkout(`-b ${this.docBranchname}`)
-    console.log(err, stdout, stderr)
+    if (err) throw new Error(stderr)
+    // console.log(err, stdout, stderr)
     // if (notBranch.test(stdout)) return this.initBranchname()
     // console.log(err, stdout, stderr)
   }

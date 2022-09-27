@@ -141,7 +141,7 @@ export default class Doc2Ts {
     // const data = await readRemoteDataSource(config, (text: string) => {
     //   log.info(text)
     // })
-    fs.writeFileSync(path.join(__dirname, `../../mock/modelInfoList.json`), JSON.stringify(this.StandardDataSourceList))
+    // fs.writeFileSync(path.join(__dirname, `../../mock/modelInfoList.json`), JSON.stringify(this.StandardDataSourceList))
   }
 
   async generateFileData() {
