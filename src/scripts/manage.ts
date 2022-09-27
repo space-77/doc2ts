@@ -90,7 +90,7 @@ class Status {
     this.config = await getConfig(CONFIG_PATH)
 
     const { outDir, gitConfig = { branchname: undefined } } = this.config
-    this.includeFiles = `${outDir}/*`
+    this.includeFiles = `${outDir}/* ${CONFIG_PATH}`
     this.docBranchname = gitConfig.branchname ?? GIT_BRANCHNAME
     // console.log(config.outDir)
 

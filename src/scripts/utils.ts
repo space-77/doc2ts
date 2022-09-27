@@ -1,7 +1,7 @@
 import iconv from 'iconv-lite'
 import { GET_CHECKOUT, GET_REV_PARSE, GIT_ADD, GIT_BRANCH, GIT_COMMIT, GIT_MERGE, GIT_STATUS, GIT_VERSION } from './commands'
 import { exec, ExecException } from 'child_process'
-import { noChanges, notGit, nothingCommit } from './messagekey'
+import { ignoredFile, noChanges, notGit, nothingCommit } from './messagekey'
 import { CODE } from './config'
 
 const encoding = 'cp936'
@@ -61,6 +61,8 @@ export async function gitStatus(dirPath: string): Promise<ExecExceptions> {
   if (nothingCommit.test(stdout)) {
     // 没有更改 正常返回
     return [null, CODE.NOTHING_COMMIT, '']
+  } else if (ignoredFile.test(stderr)) {
+    return [null, stdout, '']
   }
   return [err, stdout, stderr]
 }
