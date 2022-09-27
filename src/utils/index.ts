@@ -42,7 +42,7 @@ export function findDiffPath(originPath: string, targetPath: string) {
   return /^\.\.?\//.test(diffPath) ? diffPath : `./${diffPath}` // 处理同级目录应用异常问题
 }
 
-function getRootFilePath(filePath: string) {
+export function getRootFilePath(filePath: string) {
   // const prePath = findDiffPath(__dirname, `${process.cwd()}\\`)
   return path.join(process.cwd(), filePath)
 }
