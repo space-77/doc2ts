@@ -60,7 +60,7 @@ export class CreateApiFile {
       const requestConfig = metConfig ? `, config: ${JSON.stringify(metConfig)}` : ''
       const hideMet = hideMethod ? /^get$/i.test(met) || (/^post$/i.test(met) && body) : false
       const method = hideMet ? '' : `, method: '${met}'`
-      const des = configDes ? configDes : description.replace(/\n\r?/, '，') || ''
+      const des = configDes ? configDes : description.replace(/\r?\n/, '，') || ''
       const funConfig = `url${body}${otherConfig}${method}${requestConfig}`
 
       let content = this.getTempData('../temp/apiFileMethod')
@@ -75,7 +75,7 @@ export class CreateApiFile {
       return content.replace(/\{requestMethod\}/g, requestMethod)
     })
 
-    return methodsList.join('\n\n')
+    return methodsList.join('\r\n\r\n')
   }
 
   /**
@@ -143,7 +143,9 @@ export class CreateApiFile {
     if (hasformData) formData = `, ${formDataName}`
 
     // header
-    const headerParams = this.filterParams(parameters, 'header') // .map(i => `'${i}': ${i}`) // [ "'aaa': aaa" ]
+    const headerParams = this.filterParams(parameters, 'header')
+    if (hasformData) headerParams.push('\'Content-Type\': \'application/x-www-form-urlencoded; charset=UTF-8\'')
+
     const hasHeader = headerParams.length > 0
     if (hasHeader) header = `, ${headerName}`
     const parametersList = new Set(parameters.map(i => i.in))
@@ -171,20 +173,20 @@ export class CreateApiFile {
     // 存在 path 参数 或者 存在两种及以上参数类型的需要 解构
     if (hasPath || parametersList.size > 1) {
       // 需要需要解构
-      if (!onlyParam) methodBody = `\nconst { ${joinParams(paramsList)} } = ${paramsStr}`
+      if (!onlyParam) methodBody = `\r\nconst { ${joinParams(paramsList)} } = ${paramsStr}`
 
       // 组建各种请求类型参数
       // query
       if (hasQuery) queryValue += `this.serialize({${joinParams(queryParams)}})`
 
       // body
-      if (hasBody) methodBody += `\nconst ${bodyName} = {${joinParams(bodyParams)}}`
+      if (hasBody) methodBody += `\r\nconst ${bodyName} = {${joinParams(bodyParams)}}`
 
       // formData
-      if (hasformData) methodBody += `\nconst ${formDataName} = this.formData({${joinParams(formDataParams)}})`
+      if (hasformData) methodBody += `\r\nconst ${formDataName} = this.formData({${joinParams(formDataParams)}})`
 
       // header
-      if (hasHeader) methodBody += `\nconst ${headerName} = {${joinParams(headerParams)}}`
+      if (hasHeader) methodBody += `\r\nconst ${headerName} = {${joinParams(headerParams)}}`
     } else {
       // 只有一个类型的请求参数
       // 不需要解构
@@ -203,11 +205,12 @@ export class CreateApiFile {
       // formData
       if (hasformData) {
         formData = `, ${formDataName}`
-        methodBody = `\nconst ${formDataName} = this.formData({${paramsStr}})`
+        methodBody = `\r\nconst ${formDataName} = this.formData({${paramsStr}})`
+        methodBody += `\r\nconst ${headerName} = {${joinParams(headerParams)}}`
       }
 
       // header
-      // 直接把 params 传给 request方法即可
+      if (hasHeader && !hasformData) methodBody = `\nconst ${headerName} = {${joinParams(headerParams)}}`
     }
 
     return {
@@ -297,7 +300,7 @@ export async function createIndexFilePath(config: IndexFileConfig) {
     .reduce((arr, i) => arr.concat(i.data), [] as FilePathList['data'])
     .sort((a, b) => a.fileName.length - b.fileName.length)
     .map(i => i.fileName)
-    .join(',\n')
+    .join(',\r\n')
 
   // console.log(noModelItems)
 
@@ -308,16 +311,16 @@ export async function createIndexFilePath(config: IndexFileConfig) {
     .map(({ moduleName, data }) => {
       data.sort((a, b) => a.fileName.length - b.fileName.length)
       return `${moduleName}: {
-        ${data.map(i => i.fileName).join(',\n')}
+        ${data.map(i => i.fileName).join(',\r\n')}
       }`
     })
-    .join(',\n')
+    .join(',\r\n')
   // let exportContent = `
   // ${hasModelItems.map(i => {})}
   // `
 
   const content = `
-  ${importPathCode.join('\n')}
+  ${importPathCode.join('\r\n')}
 
   export default {
     ${noModelItems}

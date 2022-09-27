@@ -30,14 +30,20 @@ export type MethodConfig = {
   config?: object
 }
 
+export type GitConfig = {
+  /**
+   * @desc 管理 自动拉取代码的分支
+   */
+  branchname: string
+}
+
 
 export type Origin = ModelList
 
-export type Doc2TsConfig = {
   /**
-   * @description swagger 文档请求地址 eg: http://localhost:7001
+   * @description 自定义请求 swagger 数据信息接口
    */
-  origins: Origin[]
+  fetchSwaggerDataMethod?(url: string): Promise<string>
 
   /**
    * @description 定义鉴权信息
@@ -48,6 +54,8 @@ export type Doc2TsConfig = {
    * @description 自定义请求 swagger 数据信息接口
    */
   fetchSwaggerDataMethod?(url: string): Promise<string>
+
+  gitConfig?: GitConfig,
 
   /**
    * @description 文件输出位置

@@ -30,15 +30,15 @@ export default class Doc2Ts {
 
   config!: Config
 
-  constructor() {
-    this.init()
-  }
+  // constructor() {
+  //   this.init()
+  // }
 
   async init() {
     try {
       await this.getConfig()
       // await this.getModelList()
-      await this.initRemoteDataSource()
+      // await this.initRemoteDataSource()
       await this.generateFileData()
       this.createFiles()
       await this.transform2js()
@@ -228,28 +228,28 @@ export default class Doc2Ts {
 
   createFiles() {
     if (fileList.length === 0) return
-    const { outDir } = this.config
+    // const { outDir } = this.config
     // const isJs = checkJsLang(languageType)
-    const outDirPath = path.join(resolveOutPath(outDir), 'index')
+    // const outDirPath = path.join(resolveOutPath(outDir), 'index')
     // const targetPath = resolveOutPath(baseClassPath)
-    const typesDir = path.join(outDirPath, 'types')
-    const modulesDir = path.join(outDirPath, 'module')
+    // const typesDir = path.join(outDirPath, 'types')
+    // const modulesDir = path.join(outDirPath, 'module')
 
-    // 删除清空文件夹
-    if (fs.existsSync(typesDir)) fs.rmdirSync(typesDir, { recursive: true })
-    if (fs.existsSync(modulesDir)) fs.rmdirSync(modulesDir, { recursive: true })
+    // // 删除清空文件夹
+    // if (fs.existsSync(typesDir)) fs.rmdirSync(typesDir, { recursive: true })
+    // if (fs.existsSync(modulesDir)) fs.rmdirSync(modulesDir, { recursive: true })
 
-    const removeFiles = [
-      `${outDirPath}.d.ts`,
-      `${outDirPath}.ts`,
-      `${outDirPath}.js`
-      // isJs && `${targetPath}.js`,
-      // isJs && `${targetPath}.d.ts`
-    ]
+    // const removeFiles = [
+    //   `${outDirPath}.d.ts`,
+    //   `${outDirPath}.ts`,
+    //   `${outDirPath}.js`
+    //   // isJs && `${targetPath}.js`,
+    //   // isJs && `${targetPath}.d.ts`
+    // ]
 
-    removeFiles.forEach(filePath => {
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
-    })
+    // removeFiles.forEach(filePath => {
+    //   if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
+    // })
 
     fileList.forEach(({ filePath, content }) => {
       createFile(filePath, content)

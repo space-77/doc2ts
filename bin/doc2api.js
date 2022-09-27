@@ -14,7 +14,8 @@ program
   .command('build')
   .description('生成代码')
   .action(() => {
-    new Doc2Ts()
+    const doc2ts = new Doc2Ts()
+    doc2ts.init()
   })
 
 program.parse(process.argv)
