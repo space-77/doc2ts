@@ -16,6 +16,7 @@ import log from '../utils/log'
 
 export default class Manage {
   config!: Doc2TsConfig
+  noVerify = true
   includeFiles!: string
   docBranchname!: string
   originalBranchname!: string
@@ -86,9 +87,10 @@ export default class Manage {
     // 读取 配置文件
     this.config = await getConfig(CONFIG_PATH)
 
-    const { outDir, gitConfig = { branchname: undefined } } = this.config
+    const { outDir, gitConfig } = this.config
     this.includeFiles = `${outDir}/* ${CONFIG_PATH}`
-    this.docBranchname = gitConfig.branchname ?? GIT_BRANCHNAME
+    this.noVerify = gitConfig?.noVerify ?? true
+    this.docBranchname = gitConfig?.branchname ?? GIT_BRANCHNAME
     // console.log(config.outDir)
 
     // 复制 切换分支前的 doc2ts-config.ts 文件内容到 内存
@@ -139,7 +141,8 @@ export default class Manage {
   }
 
   async commitFile() {
-    const [err, stdout, stderr] = await gitCommit('"feat: update api files (doc2ts auto commmit)."')
+    const exec = `"feat: update api files (doc2ts auto commmit)." ${this.noVerify ? '-n' : ''}`
+    const [err, stdout, stderr] = await gitCommit(exec)
     if (err) throw new Error(stderr)
     return stdout
   }
