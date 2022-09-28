@@ -43,34 +43,34 @@ export default class Manage {
       // 生成接口信息
       const doc2ts = new Doc2Ts()
       await doc2ts.init()
-      log.info('init')
 
       // commit 代码【检查有没有代码】
       res = await this.checkStatus()
-      log.info('checkStatus')
       if (res === CODE.NOTHING_COMMIT) {
         // 没有代码变更
         // 切换源分支
         await this.checkout2Base()
-        log.info('checkout2Base')
         return
       }
 
       // add
       await this.addFile()
-      log.info('addFile')
 
       // commit
-      await this.commitFile()
-      log.info('commitFile')
+      res = await this.commitFile()
+
+      if (res === CODE.NOTHING_COMMIT) {
+        // 没有代码变更
+        // 切换源分支
+        await this.checkout2Base()
+        return
+      }
 
       // 切换源分支
       await this.checkout2Base()
-      log.info('checkout2Base')
 
       // 合并 doc 分支代码
       await this.mergeCode()
-      log.info('mergeCode')
 
       // console.log(res)
     } catch (error) {
