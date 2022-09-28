@@ -3,6 +3,7 @@ import { Doc2TsConfig } from '../types/type';
 import { CODE } from './config';
 export default class Manage {
     config: Doc2TsConfig;
+    noVerify: boolean;
     includeFiles: string;
     docBranchname: string;
     originalBranchname: string;

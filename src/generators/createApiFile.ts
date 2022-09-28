@@ -118,7 +118,7 @@ export class CreateApiFile {
     // const queryName = PARAMS_NAME.QUERY
     const headerName = PARAMS_NAME.HEADER
     const formDataName = PARAMS_NAME.FORMDATA
-    let queryValue: string | undefined
+    let queryValue: string = ''
 
     let body = ''
     let header = ''
@@ -144,7 +144,7 @@ export class CreateApiFile {
 
     // header
     const headerParams = this.filterParams(parameters, 'header')
-    if (hasformData) headerParams.push('\'Content-Type\': \'application/x-www-form-urlencoded; charset=UTF-8\'')
+    if (hasformData) headerParams.push("'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'")
 
     const hasHeader = headerParams.length > 0
     if (hasHeader) header = `, ${headerName}`
@@ -193,7 +193,7 @@ export class CreateApiFile {
 
       // 组建各种请求类型参数
       // query
-      if (hasQuery) queryValue = `this.serialize({${paramsStr}})`
+      if (hasQuery) queryValue = `this.serialize(${onlyParam ? `{${paramsStr}}` : paramsStr})`
 
       // body
       // 直接把 params 传给 request方法即可

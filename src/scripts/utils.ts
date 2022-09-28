@@ -1,8 +1,18 @@
 import iconv from 'iconv-lite'
-import { GET_CHECKOUT, GET_REV_PARSE, GIT_ADD, GIT_BRANCH, GIT_COMMIT, GIT_MERGE, GIT_STATUS, GIT_VERSION } from './commands'
+import {
+  GET_CHECKOUT,
+  GET_REV_PARSE,
+  GIT_ADD,
+  GIT_BRANCH,
+  GIT_COMMIT,
+  GIT_MERGE,
+  GIT_STATUS,
+  GIT_VERSION
+} from './commands'
 import { exec, ExecException } from 'child_process'
 import { ignoredFile, noChanges, notGit, nothingCommit } from './messagekey'
 import { CODE } from './config'
+import log from '../utils/log'
 
 const encoding = 'cp936'
 const binaryEncoding = 'binary'
@@ -15,6 +25,7 @@ type ExecExceptions = [ExecException | null, string, string]
 
 export function execSync(command: string): Promise<ExecExceptions> {
   return new Promise(resolve => {
+    log.info(command)
     exec(command, { encoding: binaryEncoding }, (err, stdout, stderr) => {
       resolve([
         JSON.parse(decodeRes(JSON.stringify(err))),
@@ -73,6 +84,11 @@ export async function gitAdd(dirPath: string): Promise<ExecExceptions> {
 
 export async function gitCommit(message: string): Promise<ExecExceptions> {
   const [err, stdout, stderr] = await execSync(GIT_COMMIT + message)
+  if (nothingCommit.test(stdout)) {
+    // 没有更改 正常返回
+    return [null, CODE.NOTHING_COMMIT, '']
+  }
+
   if (err) {
     if (noChanges.test(stdout)) {
       // 没有更改 正常返回
