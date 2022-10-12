@@ -8,32 +8,28 @@
 😉 灵活配置，不干涉请求过程  
 ## 快速开始
 ### 安装
-#### 全局安装
-```shell
-npm i -g doc2ts
-# or
-yarn add -g doc2ts
-```
 #### 项目上安装
 ```shell
 npm i -D doc2ts
 # or
 yarn add -D doc2ts
+
+# or
+pnpm add -D doc2ts
 ```
-项目上安装需要在 package.json 添加以下脚本命令
+安装后需要在 package.json 添加以下脚本命令
 ```json
 {
   "scripts": {
-    "doc2ts-init": "doc2ts init",
-    "doc2ts-build": "doc2ts build"
+    "api-init": "doc2ts init",
+    "api-build": "doc2ts build"
   }
 }
 ```
 ### 初始化配置
 ```shell
 # 根据提示选择你的配置
-doc2ts init                # 全局
-npm run doc2ts-init        # 项目上
+npm run api-init
 ```
 
 - 输入命令后全按回车键，会生成一份示例配置。
@@ -42,8 +38,12 @@ npm run doc2ts-init        # 项目上
 
 ### 生成文件
 ```shell
-doc2ts build                # 全局
-npm run doc2ts-build        # 项目上
+npm run api-build
+```
+### 使用 git 管理生成的代码
+> 版本 v0.8.7 及以上有效
+```shell
+npm run api-build --git
 ```
 ## 基类文件说明
 > 基类文件 必须导出一个 `数据请求类`， 该 `类` 必须实现 `IApiClient` 接口，即添加 `request`方法，每个接口把参数整理后都会传给 `request`方法，所以需要您自行在 `request`方法实现请求过程（axios、fetch、ajax ...）
@@ -252,6 +252,7 @@ export default {
   prettierPath: './.prettierrc.js'
 } as Doc2TsConfig
 ```
+
 ### 自定义请求方法返回类型
 
 - 参数：`resultTypeRender`
