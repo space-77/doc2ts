@@ -1,6 +1,6 @@
 {
   "name": "doc2ts",
-  "version": "0.8.6",
+  "version": "0.9.4",
   "description": "根据接口文档生成ts接口文件",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -11,7 +11,7 @@
     "build": "ts-node ./scripts/build.ts && tsc",
     "test": "node ./bin/doc2api.js",
     "init-doc": "ts-node ./src/dev-init.ts",
-    "manage": "nodemon --watch ./src/scripts/manage.ts --ext ts --exec nodemon src/scripts/manage.ts",
+    "dev-manage": "ts-node src/scripts/manage-dev.ts",
     "init-config": "ts-node ./src/scripts/initConfig.ts",
     "dev": "ts-node ./src/dev.ts"
   },
@@ -65,6 +65,7 @@
   "prettier": {
     "semi": false,
     "tabWidth": 2,
+    "endOfLine":"crlf",
     "printWidth": 120,
     "singleQuote": true,
     "arrowParens": "avoid",

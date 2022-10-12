@@ -30,9 +30,9 @@ export default class Doc2Ts {
 
   config!: Config
 
-  constructor() {
-    this.init()
-  }
+  // constructor() {
+  //   this.init()
+  // }
 
   async init() {
     try {
