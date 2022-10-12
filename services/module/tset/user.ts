@@ -20,7 +20,7 @@ export default class User extends BaseClass {
    * @description Logs user into the system
    */
   loginUser: mT.LoginUser = params => {
-    const url = `/user/login?${this.serialize({ params })}`
+    const url = `/user/login?${this.serialize(params)}`
     const config = { url, method: 'get' }
     return this.request(config)
   }

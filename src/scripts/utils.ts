@@ -5,6 +5,9 @@ import {
   GIT_ADD,
   GIT_BRANCH,
   GIT_COMMIT,
+  GIT_DELETE_BRANCH,
+  GIT_HEAD,
+  GIT_LOG,
   GIT_MERGE,
   GIT_STATUS,
   GIT_VERSION
@@ -54,8 +57,17 @@ export async function getBranchname() {
   return await execSync(GIT_BRANCH)
 }
 
+export async function createBranchname(branchname: string, commitId?: string) {
+  // git checkout -b branchname commitId
+  return await execSync(`${GET_CHECKOUT} -b ${branchname} ${commitId}`)
+}
+
 export async function checkout(branchname: string) {
-  return await execSync(GET_CHECKOUT + branchname)
+  return await execSync(`${GET_CHECKOUT} ${branchname}`)
+}
+
+export async function deleteBranch(branchname: string) {
+  return await execSync(GIT_DELETE_BRANCH + branchname)
 }
 
 export async function checkGit(): Promise<ExecExceptions> {
@@ -82,6 +94,10 @@ export async function gitAdd(dirPath: string): Promise<ExecExceptions> {
   return await execSync(GIT_ADD + dirPath)
 }
 
+export async function getCommit() {
+  return await execSync(GIT_HEAD)
+}
+
 export async function gitCommit(message: string): Promise<ExecExceptions> {
   const [err, stdout, stderr] = await execSync(GIT_COMMIT + message)
   if (nothingCommit.test(stdout)) {
@@ -101,4 +117,11 @@ export async function gitCommit(message: string): Promise<ExecExceptions> {
 
 export async function gitMerge(branchname: string): Promise<ExecExceptions> {
   return await execSync(GIT_MERGE + branchname)
+}
+
+export async function getFirstCommitId(fileName: string) {
+  const [err, stdout, stderr] = await execSync(GIT_LOG + fileName)
+  if (err) throw new Error(stderr)
+  const [_, id] = stdout.match(/(\S+)/) ?? []
+  return id
 }
