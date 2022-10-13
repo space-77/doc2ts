@@ -37,12 +37,17 @@ export type GitConfig = {
   branchname: string
 
   /**
+   * @desc 上次 commit 记录
+   */
+  commitId?: string
+
+  /**
    * @default true
    * @decs 跳过 pre-commit 检查（git hook），因为在使用git的管理生成的代码是切换到 {branchname} 分支的，
 整个过程都是自动处理，但是生成的代码难免会存在不符合 pre-commit 的代码，所以默认是跳过 pre-commit 检测，
 已保证整个流程能自动完成的进行。
    */
-  noVerify: boolean
+  noVerify?: boolean
 }
 
 

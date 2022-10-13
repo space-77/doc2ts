@@ -6,3 +6,6 @@ export declare const GIT_STATUS = "git status ";
 export declare const GIT_ADD = "git add ";
 export declare const GIT_COMMIT = "git commit -m ";
 export declare const GIT_MERGE = "git merge ";
+export declare const GIT_DELETE_BRANCH = "git branch -D ";
+export declare const GIT_HEAD = "git rev-parse HEAD";
+export declare const GIT_LOG = "git log --pretty=oneline --reverse ";

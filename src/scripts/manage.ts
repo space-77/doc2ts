@@ -22,7 +22,6 @@ import {
   gitMerge,
   gitStatus
 } from './utils'
-import log from '../utils/log'
 
 export default class Manage {
   config!: Doc2TsConfig
@@ -85,6 +84,7 @@ export default class Manage {
       await this.mergeCode()
     } catch (error) {
       console.error(error)
+      await this.checkout2Base()
     }
   }
 
