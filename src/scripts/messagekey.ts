@@ -15,3 +15,6 @@ export const replacedLF = /warning:\s+LF\s+will\s+be\s+replaced\s+by\s+CRLF/i
 
 // Git 其中有文件被忽略
 export const ignoredFile = /The\s+following\s+paths\s+are\s+ignored\s+by\s+one\s+of\s+your\s+.gitignore\s+files/i
+
+// commit id 不存在
+export const notCommitId = /reference\s+is\s+not\s+a\s+tree/i

@@ -10,13 +10,23 @@ import { notBranch, replacedLF } from './messagekey'
 import { CONFIG_PATH } from '../common/config'
 import { Doc2TsConfig } from '../types/type'
 import { CODE, GIT_BRANCHNAME } from './config'
-import { getConfig, getRootFilePath, resolveOutPath } from '../utils/index'
-import { checkGit, checkout, getBranchname, gitAdd, gitCommit, gitMerge, gitStatus } from './utils'
-import log from '../utils/log'
+import { getConfig, getRootFilePath } from '../utils/index'
+import {
+  checkGit,
+  checkout,
+  createBranchname,
+  getBranchname,
+  getFirstCommitId,
+  gitAdd,
+  gitCommit,
+  gitMerge,
+  gitStatus
+} from './utils'
 
 export default class Manage {
   config!: Doc2TsConfig
   noVerify = true
+  // commitId?: string
   includeFiles!: string
   docBranchname!: string
   originalBranchname!: string
@@ -36,6 +46,7 @@ export default class Manage {
 
       // 获取当前分支并保留
       await this.getBranch()
+
       // 切换到 doc 分支
       res = await this.checkout2Doc()
       if (res === CODE.NOT_GIT) return
@@ -71,10 +82,9 @@ export default class Manage {
 
       // 合并 doc 分支代码
       await this.mergeCode()
-
-      // console.log(res)
     } catch (error) {
       console.error(error)
+      await this.checkout2Base()
     }
   }
 
@@ -90,11 +100,12 @@ export default class Manage {
     const { outDir, gitConfig } = this.config
     this.includeFiles = `${outDir}/* ${CONFIG_PATH}`
     this.noVerify = gitConfig?.noVerify ?? true
+    // this.commitId = gitConfig?.commitId
     this.docBranchname = gitConfig?.branchname ?? GIT_BRANCHNAME
     // console.log(config.outDir)
 
     // 复制 切换分支前的 doc2ts-config.ts 文件内容到 内存
-    this.doc2tsConfigContent = fs.readFileSync(getRootFilePath(CONFIG_PATH))
+    this.doc2tsConfigContent = fs.readFileSync(getRootFilePath(CONFIG_PATH)) // .toString()
     // console.log(doc2tsConfigContent)
   }
 
@@ -110,6 +121,9 @@ export default class Manage {
     const [err, stdout, stderr] = await checkout(this.docBranchname)
     if (notBranch.test(stderr)) return this.initBranchname()
     if (err) throw new Error(stderr)
+    console.log(getRootFilePath(CONFIG_PATH))
+    fs.writeFileSync(getRootFilePath(CONFIG_PATH), this.doc2tsConfigContent)
+    // doc2tsConfigContent
   }
 
   async getBranch() {
@@ -119,11 +133,10 @@ export default class Manage {
   }
 
   async initBranchname() {
-    const [err, stdout, stderr] = await checkout(`-b ${this.docBranchname}`)
+    const { outDir } = this.config
+    const commitId = await getFirstCommitId(`${outDir}/index.ts`)
+    const [err, stdout, stderr] = await createBranchname(this.docBranchname, commitId)
     if (err) throw new Error(stderr)
-    // console.log(err, stdout, stderr)
-    // if (notBranch.test(stdout)) return this.initBranchname()
-    // console.log(err, stdout, stderr)
   }
 
   async checkStatus() {
