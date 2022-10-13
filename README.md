@@ -41,10 +41,12 @@ npm run api-init
 npm run api-build
 ```
 ### 使用 git 管理生成的代码
-> 版本 v0.8.7 及以上有效
+> 版本 v0.9.1 及以上有效
 ```shell
 npm run api-build --git
 ```
+流程：
+复制当前分支的配置文件（doc2ts-config.ts） -> 切换到doc2ts分支 -> 生成代码 -> commit -> 切回到原分支 -> merge doc2ts分支。
 ## 基类文件说明
 > 基类文件 必须导出一个 `数据请求类`， 该 `类` 必须实现 `IApiClient` 接口，即添加 `request`方法，每个接口把参数整理后都会传给 `request`方法，所以需要您自行在 `request`方法实现请求过程（axios、fetch、ajax ...）
 
