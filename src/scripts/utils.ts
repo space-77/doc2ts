@@ -1,3 +1,4 @@
+import fs from 'fs'
 import iconv from 'iconv-lite'
 import {
   GET_CHECKOUT,
@@ -16,6 +17,7 @@ import { exec, ExecException } from 'child_process'
 import { ignoredFile, noChanges, notGit, nothingCommit } from './messagekey'
 import { CODE } from './config'
 import log from '../utils/log'
+import { getRootFilePath } from 'src/utils'
 
 const encoding = 'cp936'
 const binaryEncoding = 'binary'
@@ -120,6 +122,7 @@ export async function gitMerge(branchname: string): Promise<ExecExceptions> {
 }
 
 export async function getFirstCommitId(fileName: string) {
+  if (!fs.existsSync(getRootFilePath(fileName))) return
   const [err, stdout, stderr] = await execSync(GIT_LOG + fileName)
   if (err) throw new Error(stderr)
   const [_, id] = stdout.match(/(\S+)/) ?? []
