@@ -5,7 +5,7 @@ export const notGit = /not\s+a\s+git\s+repository/i
 export const noChanges = /no\s+changes\s+added\s+to\s+commit/i
 
 // 没有代码commit
-export const nothingCommit = /nothing\s+to\s+commit/i
+export const nothingCommit = /(nothing\s+to\s+commit)|(nothing\s+added\s+to\s+commit)/i
 
 // 没有代码commit
 export const notBranch = /did\s+not\s+match\s+any\s+file\(s\)\s+known\s+to\s+git/i
