@@ -13,7 +13,7 @@ export declare function createBranchname(branchname: string, commitId?: string):
 export declare function checkout(branchname: string): Promise<ExecExceptions>;
 export declare function deleteBranch(branchname: string): Promise<ExecExceptions>;
 export declare function checkGit(): Promise<ExecExceptions>;
-export declare function gitStatus(dirPath: string): Promise<ExecExceptions>;
+export declare function hasFileChange(dirPath: string): Promise<boolean>;
 export declare function gitAdd(dirPath: string): Promise<ExecExceptions>;
 export declare function getCommit(): Promise<ExecExceptions>;
 export declare function gitCommit(message: string): Promise<ExecExceptions>;

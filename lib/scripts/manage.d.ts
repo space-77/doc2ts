@@ -15,7 +15,7 @@ export default class Manage {
     checkout2Doc(): Promise<void>;
     getBranch(): Promise<void>;
     initBranchname(): Promise<void>;
-    checkStatus(): Promise<string>;
+    checkStatus(): Promise<boolean>;
     addFile(): Promise<string>;
     commitFile(): Promise<string>;
     mergeCode(): Promise<string>;

@@ -17,7 +17,7 @@ import { exec, ExecException } from 'child_process'
 import { ignoredFile, noChanges, notGit, nothingCommit } from './messagekey'
 import { CODE } from './config'
 import log from '../utils/log'
-import { getRootFilePath } from 'src/utils'
+import { getRootFilePath } from '../utils'
 
 const encoding = 'cp936'
 const binaryEncoding = 'binary'
@@ -81,15 +81,10 @@ export async function checkGit(): Promise<ExecExceptions> {
   return [err, stdout, stderr]
 }
 
-export async function gitStatus(dirPath: string): Promise<ExecExceptions> {
-  const [err, stdout, stderr] = await execSync(GIT_STATUS + dirPath)
-  if (nothingCommit.test(stdout)) {
-    // 没有更改 正常返回
-    return [null, CODE.NOTHING_COMMIT, '']
-  } else if (ignoredFile.test(stderr)) {
-    return [null, stdout, '']
-  }
-  return [err, stdout, stderr]
+export async function hasFileChange(dirPath: string) {
+  const [err, stdout, stderr] = await execSync(`${GIT_STATUS} ${dirPath} -z`)
+  if (err) throw new Error(stderr)
+  return !!stdout
 }
 
 export async function gitAdd(dirPath: string): Promise<ExecExceptions> {

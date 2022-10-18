@@ -20,7 +20,7 @@ import {
   gitAdd,
   gitCommit,
   gitMerge,
-  gitStatus
+  hasFileChange
 } from './utils'
 
 export default class Manage {
@@ -56,8 +56,8 @@ export default class Manage {
       await doc2ts.init()
 
       // commit 代码【检查有没有代码】
-      res = await this.checkStatus()
-      if (res === CODE.NOTHING_COMMIT) {
+      // res = await this.checkStatus()
+      if (!await this.checkStatus()) {
         // 没有代码变更
         // 切换源分支
         await this.checkout2Base()
@@ -138,9 +138,7 @@ export default class Manage {
   }
 
   async checkStatus() {
-    const [err, stdout, stderr] = await gitStatus(this.includeFiles)
-    if (err) throw new Error(stderr)
-    return stdout
+    return await hasFileChange(this.includeFiles)
   }
 
   async addFile() {
