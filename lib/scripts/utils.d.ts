@@ -18,5 +18,5 @@ export declare function gitAdd(dirPath: string): Promise<ExecExceptions>;
 export declare function getCommit(): Promise<ExecExceptions>;
 export declare function gitCommit(message: string): Promise<ExecExceptions>;
 export declare function gitMerge(branchname: string): Promise<ExecExceptions>;
-export declare function getFirstCommitId(fileName: string): Promise<string>;
+export declare function getFirstCommitId(fileName: string): Promise<string | undefined>;
 export {};

@@ -199,7 +199,7 @@ export class CreateApiFile {
       // 直接把 params 传给 request方法即可
       if (hasBody && onlyParam) {
         // methodBody = `\nconst ${bodyName} = ${paramsStr}`
-        body = `,body: ${paramsStr}`
+        body = paramsStr === 'body' ? ',body' : `,body: ${paramsStr}`
       }
 
       // formData

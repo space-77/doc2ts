@@ -1,3 +1,4 @@
+import type {DocReqConfig} from 'doc2ts'
 import BaseClass from '{baseClassPath}'{typeFilePath}
 
 /**
