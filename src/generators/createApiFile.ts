@@ -49,12 +49,12 @@ export class CreateApiFile {
 
       this.fixParamsType(parameters, met as Method)
       const paramsInfo = this.getParamsStr(parameters)
-      const { methodBody, body, header, formData, paramsName } = paramsInfo
+      const { methodBody, body, header, formData, paramsName, pathParams } = paramsInfo
 
       // const paramsName = parameters.length === 0 ? '()' : onlyType && hasBody ? bodyName : 'params'
 
       const requestMethod = isDownload ? 'downloadFile' : 'request'
-      const url = this.formatUrl(_path, paramsInfo)
+      const url = this.formatUrl(_path, paramsInfo, pathParams)
       const otherConfig = header + formData
       const funTypeName = isJs ? '' : `: funTypes.${firstToUpper(funName)}`
       const requestConfig = metConfig ? `, config: ${JSON.stringify(metConfig)}` : ''
@@ -89,21 +89,31 @@ export class CreateApiFile {
     }
   }
 
-  formatUrl(url: string, paramsInfo: GetParamsStr) {
+  formatUrl(url: string, paramsInfo: GetParamsStr, pathParams: Property[]) {
     const { hasPath, hasQuery, queryValue, onlyType } = paramsInfo
+    const reg = /\{(\w+)\}/g
+
     if (hasPath || hasQuery) {
-      if (hasPath)
-        url = url.replace(/\{(\w+)\}/g, v => {
-          let val = v
-          if (onlyType) {
-            // 只有一个参数的时候 形参是否包含 关键字用的是  keyWordsListSet
-            val = keyWordsListSet.has(v) ? `_${v}` : v
-          } else {
-            // 多个参数的时候 形参是否包含 关键字用的是  keyWords
-            val = this.joinParams([v])
-          }
-          return `$${val}`
-        })
+      if (hasPath) {
+        const onePath = pathParams.length === 1
+
+        if (onePath && !reg.test(url)) {
+          url = `${url}/\${${pathParams[0].name}}`
+        } else {
+          url = url.replace(reg, v => {
+            let val = v
+            if (onlyType) {
+              // 只有一个参数的时候 形参是否包含 关键字用的是  keyWordsListSet
+              val = keyWordsListSet.has(v) ? `_${v}` : v
+            } else {
+              // 多个参数的时候 形参是否包含 关键字用的是  keyWords
+              val = this.joinParams([v])
+            }
+            return `$${val}`
+          })
+        }
+      }
+
       return `\`${url}${hasQuery ? `?\${${queryValue}}` : ''}\``
     }
     return `'${url}'`
@@ -226,6 +236,7 @@ export class CreateApiFile {
       onlyType,
       queryValue,
       headerName,
+      pathParams,
       paramsName,
       hasformData,
       formDataName

@@ -89,7 +89,7 @@ export default class CreateTypeFile {
           paramsStr = `(${name} :${paramTypeName}['${name}'])`
         } else if (parameters.length > 0) {
           // 文档未定义参数类型
-          paramsStr = `(${name}: unknown)`
+          paramsStr = `(${name}: any)`
         } else {
           // 不需要穿传参
           paramsStr = `()`
