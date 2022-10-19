@@ -19,7 +19,7 @@ export default class BaseClass extends {BaseCalssName} {
    * @description 创建 formdata
    */
   protected formData(formData: Record<string, any>) {
-    if (!(formData instanceof Object) || Array.isArray(formData)) return ''
+    if (!(formData instanceof Object) || Array.isArray(formData)) return
     const fd = new URLSearchParams()
     Object.entries(formData).forEach(([k, v]) => {
       fd.set(k, v)

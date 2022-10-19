@@ -205,6 +205,7 @@ export type GetParamsStr = {
   formData: string
   paramsName: string
   queryValue?: string
+  pathParams: Property[]
 }
 
 export type FilePathList = { moduleName?: string; data: { fileName: string; filePath: string }[] }

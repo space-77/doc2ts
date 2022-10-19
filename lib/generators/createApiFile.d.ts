@@ -11,7 +11,7 @@ export declare class CreateApiFile {
      * @description  把get请求的 body 类型的参数，改为 query 类型
      */
     fixParamsType(parameters: Property[], method: Method): void;
-    formatUrl(url: string, paramsInfo: GetParamsStr): string;
+    formatUrl(url: string, paramsInfo: GetParamsStr, pathParams: Property[]): string;
     getParamsStr(parameters: Property[]): GetParamsStr;
     createFile(): void;
     getTempData(filePath: string): string;
