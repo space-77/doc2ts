@@ -1,5 +1,5 @@
 import type prettier from 'prettier';
-import { Doc2TsConfig } from '../types/type';
+import { DisableParams, Doc2TsConfig } from '../types/type';
 export declare const CONFIG_PATH = "doc2ts-config.ts";
 export declare enum Surrounding {
     typeScript = "typeScript",
@@ -16,6 +16,8 @@ export declare class PrettierConfig {
 }
 export declare class Config {
     readonly outDir: string;
+    readonly clearOutDir: boolean;
+    readonly disableParams: DisableParams[];
     readonly origins: Doc2TsConfig['origins'];
     readonly swaggerHeaders?: Doc2TsConfig['swaggerHeaders'];
     readonly fetchSwaggerDataMethod?: Doc2TsConfig['fetchSwaggerDataMethod'];

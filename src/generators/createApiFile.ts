@@ -24,7 +24,7 @@ export class CreateApiFile {
 
     if (!isJs) {
       typeFilePath = findDiffPath(dirPath, path.join(typeDirPaht, fileName))
-      typeFilePath = `\nimport type * as mT from '${typeFilePath}'`
+      typeFilePath = `\nimport type * as funTypes from '${typeFilePath}'`
     }
 
     const classMethodStr = this.generateApiClassMethod()
@@ -56,7 +56,7 @@ export class CreateApiFile {
       const requestMethod = isDownload ? 'downloadFile' : 'request'
       const url = this.formatUrl(_path, paramsInfo)
       const otherConfig = header + formData
-      const funTypeName = isJs ? '' : `: mT.${firstToUpper(funName)}`
+      const funTypeName = isJs ? '' : `: funTypes.${firstToUpper(funName)}`
       const requestConfig = metConfig ? `, config: ${JSON.stringify(metConfig)}` : ''
       const hideMet = hideMethod ? /^get$/i.test(met) || (/^post$/i.test(met) && body) : false
       const method = hideMet ? '' : `, method: '${met}'`

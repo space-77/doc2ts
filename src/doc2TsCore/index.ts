@@ -153,6 +153,17 @@ export default class Doc2Ts {
     //   return
     // }
 
+    // 关闭全局配置参数的入参
+    const disableParams = this.config.disableParams.map(({ type, name }) => `${type}__${name}`)
+    const paramsSet = new Set(disableParams)
+    this.StandardDataSourceList.forEach(({ data }) => {
+      data.mods.forEach(({ interfaces }) => {
+        interfaces.forEach(item => {
+          item.parameters = item.parameters.filter(({ name, in: _in }) => !paramsSet.has(`${_in}__${name}`))
+        })
+      })
+    })
+
     const { StandardDataSourceList } = this
     if (!Array.isArray(StandardDataSourceList) || StandardDataSourceList.length === 0) throw new Error('没有数据源')
 
@@ -165,7 +176,7 @@ export default class Doc2Ts {
       baseClassPath,
       typeFileRender,
       methodConfig,
-      resultTypeRender,
+      resultTypeRender
       // moduleConfig = {}
     } = this.config
 
@@ -228,28 +239,30 @@ export default class Doc2Ts {
 
   createFiles() {
     if (fileList.length === 0) return
-    // const { outDir } = this.config
-    // const isJs = checkJsLang(languageType)
-    // const outDirPath = path.join(resolveOutPath(outDir), 'index')
-    // const targetPath = resolveOutPath(baseClassPath)
-    // const typesDir = path.join(outDirPath, 'types')
-    // const modulesDir = path.join(outDirPath, 'module')
+    const { outDir, clearOutDir } = this.config
+    if (clearOutDir) {
+      // const isJs = checkJsLang(languageType)
+      const outDirPath = path.join(resolveOutPath(outDir), 'index')
+      // const targetPath = resolveOutPath(baseClassPath)
+      const typesDir = path.join(outDirPath, 'types')
+      const modulesDir = path.join(outDirPath, 'module')
 
-    // // 删除清空文件夹
-    // if (fs.existsSync(typesDir)) fs.rmdirSync(typesDir, { recursive: true })
-    // if (fs.existsSync(modulesDir)) fs.rmdirSync(modulesDir, { recursive: true })
+      // 删除清空文件夹
+      if (fs.existsSync(typesDir)) fs.rmdirSync(typesDir, { recursive: true })
+      if (fs.existsSync(modulesDir)) fs.rmdirSync(modulesDir, { recursive: true })
 
-    // const removeFiles = [
-    //   `${outDirPath}.d.ts`,
-    //   `${outDirPath}.ts`,
-    //   `${outDirPath}.js`
-    //   // isJs && `${targetPath}.js`,
-    //   // isJs && `${targetPath}.d.ts`
-    // ]
+      const removeFiles = [
+        `${outDirPath}.d.ts`,
+        `${outDirPath}.ts`,
+        `${outDirPath}.js`
+        // isJs && `${targetPath}.js`,
+        // isJs && `${targetPath}.d.ts`
+      ]
 
-    // removeFiles.forEach(filePath => {
-    //   if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
-    // })
+      removeFiles.forEach(filePath => {
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
+      })
+    }
 
     fileList.forEach(({ filePath, content }) => {
       createFile(filePath, content)

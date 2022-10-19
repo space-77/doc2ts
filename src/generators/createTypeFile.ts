@@ -64,7 +64,7 @@ export default class CreateTypeFile {
     //   .join(', ')
     // const objectMapTypeStr = hasObjectMap ? `\n${objMapType}` : ''
 
-    this.content = `import type * as defs from './type' \r\n${content}`
+    this.content = `import type * as Types from './type' \r\n${content}`
   }
 
   private generateApiClassType() {
@@ -83,9 +83,13 @@ export default class CreateTypeFile {
         const [firstParam] = parameters
         const { name, dataType } = firstParam
         const { isDefsType } = dataType
-          const { properties = [] } = baseClasses.find(i => i.name === dataType.typeName) ?? {}
-        if (!isDefsType || properties.length > 0 ) {
+        const { properties = [] } = baseClasses.find(i => i.name === dataType.typeName) ?? {}
+
+        if (!isDefsType || properties.length > 0) {
           paramsStr = `(${name} :${paramTypeName}['${name}'])`
+        } else if (parameters.length > 0) {
+          // 文档未定义参数类型
+          paramsStr = `(${name}: unknown)`
         } else {
           // 不需要穿传参
           paramsStr = `()`
@@ -153,7 +157,7 @@ export default class CreateTypeFile {
     const { baseClasses } = this.fileInfo
     const { typeArgs, typeName, isDefsType } = responseType
     let content = typeName
-    if ((isDefsType || typeName === 'ObjectMap') && hasDefs) content = `defs.${content}`
+    if ((isDefsType || typeName === 'ObjectMap') && hasDefs) content = `Types.${content}`
     if (typeArgs.length > 0) {
       content += `<${typeArgs.map(i => this.generateResTypeValue(i, hasDefs)).join(', ')}>`
     } else if (content) {
@@ -187,7 +191,9 @@ export default class CreateTypeFile {
   getDescription(des?: string, example?: string) {
     if (!example && !des) return ''
     if (des) {
-      return example ? `/** \r\n* @example ${example}\r\n* @description ${des}\r\n */\r\n` : `/** @description ${des} */\r\n`
+      return example
+        ? `/** \r\n* @example ${example}\r\n* @description ${des}\r\n */\r\n`
+        : `/** @description ${des} */\r\n`
     }
     return `/** @example ${example} */\r\n`
   }

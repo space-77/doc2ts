@@ -50,8 +50,9 @@ export type GitConfig = {
   noVerify?: boolean
 }
 
-
 export type Origin = ModelList
+
+export type DisableParams = { type: Property['in']; name: string }
 
 export type Doc2TsConfig = {
   /**
@@ -69,12 +70,18 @@ export type Doc2TsConfig = {
    */
   fetchSwaggerDataMethod?(url: string): Promise<string>
 
-  gitConfig?: GitConfig,
+  gitConfig?: GitConfig
 
   /**
    * @description 文件输出位置
    */
   outDir: string
+
+  /**
+   * @default true
+   * @description 生成文件前，是否清空文件输出文件夹
+   */
+  clearOutDir?: boolean
 
   /**
    * @default ApiClient
@@ -114,9 +121,16 @@ export type Doc2TsConfig = {
   prettierPath?: string
 
   /**
+   * @description 移除某些全局配置的入参提示，如：token信息是全配置的，不需要在调用接口是再填token信息，即可通过该配置取消
+   */
+  disableParams?: DisableParams[]
+
+  /**
    * @description 接口返回数据类型钩子
    */
-  resultTypeRender?: string | ((typeName: string, typeInfo: Property[], info: { modelName?: string, funId?: string }) => string)
+  resultTypeRender?:
+    | string
+    | ((typeName: string, typeInfo: Property[], info: { modelName?: string; funId?: string }) => string)
 
   /**
    * @description 模块改名
