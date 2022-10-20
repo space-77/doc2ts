@@ -8,6 +8,7 @@ declare type TypeFileInfo = {
     typeDirPaht: string;
     typeFileRender?: Doc2TsConfig['typeFileRender'];
     resultTypeRender?: Doc2TsConfig['resultTypeRender'];
+    generateTypeRender?: Doc2TsConfig['generateTypeRender'];
 };
 declare type TypeList = {
     id?: string;
@@ -35,7 +36,8 @@ export default class CreateTypeFile {
     getDefType(typeName: string): string;
     private generateResTypeValue;
     private generateParamType;
-    private generateParamTypeValue;
+    private createTypeItems;
+    private createTypeContent;
     getDescription(des?: string, example?: string): string;
     createBaseClasses(): void;
 }

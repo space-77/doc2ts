@@ -54,6 +54,10 @@ export type Origin = ModelList
 
 export type DisableParams = { type: Property['in']; name: string }
 
+export type RenderVlaue = { name: string; required: boolean; valueType: string; description: string }
+
+export type GenerateTypeRender = { fileName: string; typeName: string, values: RenderVlaue[] }
+
 export type Doc2TsConfig = {
   /**
    * @description swagger 文档请求地址 eg: http://localhost:7001
@@ -157,6 +161,8 @@ export type Doc2TsConfig = {
    * @description 生成接口类型文件前的钩子，用于修改生产内容
    */
   typeFileRender?(content: string, modelName: string): string
+
+  generateTypeRender?(operation: GenerateTypeRender): RenderVlaue[]
 
   // moduleConfig?: ModuleConfig
 
