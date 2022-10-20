@@ -38,7 +38,7 @@ export default class Doc2Ts {
     try {
       await this.getConfig()
       // await this.getModelList()
-      // await this.initRemoteDataSource()
+      await this.initRemoteDataSource()
       await this.generateFileData()
       this.createFiles()
       await this.transform2js()
@@ -145,13 +145,13 @@ export default class Doc2Ts {
   }
 
   async generateFileData() {
-    try {
-      const dataList = fs.readFileSync(path.join(__dirname, '../../mock/modelInfoList.json')).toString()
-      this.StandardDataSourceList = JSON.parse(dataList) as StandardDataSourceLister[]
-    } catch (error) {
-      console.error(error)
-      return
-    }
+    // try {
+    //   const dataList = fs.readFileSync(path.join(__dirname, '../../mock/modelInfoList.json')).toString()
+    //   this.StandardDataSourceList = JSON.parse(dataList) as StandardDataSourceLister[]
+    // } catch (error) {
+    //   console.error(error)
+    //   return
+    // }
 
     // 关闭全局配置参数的入参
     const disableParams = this.config.disableParams.map(({ type, name }) => `${type}__${name}`)
