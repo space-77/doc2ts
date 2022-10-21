@@ -242,11 +242,9 @@ export default class Doc2Ts {
 
   createFiles() {
     if (fileList.length === 0) return
-    const { outDir, clearOutDir } = this.config
+    const { outDir, clearOutDir = true } = this.config
     if (clearOutDir) {
-      // const isJs = checkJsLang(languageType)
-      const outDirPath = path.join(resolveOutPath(outDir), 'index')
-      // const targetPath = resolveOutPath(baseClassPath)
+      const outDirPath = path.join(resolveOutPath(outDir))
       const typesDir = path.join(outDirPath, 'types')
       const modulesDir = path.join(outDirPath, 'module')
 
@@ -255,11 +253,9 @@ export default class Doc2Ts {
       if (fs.existsSync(modulesDir)) fs.rmdirSync(modulesDir, { recursive: true })
 
       const removeFiles = [
-        `${outDirPath}.d.ts`,
-        `${outDirPath}.ts`,
-        `${outDirPath}.js`
-        // isJs && `${targetPath}.js`,
-        // isJs && `${targetPath}.d.ts`
+        path.join(outDirPath, 'index.d.ts'),
+        path.join(outDirPath, 'index.ts'),
+        path.join(outDirPath, 'index.js')
       ]
 
       removeFiles.forEach(filePath => {
