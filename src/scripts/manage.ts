@@ -168,9 +168,9 @@ export default class Manage {
     log.clear()
     const [err, stdout, stderr] = await gitMerge(this.docBranchname)
     if (mergeConflict.test(stdout)) {
-      log.warning('=== 合并冲突，请手动处理 ===')
-      log.warning('=== 合并冲突，请手动处理 ===')
-      log.warning('=== 合并冲突，请手动处理 ===')
+      log.log(log.warning('=== 合并冲突，请手动处理 ==='))
+      log.log(log.warning('=== 合并冲突，请手动处理 ==='))
+      log.log(log.warning('=== 合并冲突，请手动处理 ==='))
     } else if (err) {
       throw new Error(stderr)
     }
