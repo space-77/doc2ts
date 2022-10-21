@@ -410,13 +410,13 @@ export default {
 } as Doc2TsConfig
 ```
 
-### 生存类型前的回调函数
+### 生成类型前的回调函数
 
 - 参数：`generateTypeRender`
 - 必传：`否`
 - 类型：`(operation: GenerateTypeRender) => RenderVlaue[]`
 - 默认：``
-- 说明：生存类型前的回调函数，用于修改生成内容
+- 说明：生成类型前的回调函数，用于修改生成内容
 
 ```typescript
 export default {
