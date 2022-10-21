@@ -72,3 +72,6 @@ keyWordsList.push(...Object.values(PARAMS_NAME))
 export const keyWords = new Set(keyWordsList)
 
 export const tsObjType = new Set(['Array', '[]', 'object', '{}', 'Date', 'number', 'string', 'boolean', 'ObjectMap'])
+
+// 泛型代表字母
+export const tempNameList = ['T', 'E', 'K', 'V', 'U', 'A', 'B', 'C', 'F', 'G', 'H', 'I', 'J']

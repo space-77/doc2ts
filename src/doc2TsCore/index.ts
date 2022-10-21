@@ -136,7 +136,7 @@ export default class Doc2Ts {
       this.StandardDataSourceList.push({ data, name })
     })
 
-    await Promise.all(reqs)  
+    await Promise.all(reqs)
 
     // const data = await readRemoteDataSource(config, (text: string) => {
     //   log.info(text)
@@ -197,7 +197,9 @@ export default class Doc2Ts {
       const typeDirPaht = path.join(outputDir, `types${modulePath}`)
 
       const filePathItems: FilePathList['data'] = []
-      mods.forEach(({ interfaces, name: fileName, description }) => {
+      const fileTypeList: CreateTypeFile[] = []
+
+      mods.forEach(({ interfaces, name: fileName, description }, index) => {
         const filePath = path.join(dirPath, `${fileName}.ts`)
         filePathItems.push({ filePath, fileName })
 
@@ -228,11 +230,10 @@ export default class Doc2Ts {
           generateTypeRender
         })
 
+        if (index === 0) createTypeFile.createBaseClasses()
         createTypeFile.generateFile()
-        createTypeFile.createBaseClasses()
       })
       filePathList.push({ moduleName, data: filePathItems })
-      // await Promise.all(pros)
     })
 
     const indexFilePath = path.join(outDir, 'index.ts')

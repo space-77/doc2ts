@@ -1,6 +1,6 @@
 import path from 'path'
 import { fileList } from './fileList'
-import { tsObjType } from '../common/config'
+import { tempNameList, tsObjType } from '../common/config'
 import { firstToUpper } from '../utils'
 import { Doc2TsConfig, RenderVlaue } from '../types/type'
 import { resTypeDataKey, resTypeNameKey } from '../common/reg'
@@ -32,17 +32,14 @@ const objMapType = `export type ObjectMap<Key extends string | number | symbol =
 
 export default class CreateTypeFile {
   content = ''
-  exportValue = ''
   typeList: TypeList = []
-  importType: Set<string> = new Set([])
   fileInfo!: TypeFileInfo
+  tempMap: { tempName: string; value: string }[] = []
+  importType: Set<string> = new Set([])
+  typeItemList: { paramTypeName: string; typeItems: RenderVlaue[] }[] = []
 
   constructor(params: TypeFileInfo) {
     this.fileInfo = params
-    const showEx = typeof params.resultTypeRender === 'string'
-    this.exportValue = showEx ? `export type ExportValue<T, U> = U extends keyof T ? T[U] : T;\r\n` : ''
-    // `\ntype ExportValue<T, U> = U extends keyof T ? T[U] : T;\n`
-    // this.generateFile()
   }
 
   public generateFile() {
@@ -58,14 +55,12 @@ export default class CreateTypeFile {
   }
 
   private generateImportType() {
-    const { content } = this
-    // const hasObjectMap = importType.delete('ObjectMap')
-    // const importTypeList = Array.from(importType)
-    //   .sort((a, b) => a.length - b.length)
-    //   .join(', ')
-    // const objectMapTypeStr = hasObjectMap ? `\n${objMapType}` : ''
+    const { content, importType } = this
+    const importTypeStr = Array.from(importType)
+      .sort((a, b) => a.length - b.length)
+      .join(', ')
 
-    this.content = `import type * as Types from './type' \r\n${content}`
+    this.content = `import type {${importTypeStr}} from './type' \r\n${content}`
   }
 
   private generateApiClassType() {
@@ -75,39 +70,42 @@ export default class CreateTypeFile {
       const { response, parameters, id } = i
       const onlyParam = parameters.length === 1
 
-      const name = firstToUpper(i.name)
-      const resTypeName = `${name}Body`
-      const paramTypeName = `${name}Param`
+      const funName = firstToUpper(i.name)
+      const resTypeName = `${funName}Body`
+      const paramTypeName = `${funName}Param`
 
       let paramsStr = `(params: ${paramTypeName})`
       if (onlyParam) {
         const [firstParam] = parameters
-        const { name, dataType } = firstParam
+        const { dataType } = firstParam
         const { isDefsType } = dataType
-        const { properties = [] } = baseClasses.find(i => i.name === dataType.typeName) ?? {}
+        const classItem = baseClasses.find(i => i.name === dataType.typeName)
+        const { properties = [] } = classItem ?? {}
 
         if (!isDefsType || properties.length > 0) {
-          paramsStr = `(${name} :${paramTypeName}['${name}'])`
+          const { typeArgs, typeName, isDefsType } = firstParam.dataType
+          paramsStr = `(params :${this.generateResTypeValue(typeArgs, typeName, isDefsType)})`
         } else if (parameters.length > 0) {
           // 文档未定义参数类型
-          paramsStr = `(${name}: any)`
+          paramsStr = `(params: any)`
         } else {
-          // 不需要穿传参
+          // 不需要传参
           paramsStr = `()`
         }
       } else if (parameters.length === 0) {
-        // 不需要穿传参
+        // 不需要传参
         paramsStr = '()'
       }
 
-      typeList.push({ id, resTypeName, response, paramTypeName, parameters })
-      const returnType = this.getReturnType(resTypeName, i, fileInfo)
-      return `export type ${name} = ${paramsStr} => ${returnType}\r\n`
+      const resTypes: TypeList[0] = { id, resTypeName, response, paramTypeName, parameters }
+      typeList.push(resTypes)
+      const returnType = this.getReturnType(resTypeName, i, fileInfo, resTypes)
+      return `export type ${funName} = ${paramsStr} => ${returnType}\r\n`
     })
     this.content = methodList.join('\r\n')
   }
 
-  private getReturnType(resTypeName: string, item: Interface, fileInfo: TypeFileInfo) {
+  private getReturnType(resTypeName: string, item: Interface, fileInfo: TypeFileInfo, resTypes: TypeList[0]) {
     const { response, id } = item
     const { baseClasses, resultTypeRender: render, modelName } = fileInfo
 
@@ -123,13 +121,49 @@ export default class CreateTypeFile {
           const info = { modelName, funId: id }
           promType = render(resTypeName, typeInfo.properties, info)
         } else if (typeof render === 'string') {
+          // if (resTypeName === 'GetAuthUserListBody') {
+          //   const { typeArgs } = resTypes.response
+
+          //   // console.log(JSON.stringify(typeArgs))
+
+          //   // const propertie = typeArgs.find(i => i.typeName === 'data')
+          //   const { typeArgs: args = [], typeName, isDefsType } = typeArgs[0]
+          //   // const { typeArgs, typeName, isDefsType } = resTypes.response
+          //   const res = this.generateResTypeValue(args, typeName as string, isDefsType as boolean)
+          //   console.log(res)
+
+          //   // const { templateIndex = 0 } = dataType ?? {}
+
+          //   // // typeList.find(i => i.)
+
+          //   // const { typeArgs: types, typeName } = typeArgs[templateIndex]
+
+          //   // console.log(JSON.stringify(resTypes.response))
+          //   // // console.log(JSON.stringify(typeInfo))
+          //   // console.log(`${typeName}${this.getGenericsValue(types)}`)
+          //   process.exit(0)
+          // }
+
           let tempStr = render
           const [_, dataKey, keyValue] = render.match(resTypeDataKey) || []
-          if (dataKey) {
-            tempStr = tempStr.replace(resTypeDataKey, `${resTypeName}['${keyValue}']`)
+          const hasDataItem = typeInfo.properties.find(i => i.name === keyValue)
+          if (dataKey && hasDataItem) {
+            const { typeArgs } = resTypes.response
+
+            const { dataType, required = false } = hasDataItem ?? {}
+
+            const index = dataType?.templateIndex || 0
+
+            const { typeArgs: types = [], typeName, isDefsType } = typeArgs[index] ?? {}
+
+            const res = this.generateResTypeValue(types, typeName, isDefsType)
+
+            const newType = types && typeName ? `${res}${!required ? '| undefined' : ''}` : 'any'
+
+            tempStr = tempStr.replace(resTypeDataKey, newType)
+            tempStr = tempStr.replace(/\{typeName\}/g, resTypeName)
+            promType = tempStr
           }
-          tempStr = tempStr.replace(/\{typeName\}/g, resTypeName)
-          promType = tempStr
         }
       }
     }
@@ -138,9 +172,11 @@ export default class CreateTypeFile {
 
   private generateTypes() {
     const { typeList, content } = this
-    const resTypeList = typeList.map(i => {
+    const resTypeList = typeList.map((i, index) => {
+      // console.log(i)
       const { resTypeName, response } = i
-      return `export type ${resTypeName} = ${this.generateResTypeValue(response, true)}`
+      const { typeArgs, typeName, isDefsType } = response
+      return `export type ${resTypeName} = ${this.generateResTypeValue(typeArgs, typeName, isDefsType)}`
     })
 
     this.content = `${resTypeList.join('\r\n')}\r\n${content}`
@@ -154,18 +190,48 @@ export default class CreateTypeFile {
     return tsObjType.has(typeName) ? typeName : 'any'
   }
 
-  private generateResTypeValue(responseType: StandardDataType, hasDefs = false) {
+  /**
+   * @description 获取泛型的值
+   */
+  getGenericsValue(types: StandardDataType[]): string {
+    if (types.length > 0) {
+      return `<${types
+        .map(({ typeArgs, typeName }) =>
+          typeArgs.length > 0 ? `${typeName}${this.getGenericsValue(typeArgs)}` : typeName
+        )
+        .join(', ')}>`
+    }
+    return ''
+  }
+
+  private generateResTypeValue(typeArgs: StandardDataType[], typeName: string, isDefsType: boolean, isTemp?: boolean) {
     const { baseClasses } = this.fileInfo
-    const { typeArgs, typeName, isDefsType } = responseType
+    // const { typeArgs, typeName, isDefsType } = responseType
     let content = typeName
-    if ((isDefsType || typeName === 'ObjectMap') && hasDefs) content = `Types.${content}`
+    const tempItem = this.tempMap.find(i => i.tempName === typeName)
+    // if (tempItem) this.importType.add(tempItem.tempName)
+
+    if (isDefsType || typeName === 'ObjectMap') this.importType.add(content)
+    content = tempItem?.value ?? content
+
+
     if (typeArgs.length > 0) {
-      content += `<${typeArgs.map(i => this.generateResTypeValue(i, hasDefs)).join(', ')}>`
+      content += `<${typeArgs
+        .map(i => {
+          // if (isDefsType || typeName === 'ObjectMap') this.importType.add(content)
+          return this.generateResTypeValue(i.typeArgs, i.typeName, i.isDefsType)
+        })
+        .join(', ')}>`
     } else if (content) {
       // 添加未知类型的泛型
       const templateArgs = baseClasses.find(i => i.name === typeName)?.templateArgs || []
       if (templateArgs.length > 0) {
-        content += `<${templateArgs.map(i => this.generateResTypeValue(i, hasDefs)).join(', ')}>`
+        content += `<${templateArgs
+          .map(i => {
+            // this.importType.add(i.typeName)
+            return this.generateResTypeValue(i.typeArgs, i.typeName, i.isDefsType)
+          })
+          .join(', ')}>`
       }
     }
     return content || 'any'
@@ -174,26 +240,34 @@ export default class CreateTypeFile {
   private generateParamType() {
     const { typeList, content, fileInfo } = this
     const { generateTypeRender, fileName } = fileInfo
-    const resTypeList = typeList.map(i => {
-      const { paramTypeName, parameters } = i
-      let typeItems = this.createTypeItems(parameters, true)
 
-      if (typeof generateTypeRender === 'function') {
-        typeItems = generateTypeRender({ fileName, typeName: paramTypeName, values: typeItems })
-      }
+    const resTypeList = typeList
+      .filter(i => i.parameters.length > 1)
+      .map(i => {
+        const { paramTypeName, parameters } = i
+        let typeItems = this.createTypeItems(parameters)
 
-      return `export interface ${paramTypeName} {\r\n${this.createTypeContent(typeItems).join('\n')}}`
-    })
+        if (typeof generateTypeRender === 'function') {
+          typeItems = generateTypeRender({ fileName, typeName: paramTypeName, values: typeItems })
+        }
+
+        this.typeItemList.push({ paramTypeName, typeItems })
+
+        return `export interface ${paramTypeName} {\r\n${this.createTypeContent(typeItems).join('\n')}}`
+      })
 
     this.content = `${resTypeList.join('\r\n')}\r\n${content}`
   }
 
-  private createTypeItems(parameters: Property[], hasDefs = false): RenderVlaue[] {
+  private createTypeItems(parameters: Property[]): RenderVlaue[] {
     return parameters.map(i => {
-      const { required, name, description: des, dataType } = i
-      const valueType = this.generateResTypeValue(dataType, hasDefs)
-      const description = this.getDescription(des)
-      return { name, required, valueType, description }
+      const { description: des, dataType, example } = i
+
+      const { typeArgs, typeName, isDefsType, templateIndex } = dataType
+      const { value } = this.tempMap.find(i => i.tempName === typeName) ?? {}
+      const valueType = value ?? this.generateResTypeValue(typeArgs, typeName, isDefsType)
+      const description = this.getDescription(des, example)
+      return Object.assign(i, { valueType, description })
     })
   }
 
@@ -215,23 +289,27 @@ export default class CreateTypeFile {
 
   createBaseClasses() {
     const fileName = 'type.d.ts'
-    const { fileInfo, exportValue } = this
-    const { typeDirPaht, baseClasses, generateTypeRender } = fileInfo
+    // const { fileInfo } = this
+    const { typeDirPaht, baseClasses, generateTypeRender } = this.fileInfo
     const content = baseClasses.map(i => {
-      const { name, properties, templateArgs, description } = i
+      const { name, properties, templateArgs, description } = i as typeof i & { example?: string }
 
-      const temList = templateArgs.map(i => i.typeName)
-      const temStr = temList.length > 0 ? `<${temList.join(', ')}>` : ''
+      const tempIndexs = templateArgs.map((i, index) => {
+        const temp = tempNameList[index]
+        this.tempMap.push({ tempName: i.typeName, value: temp })
+        return temp
+      })
+      const temStr = tempIndexs.length > 0 ? `<${tempIndexs.join(', ')}>` : ''
       let typeItems = this.createTypeItems(properties)
 
       if (typeof generateTypeRender === 'function') {
         typeItems = generateTypeRender({ fileName, typeName: name, values: typeItems })
       }
 
-      return `${this.getDescription(description)}export interface ${name}${temStr} {\r\n${this.createTypeContent(typeItems).join('\r\n')}}`
+      return `${this.getDescription(description)}export interface ${name}${temStr} {\r\n${this.createTypeContent(
+        typeItems
+      ).join('\r\n')}}`
     })
-
-    if (exportValue) content.unshift(exportValue)
 
     const filePath = path.join(typeDirPaht, fileName)
     fileList.push({ filePath, content: objMapType + content.join('\r\n') })
