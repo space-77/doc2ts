@@ -190,7 +190,18 @@ export class CreateApiFile {
       if (hasQuery) queryValue += `this.serialize({${joinParams(queryParams)}})`
 
       // body
-      if (hasBody) methodBody += `\r\nconst ${bodyName} = {${joinParams(bodyParams)}}`
+      if (hasBody) {
+        let value = ''
+
+        // TODO 需要改成更具类型判断
+        if (bodyParams.length > 1) {
+          value = `{${joinParams(bodyParams)}}`
+        } else {
+          const [firstItem] = bodyParams
+          value = `${keyWords.has(firstItem) ? '_' : ''}${firstItem}`
+        }
+        methodBody += `\r\nconst ${bodyName} = ${value}`
+      }
 
       // formData
       if (hasformData) methodBody += `\r\nconst ${formDataName} = this.formData({${joinParams(formDataParams)}})`
