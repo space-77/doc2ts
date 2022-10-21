@@ -239,8 +239,8 @@ export function getTsFiles(dirPath: string) {
     callback(info) {
       const { filePath, name } = info
       if (tsFileReg.test(name)) {
-        const md5 = crypto.createHash('md5')
-        const fileName = md5.update(filePath).digest('hex')
+        // const md5 = crypto.createHash('md5')
+        // md5.update(filePath).digest('hex')
         filesInfo.push(filePath)
       }
     }

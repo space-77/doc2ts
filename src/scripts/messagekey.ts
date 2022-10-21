@@ -5,7 +5,7 @@ export const notGit = /not\s+a\s+git\s+repository/i
 export const noChanges = /no\s+changes\s+added\s+to\s+commit/i
 
 // 没有代码commit
-export const nothingCommit = /nothing\s+to\s+commit/i
+export const nothingCommit = /(nothing\s+to\s+commit)|(nothing\s+added\s+to\s+commit)/i
 
 // 没有代码commit
 export const notBranch = /did\s+not\s+match\s+any\s+file\(s\)\s+known\s+to\s+git/i
@@ -15,3 +15,6 @@ export const replacedLF = /warning:\s+LF\s+will\s+be\s+replaced\s+by\s+CRLF/i
 
 // Git 其中有文件被忽略
 export const ignoredFile = /The\s+following\s+paths\s+are\s+ignored\s+by\s+one\s+of\s+your\s+.gitignore\s+files/i
+
+// commit id 不存在
+export const notCommitId = /reference\s+is\s+not\s+a\s+tree/i

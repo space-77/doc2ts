@@ -10,12 +10,23 @@ import { notBranch, replacedLF } from './messagekey'
 import { CONFIG_PATH } from '../common/config'
 import { Doc2TsConfig } from '../types/type'
 import { CODE, GIT_BRANCHNAME } from './config'
-import { getConfig, getRootFilePath, resolveOutPath } from '../utils/index'
-import { checkGit, checkout, getBranchname, gitAdd, gitCommit, gitMerge, gitStatus } from './utils'
-import log from '../utils/log'
+import { getConfig, getRootFilePath } from '../utils/index'
+import {
+  checkGit,
+  checkout,
+  createBranchname,
+  getBranchname,
+  getFirstCommitId,
+  gitAdd,
+  gitCommit,
+  gitMerge,
+  hasFileChange
+} from './utils'
 
-class Status {
+export default class Manage {
   config!: Doc2TsConfig
+  noVerify = true
+  // commitId?: string
   includeFiles!: string
   docBranchname!: string
   originalBranchname!: string
@@ -31,52 +42,49 @@ class Status {
 
       // 检测 git 是否能用 以及 读取配置信息
       res = await this.loadConfig()
-      log.info('loadConfig')
       if (res === CODE.NOT_GIT) return
 
       // 获取当前分支并保留
       await this.getBranch()
-      log.info('getBranch')
+
       // 切换到 doc 分支
       res = await this.checkout2Doc()
-      log.info('checkout2Doc')
       if (res === CODE.NOT_GIT) return
 
       // 生成接口信息
       const doc2ts = new Doc2Ts()
       await doc2ts.init()
-      log.info('init')
 
       // commit 代码【检查有没有代码】
-      res = await this.checkStatus()
-      log.info('checkStatus')
-      if (res === CODE.NOTHING_COMMIT) {
+      // res = await this.checkStatus()
+      if (!await this.checkStatus()) {
         // 没有代码变更
         // 切换源分支
         await this.checkout2Base()
-        log.info('checkout2Base')
         return
       }
 
       // add
       await this.addFile()
-      log.info('addFile')
 
       // commit
-      await this.commitFile()
-      log.info('commitFile')
+      res = await this.commitFile()
+
+      if (res === CODE.NOTHING_COMMIT) {
+        // 没有代码变更
+        // 切换源分支
+        await this.checkout2Base()
+        return
+      }
 
       // 切换源分支
       await this.checkout2Base()
-      log.info('checkout2Base')
 
       // 合并 doc 分支代码
       await this.mergeCode()
-      log.info('mergeCode')
-
-      // console.log(res)
     } catch (error) {
       console.error(error)
+      await this.checkout2Base()
     }
   }
 
@@ -89,13 +97,15 @@ class Status {
     // 读取 配置文件
     this.config = await getConfig(CONFIG_PATH)
 
-    const { outDir, gitConfig = { branchname: undefined } } = this.config
-    this.includeFiles = `${outDir}/*`
-    this.docBranchname = gitConfig.branchname ?? GIT_BRANCHNAME
+    const { outDir, gitConfig } = this.config
+    this.includeFiles = `${outDir}/* ${CONFIG_PATH}`
+    this.noVerify = gitConfig?.noVerify ?? true
+    // this.commitId = gitConfig?.commitId
+    this.docBranchname = gitConfig?.branchname ?? GIT_BRANCHNAME
     // console.log(config.outDir)
 
     // 复制 切换分支前的 doc2ts-config.ts 文件内容到 内存
-    this.doc2tsConfigContent = fs.readFileSync(getRootFilePath(CONFIG_PATH))
+    this.doc2tsConfigContent = fs.readFileSync(getRootFilePath(CONFIG_PATH)) // .toString()
     // console.log(doc2tsConfigContent)
   }
 
@@ -111,6 +121,7 @@ class Status {
     const [err, stdout, stderr] = await checkout(this.docBranchname)
     if (notBranch.test(stderr)) return this.initBranchname()
     if (err) throw new Error(stderr)
+    fs.writeFileSync(getRootFilePath(CONFIG_PATH), this.doc2tsConfigContent)
   }
 
   async getBranch() {
@@ -120,16 +131,14 @@ class Status {
   }
 
   async initBranchname() {
-    const [err, stdout, stderr] = await checkout(`-b ${this.docBranchname}`)
-    console.log(err, stdout, stderr)
-    // if (notBranch.test(stdout)) return this.initBranchname()
-    // console.log(err, stdout, stderr)
+    const { outDir } = this.config
+    const commitId = await getFirstCommitId(`${outDir}/index.ts`)
+    const [err, stdout, stderr] = await createBranchname(this.docBranchname, commitId)
+    if (err) throw new Error(stderr)
   }
 
   async checkStatus() {
-    const [err, stdout, stderr] = await gitStatus(this.includeFiles)
-    if (err) throw new Error(stderr)
-    return stdout
+    return await hasFileChange(this.includeFiles)
   }
 
   async addFile() {
@@ -141,7 +150,8 @@ class Status {
   }
 
   async commitFile() {
-    const [err, stdout, stderr] = await gitCommit('"feat: update api file (doc2ts auto commmit)."')
+    const exec = `"feat: update api files (doc2ts auto commmit)." ${this.noVerify ? '-n' : ''}`
+    const [err, stdout, stderr] = await gitCommit(exec)
     if (err) throw new Error(stderr)
     return stdout
   }
@@ -152,27 +162,3 @@ class Status {
     return stdout
   }
 }
-
-new Status()
-
-// ~(async () => {
-//   // const [err, version, stderr] = await getGitVersion()
-//   // if (err) throw new Error(stderr)
-//   // console.log(version)
-
-//   // const [err, id, stderr] = await getCommitId()
-//   // if (err) throw new Error(stderr)
-//   // console.log(id)
-
-//   // const [err, res, stderr] = await checkout('test1')
-//   // console.log(err, res, stderr)
-
-//   // const [err, res, stderr] = await gitStatus('src/common/')
-//   // console.log(err, res, stderr)
-
-//   const [err, res, stderr] = await gitAdd('src/common/')
-//   console.log(err, res, stderr)
-
-//   // const [err, res, stderr] = await gitCommit(`${CODE.COMMIT_TYPE}${CODE.COMMIT_MESSAGE}`)
-//   // console.log(err, res, stderr)
-// })()

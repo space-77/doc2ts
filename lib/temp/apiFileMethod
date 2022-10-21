@@ -5,6 +5,6 @@
  */
 {funName}{funTypeName} = {paramsName} => {{methodBody}
   const url = {url}
-  const config = { {funConfig} }
+  const config: DocReqConfig = { {funConfig} }
   return this.{requestMethod}(config)
 }

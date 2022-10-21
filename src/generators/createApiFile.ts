@@ -24,7 +24,7 @@ export class CreateApiFile {
 
     if (!isJs) {
       typeFilePath = findDiffPath(dirPath, path.join(typeDirPaht, fileName))
-      typeFilePath = `\nimport type * as mT from '${typeFilePath}'`
+      typeFilePath = `\nimport type * as funTypes from '${typeFilePath}'`
     }
 
     const classMethodStr = this.generateApiClassMethod()
@@ -49,14 +49,14 @@ export class CreateApiFile {
 
       this.fixParamsType(parameters, met as Method)
       const paramsInfo = this.getParamsStr(parameters)
-      const { methodBody, body, header, formData, paramsName } = paramsInfo
+      const { methodBody, body, header, formData, paramsName, pathParams } = paramsInfo
 
       // const paramsName = parameters.length === 0 ? '()' : onlyType && hasBody ? bodyName : 'params'
 
       const requestMethod = isDownload ? 'downloadFile' : 'request'
-      const url = this.formatUrl(_path, paramsInfo)
+      const url = this.formatUrl(_path, paramsInfo, pathParams)
       const otherConfig = header + formData
-      const funTypeName = isJs ? '' : `: mT.${firstToUpper(funName)}`
+      const funTypeName = isJs ? '' : `: funTypes.${firstToUpper(funName)}`
       const requestConfig = metConfig ? `, config: ${JSON.stringify(metConfig)}` : ''
       const hideMet = hideMethod ? /^get$/i.test(met) || (/^post$/i.test(met) && body) : false
       const method = hideMet ? '' : `, method: '${met}'`
@@ -89,21 +89,31 @@ export class CreateApiFile {
     }
   }
 
-  formatUrl(url: string, paramsInfo: GetParamsStr) {
+  formatUrl(url: string, paramsInfo: GetParamsStr, pathParams: Property[]) {
     const { hasPath, hasQuery, queryValue, onlyType } = paramsInfo
+    const reg = /\{(\w+)\}/g
+
     if (hasPath || hasQuery) {
-      if (hasPath)
-        url = url.replace(/\{(\w+)\}/g, v => {
-          let val = v
-          if (onlyType) {
-            // 只有一个参数的时候 形参是否包含 关键字用的是  keyWordsListSet
-            val = keyWordsListSet.has(v) ? `_${v}` : v
-          } else {
-            // 多个参数的时候 形参是否包含 关键字用的是  keyWords
-            val = this.joinParams([v])
-          }
-          return `$${val}`
-        })
+      if (hasPath) {
+        const onePath = pathParams.length === 1
+
+        if (onePath && !reg.test(url)) {
+          url = `${url}/\${${pathParams[0].name}}`
+        } else {
+          url = url.replace(reg, v => {
+            let val = v
+            if (onlyType) {
+              // 只有一个参数的时候 形参是否包含 关键字用的是  keyWordsListSet
+              val = keyWordsListSet.has(v) ? `_${v}` : v
+            } else {
+              // 多个参数的时候 形参是否包含 关键字用的是  keyWords
+              val = this.joinParams([v])
+            }
+            return `$${val}`
+          })
+        }
+      }
+
       return `\`${url}${hasQuery ? `?\${${queryValue}}` : ''}\``
     }
     return `'${url}'`
@@ -118,7 +128,7 @@ export class CreateApiFile {
     // const queryName = PARAMS_NAME.QUERY
     const headerName = PARAMS_NAME.HEADER
     const formDataName = PARAMS_NAME.FORMDATA
-    let queryValue: string | undefined
+    let queryValue: string = ''
 
     let body = ''
     let header = ''
@@ -144,7 +154,7 @@ export class CreateApiFile {
 
     // header
     const headerParams = this.filterParams(parameters, 'header')
-    if (hasformData) headerParams.push('\'Content-Type\': \'application/x-www-form-urlencoded; charset=UTF-8\'')
+    if (hasformData) headerParams.push("'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'")
 
     const hasHeader = headerParams.length > 0
     if (hasHeader) header = `, ${headerName}`
@@ -193,13 +203,13 @@ export class CreateApiFile {
 
       // 组建各种请求类型参数
       // query
-      if (hasQuery) queryValue = `this.serialize({${paramsStr}})`
+      if (hasQuery) queryValue = `this.serialize(${onlyParam ? `{${paramsStr}}` : paramsStr})`
 
       // body
       // 直接把 params 传给 request方法即可
       if (hasBody && onlyParam) {
         // methodBody = `\nconst ${bodyName} = ${paramsStr}`
-        body = `,body: ${paramsStr}`
+        body = paramsStr === 'body' ? ',body' : `,body: ${paramsStr}`
       }
 
       // formData
@@ -226,6 +236,7 @@ export class CreateApiFile {
       onlyType,
       queryValue,
       headerName,
+      pathParams,
       paramsName,
       hasformData,
       formDataName

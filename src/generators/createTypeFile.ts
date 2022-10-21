@@ -2,7 +2,7 @@ import path from 'path'
 import { fileList } from './fileList'
 import { tsObjType } from '../common/config'
 import { firstToUpper } from '../utils'
-import { Doc2TsConfig } from '../types/type'
+import { Doc2TsConfig, RenderVlaue } from '../types/type'
 import { resTypeDataKey, resTypeNameKey } from '../common/reg'
 import { BaseClass, Interface, Property, StandardDataType } from '../pont-engine'
 
@@ -14,6 +14,7 @@ type TypeFileInfo = {
   typeDirPaht: string
   typeFileRender?: Doc2TsConfig['typeFileRender']
   resultTypeRender?: Doc2TsConfig['resultTypeRender']
+  generateTypeRender?: Doc2TsConfig['generateTypeRender']
 }
 type TypeList = {
   id?: string
@@ -64,7 +65,7 @@ export default class CreateTypeFile {
     //   .join(', ')
     // const objectMapTypeStr = hasObjectMap ? `\n${objMapType}` : ''
 
-    this.content = `import type * as defs from './type' \r\n${content}`
+    this.content = `import type * as Types from './type' \r\n${content}`
   }
 
   private generateApiClassType() {
@@ -83,9 +84,13 @@ export default class CreateTypeFile {
         const [firstParam] = parameters
         const { name, dataType } = firstParam
         const { isDefsType } = dataType
-          const { properties = [] } = baseClasses.find(i => i.name === dataType.typeName) ?? {}
-        if (!isDefsType || properties.length > 0 ) {
+        const { properties = [] } = baseClasses.find(i => i.name === dataType.typeName) ?? {}
+
+        if (!isDefsType || properties.length > 0) {
           paramsStr = `(${name} :${paramTypeName}['${name}'])`
+        } else if (parameters.length > 0) {
+          // 文档未定义参数类型
+          paramsStr = `(${name}: any)`
         } else {
           // 不需要穿传参
           paramsStr = `()`
@@ -153,7 +158,7 @@ export default class CreateTypeFile {
     const { baseClasses } = this.fileInfo
     const { typeArgs, typeName, isDefsType } = responseType
     let content = typeName
-    if ((isDefsType || typeName === 'ObjectMap') && hasDefs) content = `defs.${content}`
+    if ((isDefsType || typeName === 'ObjectMap') && hasDefs) content = `Types.${content}`
     if (typeArgs.length > 0) {
       content += `<${typeArgs.map(i => this.generateResTypeValue(i, hasDefs)).join(', ')}>`
     } else if (content) {
@@ -167,47 +172,68 @@ export default class CreateTypeFile {
   }
 
   private generateParamType() {
-    const { typeList, content } = this
+    const { typeList, content, fileInfo } = this
+    const { generateTypeRender, fileName } = fileInfo
     const resTypeList = typeList.map(i => {
       const { paramTypeName, parameters } = i
-      return `export interface ${paramTypeName} {\r\n${this.generateParamTypeValue(parameters, true).join('\n')}}`
+      let typeItems = this.createTypeItems(parameters, true)
+
+      if (typeof generateTypeRender === 'function') {
+        typeItems = generateTypeRender({ fileName, typeName: paramTypeName, values: typeItems })
+      }
+
+      return `export interface ${paramTypeName} {\r\n${this.createTypeContent(typeItems).join('\n')}}`
     })
 
     this.content = `${resTypeList.join('\r\n')}\r\n${content}`
   }
 
-  private generateParamTypeValue(parameters: Property[], hasDefs = false) {
+  private createTypeItems(parameters: Property[], hasDefs = false): RenderVlaue[] {
     return parameters.map(i => {
-      const { required, name, description, dataType } = i
+      const { required, name, description: des, dataType } = i
       const valueType = this.generateResTypeValue(dataType, hasDefs)
-      return `${this.getDescription(description)}${name}${required ? '' : '?'}: ${valueType}`
+      const description = this.getDescription(des)
+      return { name, required, valueType, description }
     })
+  }
+
+  private createTypeContent(typeItems: RenderVlaue[]) {
+    return typeItems.map(
+      ({ name, required, valueType, description }) => `${description}${name}${required ? '' : '?'}: ${valueType}`
+    )
   }
 
   getDescription(des?: string, example?: string) {
     if (!example && !des) return ''
     if (des) {
-      return example ? `/** \r\n* @example ${example}\r\n* @description ${des}\r\n */\r\n` : `/** @description ${des} */\r\n`
+      return example
+        ? `/** \r\n* @example ${example}\r\n* @description ${des}\r\n */\r\n`
+        : `/** @description ${des} */\r\n`
     }
     return `/** @example ${example} */\r\n`
   }
 
   createBaseClasses() {
+    const fileName = 'type.d.ts'
     const { fileInfo, exportValue } = this
-    const { typeDirPaht, baseClasses } = fileInfo
+    const { typeDirPaht, baseClasses, generateTypeRender } = fileInfo
     const content = baseClasses.map(i => {
       const { name, properties, templateArgs, description } = i
 
       const temList = templateArgs.map(i => i.typeName)
       const temStr = temList.length > 0 ? `<${temList.join(', ')}>` : ''
-      const itemsValue = this.generateParamTypeValue(properties).join('\r\n')
+      let typeItems = this.createTypeItems(properties)
 
-      return `${this.getDescription(description)}export interface ${name}${temStr} {\r\n${itemsValue}}`
+      if (typeof generateTypeRender === 'function') {
+        typeItems = generateTypeRender({ fileName, typeName: name, values: typeItems })
+      }
+
+      return `${this.getDescription(description)}export interface ${name}${temStr} {\r\n${this.createTypeContent(typeItems).join('\r\n')}}`
     })
 
     if (exportValue) content.unshift(exportValue)
 
-    const filePath = path.join(typeDirPaht, `type.d.ts`)
+    const filePath = path.join(typeDirPaht, fileName)
     fileList.push({ filePath, content: objMapType + content.join('\r\n') })
   }
 }

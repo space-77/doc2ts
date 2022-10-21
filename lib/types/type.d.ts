@@ -30,8 +30,33 @@ export type MethodConfig = {
   config?: object
 }
 
+export type GitConfig = {
+  /**
+   * @desc 管理 自动拉取代码的分支
+   */
+  branchname: string
+
+  /**
+   * @desc 上次 commit 记录
+   */
+  commitId?: string
+
+  /**
+   * @default true
+   * @decs 跳过 pre-commit 检查（git hook），因为在使用git的管理生成的代码是切换到 {branchname} 分支的，
+整个过程都是自动处理，但是生成的代码难免会存在不符合 pre-commit 的代码，所以默认是跳过 pre-commit 检测，
+已保证整个流程能自动完成的进行。
+   */
+  noVerify?: boolean
+}
 
 export type Origin = ModelList
+
+export type DisableParams = { type: Property['in']; name: string }
+
+export type RenderVlaue = { name: string; required: boolean; valueType: string; description: string }
+
+export type GenerateTypeRender = { fileName: string; typeName: string, values: RenderVlaue[] }
 
 export type Doc2TsConfig = {
   /**
@@ -49,10 +74,18 @@ export type Doc2TsConfig = {
    */
   fetchSwaggerDataMethod?(url: string): Promise<string>
 
+  gitConfig?: GitConfig
+
   /**
    * @description 文件输出位置
    */
   outDir: string
+
+  /**
+   * @default true
+   * @description 生成文件前，是否清空文件输出文件夹
+   */
+  clearOutDir?: boolean
 
   /**
    * @default ApiClient
@@ -92,9 +125,16 @@ export type Doc2TsConfig = {
   prettierPath?: string
 
   /**
+   * @description 移除某些全局配置的入参提示，如：token信息是全配置的，不需要在调用接口是再填token信息，即可通过该配置取消
+   */
+  disableParams?: DisableParams[]
+
+  /**
    * @description 接口返回数据类型钩子
    */
-  resultTypeRender?: string | ((typeName: string, typeInfo: Property[], info: { modelName?: string, funId?: string }) => string)
+  resultTypeRender?:
+    | string
+    | ((typeName: string, typeInfo: Property[], info: { modelName?: string; funId?: string }) => string)
 
   /**
    * @description 模块改名
@@ -121,6 +161,8 @@ export type Doc2TsConfig = {
    * @description 生成接口类型文件前的钩子，用于修改生产内容
    */
   typeFileRender?(content: string, modelName: string): string
+
+  generateTypeRender?(operation: GenerateTypeRender): RenderVlaue[]
 
   // moduleConfig?: ModuleConfig
 
@@ -169,6 +211,7 @@ export type GetParamsStr = {
   formData: string
   paramsName: string
   queryValue?: string
+  pathParams: Property[]
 }
 
 export type FilePathList = { moduleName?: string; data: { fileName: string; filePath: string }[] }
