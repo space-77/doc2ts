@@ -56,7 +56,7 @@ export type DisableParams = { type: Property['in']; name: string }
 
 export type RenderVlaue = { name: string; required: boolean; valueType: string; description: string }
 
-export type GenerateTypeRender = { fileName: string; typeName: string, values: RenderVlaue[] }
+export type GenerateTypeRender = { fileName: string; typeName: string; values: RenderVlaue[] }
 
 export type Doc2TsConfig = {
   /**

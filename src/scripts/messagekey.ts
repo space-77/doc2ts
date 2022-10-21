@@ -18,3 +18,6 @@ export const ignoredFile = /The\s+following\s+paths\s+are\s+ignored\s+by\s+one\s
 
 // commit id 不存在
 export const notCommitId = /reference\s+is\s+not\s+a\s+tree/i
+
+// merge 合并冲突
+export const mergeConflict = /conflict/i

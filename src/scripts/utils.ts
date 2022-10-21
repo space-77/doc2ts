@@ -14,7 +14,7 @@ import {
   GIT_VERSION
 } from './commands'
 import { exec, ExecException } from 'child_process'
-import { ignoredFile, noChanges, notGit, nothingCommit } from './messagekey'
+import { noChanges, notGit, nothingCommit } from './messagekey'
 import { CODE } from './config'
 import log from '../utils/log'
 import { getRootFilePath } from '../utils'
@@ -81,10 +81,14 @@ export async function checkGit(): Promise<ExecExceptions> {
   return [err, stdout, stderr]
 }
 
-export async function hasFileChange(dirPath: string) {
+export async function filesStatus(dirPath: string) {
   const [err, stdout, stderr] = await execSync(`${GIT_STATUS} ${dirPath} -z`)
   if (err) throw new Error(stderr)
-  return !!stdout
+  return stdout
+}
+
+export async function hasFileChange(dirPath: string) {
+  return !!(await filesStatus(dirPath)).trim()
 }
 
 export async function gitAdd(dirPath: string): Promise<ExecExceptions> {

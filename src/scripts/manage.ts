@@ -6,7 +6,7 @@
 
 import fs from 'fs-extra'
 import Doc2Ts from '../doc2TsCore/index'
-import { notBranch, replacedLF } from './messagekey'
+import { mergeConflict, notBranch, replacedLF } from './messagekey'
 import { CONFIG_PATH } from '../common/config'
 import { Doc2TsConfig } from '../types/type'
 import { CODE, GIT_BRANCHNAME } from './config'
@@ -22,6 +22,7 @@ import {
   gitMerge,
   hasFileChange
 } from './utils'
+import log from '../utils/log'
 
 export default class Manage {
   config!: Doc2TsConfig
@@ -57,7 +58,7 @@ export default class Manage {
 
       // commit 代码【检查有没有代码】
       // res = await this.checkStatus()
-      if (!await this.checkStatus()) {
+      if (!(await this.checkStatus())) {
         // 没有代码变更
         // 切换源分支
         await this.checkout2Base()
@@ -118,6 +119,13 @@ export default class Manage {
   }
 
   async checkout2Doc() {
+    const { outDir } = this.config
+
+    if (await hasFileChange(`${outDir}/*`)) {
+      log.error(`${log.errTag(' error ')} ${log.link(`${outDir}`)} ${log.errColor('目录下有文件没提交，请处理后在重新，本次操作将取消.')}`)
+      process.exit(0)
+    }
+
     const [err, stdout, stderr] = await checkout(this.docBranchname)
     if (notBranch.test(stderr)) return this.initBranchname()
     if (err) throw new Error(stderr)
@@ -157,8 +165,16 @@ export default class Manage {
   }
 
   async mergeCode() {
+    log.clear()
     const [err, stdout, stderr] = await gitMerge(this.docBranchname)
-    if (err) throw new Error(stderr)
+    if (mergeConflict.test(stdout)) {
+      log.warning('=== 合并冲突，请手动处理 ===')
+      log.warning('=== 合并冲突，请手动处理 ===')
+      log.warning('=== 合并冲突，请手动处理 ===')
+    } else if (err) {
+      throw new Error(stderr)
+    }
+    log.done(' ALL DONE ')
     return stdout
   }
 }

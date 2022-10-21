@@ -410,6 +410,29 @@ export default {
 } as Doc2TsConfig
 ```
 
+### 生存类型前的回调函数
+
+- 参数：`generateTypeRender`
+- 必传：`否`
+- 类型：`(operation: GenerateTypeRender) => RenderVlaue[]`
+- 默认：``
+- 说明：生存类型前的回调函数，用于修改生成内容
+
+```typescript
+export default {
+  generateTypeRender({fileName; typeName, values}) {
+    // TODO
+    // eg: 把 某个文件下的 某个类型的某个值，由 可选 改为 必选
+    if (fileName === 'xxxx' && typeName === 'xxx' ) {
+      values.forEach(i => {
+        if (i.name === 'xx') i.required = true        
+      })
+    }
+    return values
+  }
+} as Doc2TsConfig
+```
+
 ### 请求接口方法配置
 
 - 参数：`methodConfig.name`

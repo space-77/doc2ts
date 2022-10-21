@@ -1,5 +1,7 @@
 declare class Log {
     info(text: string): void;
+    errTag(text: string): string;
+    errColor(text: string): string;
     error(text: string): void;
     warning(text: string): string;
     log(text: string): void;

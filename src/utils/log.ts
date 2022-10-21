@@ -4,9 +4,18 @@ class Log {
   info(text: string) {
     console.log(chalk.blue('[doc2ts] '), text)
   }
+  
+  errTag(text: string) {
+    return chalk.bgHex('#ff0000')(text)
+  }
+
+  errColor(text: string) {
+    return chalk.red(text)
+  }
+
 
   error(text: string) {
-    console.log(chalk.red('[doc2ts] '), text)
+    console.log(this.errColor('[doc2ts] '), text)
   }
 
   warning(text: string) {
