@@ -196,11 +196,12 @@ export class CreateApiFile {
         // TODO 需要改成更具类型判断
         if (bodyParams.length > 1) {
           value = `{${joinParams(bodyParams)}}`
+          methodBody += `\r\nconst ${bodyName} = ${value}`
         } else {
           const [firstItem] = bodyParams
           value = `${keyWords.has(firstItem) ? '_' : ''}${firstItem}`
+          body = value === bodyName ? ',body' : `,body: ${value}`
         }
-        methodBody += `\r\nconst ${bodyName} = ${value}`
       }
 
       // formData

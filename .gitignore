@@ -5,6 +5,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # dist/
+lib/
 src/api/*
 node_modules/
 doc2ts-config.ts
