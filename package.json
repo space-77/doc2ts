@@ -1,6 +1,6 @@
 {
   "name": "doc2ts",
-  "version": "0.10.4",
+  "version": "0.10.5",
   "description": "根据接口文档生成ts接口文件",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -49,6 +49,7 @@
     "node-fetch": "^2.6.7",
     "prettier": "^2.6.2",
     "translate": "^1.4.1",
+    "translation.js": "^0.7.15",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.3"
   },
