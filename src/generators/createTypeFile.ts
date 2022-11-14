@@ -1,7 +1,7 @@
 import path from 'path'
 import { fileList } from './fileList'
 import { tempNameList, tsObjType } from '../common/config'
-import { firstToUpper } from '../utils'
+import { firstToUpper, getFuncType } from '../utils'
 import { Doc2TsConfig, RenderVlaue } from '../types/type'
 import { resTypeDataKey, resTypeNameKey } from '../common/reg'
 import { BaseClass, Interface, Property, StandardDataType } from '../pont-engine'
@@ -100,7 +100,7 @@ export default class CreateTypeFile {
       const resTypes: TypeList[0] = { id, resTypeName, response, paramTypeName, parameters }
       typeList.push(resTypes)
       const returnType = this.getReturnType(resTypeName, i, fileInfo, resTypes)
-      return `export type ${funName} = ${paramsStr} => ${returnType}\r\n`
+      return `export type ${getFuncType(funName)} = ${paramsStr} => ${returnType}\r\n`
     })
     this.content = methodList.join('\r\n')
   }
