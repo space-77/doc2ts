@@ -204,16 +204,15 @@ export default class CreateTypeFile {
     return ''
   }
 
-  private generateResTypeValue(typeArgs: StandardDataType[], typeName: string, isDefsType: boolean, isTemp?: boolean) {
+  private generateResTypeValue(typeArgs: StandardDataType[], typeName: string, isDefsType: boolean) {
     const { baseClasses } = this.fileInfo
     // const { typeArgs, typeName, isDefsType } = responseType
     let content = typeName
-    const tempItem = this.tempMap.find(i => i.tempName === typeName)
-    // if (tempItem) this.importType.add(tempItem.tempName)
-
     if (isDefsType || typeName === 'ObjectMap') this.importType.add(content)
-    content = tempItem?.value ?? content
-
+    // if (!isUse) {
+    //   const tempItem = this.tempMap.find(i => i.tempName === typeName)
+    //   content = tempItem?.value ?? content
+    // }
 
     if (typeArgs.length > 0) {
       content += `<${typeArgs

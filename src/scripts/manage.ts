@@ -122,7 +122,11 @@ export default class Manage {
     const { outDir } = this.config
 
     if (await hasFileChange(`${outDir}/*`)) {
-      log.error(`${log.errTag(' error ')} ${log.link(`${outDir}`)} ${log.errColor('目录下有文件没提交，请处理后在重新，本次操作将取消.')}`)
+      log.error(
+        `${log.errTag(' error ')} ${log.link(`${outDir}`)} ${log.errColor(
+          '目录下有文件没提交，请处理后在重新，本次操作将取消.'
+        )}`
+      )
       process.exit(0)
     }
 
@@ -140,7 +144,11 @@ export default class Manage {
 
   async initBranchname() {
     const { outDir } = this.config
-    const commitId = await getFirstCommitId(`${outDir}/index.ts`)
+    let commitId = await getFirstCommitId(`${outDir}/index.ts`)
+    if (!commitId) {
+      commitId = await getFirstCommitId(`${outDir}/index.js`)
+    }
+
     const [err, stdout, stderr] = await createBranchname(this.docBranchname, commitId)
     if (err) throw new Error(stderr)
   }

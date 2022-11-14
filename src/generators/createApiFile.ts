@@ -3,7 +3,7 @@ import path from 'path'
 import { fileList } from './fileList'
 import type { Property } from '../pont-engine'
 import type { Method } from '../types/client'
-import { firstToUpper, findDiffPath, firstToLower, camel2Kebab } from '../utils'
+import { firstToUpper, findDiffPath, firstToLower, camel2Kebab, getFuncType } from '../utils'
 import type { FilePathList, GetParamsStr, ModelInfo } from '../types/type'
 import { keyWords, keyWordsListSet, PARAMS_NAME } from '../common/config'
 
@@ -56,7 +56,7 @@ export class CreateApiFile {
       const requestMethod = isDownload ? 'downloadFile' : 'request'
       const url = this.formatUrl(_path, paramsInfo, pathParams)
       const otherConfig = header + formData
-      const funTypeName = isJs ? '' : `: funTypes.${firstToUpper(funName)}`
+      const funTypeName = isJs ? '' : `: funTypes.${getFuncType(funName)}`
       const requestConfig = metConfig ? `, config: ${JSON.stringify(metConfig)}` : ''
       const hideMet = hideMethod ? /^get$/i.test(met) || (/^post$/i.test(met) && body) : false
       const method = hideMet ? '' : `, method: '${met}'`

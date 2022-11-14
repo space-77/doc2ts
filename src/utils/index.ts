@@ -269,3 +269,7 @@ export function ts2Js(filesNames: string[], declaration: boolean, cb?: (fileName
 export function getName(name: string) {
   return keyWordsListSet.has(name) ? `${name}_` : name
 }
+
+export function getFuncType(funName: string) {
+  return `${firstToUpper(funName)}Fun`
+}

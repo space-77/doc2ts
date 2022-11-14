@@ -54,7 +54,13 @@ export type Origin = ModelList
 
 export type DisableParams = { type: Property['in']; name: string }
 
-export type RenderVlaue = { name: string; required: boolean; valueType: string; description: string }
+export type RenderVlaue = {
+  name: string
+  required: boolean
+  valueType: string
+  description: string
+  dataType: StandardDataType
+}
 
 export type GenerateTypeRender = { fileName: string; typeName: string; values: RenderVlaue[] }
 

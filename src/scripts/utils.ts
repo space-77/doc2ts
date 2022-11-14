@@ -61,7 +61,7 @@ export async function getBranchname() {
 
 export async function createBranchname(branchname: string, commitId?: string) {
   // git checkout -b branchname commitId
-  return await execSync(`${GET_CHECKOUT} -b ${branchname} ${commitId}`)
+  return await execSync(`${GET_CHECKOUT} -b ${branchname} ${commitId ?? ''}`)
 }
 
 export async function checkout(branchname: string) {
