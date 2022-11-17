@@ -61,6 +61,7 @@ class OriginBaseReader {
                 const toRegStr = (str) => str.replace(/(\W)/g, '\\$1');
                 result.forEach((enKey, index) => {
                     const chineseKey = chineseKeyCollect[index];
+                    enKey = /^\d/.test(enKey) ? `type${enKey}`: enKey
                     if (enKey) {
                         retString = retString.replace(eval(`/${toRegStr(chineseKey)}/g`), enKey);
                     }
