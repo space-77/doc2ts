@@ -34,7 +34,7 @@ export default class CreateTypeFile {
   content = ''
   typeList: TypeList = []
   fileInfo!: TypeFileInfo
-  tempMap: { tempName: string; value: string }[] = []
+  // tempMap: { tempName: string; value: string }[] = []
   importType: Set<string> = new Set([])
   typeItemList: { paramTypeName: string; typeItems: RenderVlaue[] }[] = []
 
@@ -263,8 +263,8 @@ export default class CreateTypeFile {
       const { description: des, dataType, example } = i
 
       const { typeArgs, typeName, isDefsType, templateIndex } = dataType
-      const { value } = this.tempMap.find(i => i.tempName === typeName) ?? {}
-      const valueType = value ?? this.generateResTypeValue(typeArgs, typeName, isDefsType)
+      // const { value } = this.tempMap.find(i => i.tempName === typeName) ?? {}
+      const valueType = this.generateResTypeValue(typeArgs, typeName, isDefsType)
       const description = this.getDescription(des, example)
       return Object.assign(i, { valueType, description })
     })
@@ -293,11 +293,7 @@ export default class CreateTypeFile {
     const content = baseClasses.map(i => {
       const { name, properties, templateArgs, description } = i as typeof i & { example?: string }
 
-      const tempIndexs = templateArgs.map((i, index) => {
-        const temp = tempNameList[index]
-        this.tempMap.push({ tempName: i.typeName, value: temp })
-        return temp
-      })
+      const tempIndexs = templateArgs.map(i => i.typeName)
       const temStr = tempIndexs.length > 0 ? `<${tempIndexs.join(', ')}>` : ''
       let typeItems = this.createTypeItems(properties)
 
