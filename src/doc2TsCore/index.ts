@@ -23,6 +23,12 @@ import {
   getName
 } from '../utils'
 
+// ------------------------------------
+import DocApi from '../doc/docApi'
+import docInit from '../doc/index'
+import type { DocListItem } from '../types/newType'
+import { buidTsTypeFile } from '../buildFiles/buildType'
+
 export default class Doc2Ts {
   api = new Api()
   // modelList: ModelList[] = []
@@ -30,6 +36,7 @@ export default class Doc2Ts {
 
   config!: Config
 
+  docList: DocListItem[] = []
   // constructor() {
   //   this.init()
   // }
@@ -39,9 +46,9 @@ export default class Doc2Ts {
       await this.getConfig()
       // await this.getModelList()
       await this.initRemoteDataSource()
-      await this.generateFileData()
-      this.createFiles()
-      await this.transform2js()
+      // await this.generateFileData()
+      // this.createFiles()
+      // await this.transform2js()
       log.clear()
       log.success(log.done(' ALL DONE '))
     } catch (error) {
@@ -64,84 +71,23 @@ export default class Doc2Ts {
   // }
 
   async initRemoteDataSource() {
-    const config: DataSourceConfig = {
-      originType: OriginType.SwaggerV2,
-      originUrl: '',
-      swaggerHeader: this.config.swaggerHeaders,
-      // 使用operationId作为方法名
-      usingOperationId: true,
-      // pont 支持一个项目中配置多个 Swagger 来源。此处配置是否启用多数据源
-      usingMultipleOrigins: false,
-      // 是否拆分api-lock.json到具体数据源
-      spiltApiLock: false,
-      outDir: './src/services',
-      templatePath: './pontTemplate',
-      taggedByName: true,
-      // 可选项。用于生成 pont 内置模板。配置该项时，一旦检测到本地模板文件不存在将自动使用配置的模板类型生成模板文件。内置模板功能强大
-      templateType: '',
+    // const { outDir } = this.config
+    // const outputDir = resolveOutPath(outDir)
+    // const typeDirPaht = path.join(outputDir, `types${modulePath}`)
 
-      // 生成文件类型
-      surrounding: Surrounding.typeScript,
+    const reqs = this.config.origins.map(async i => {
+      const docApi = await docInit(i.url)
+      return { docApi, moduleName: i.name }
+    })
+    this.docList = await Promise.all(reqs)
 
-      // 废弃接口扫描
-      scannedRange: [],
-
-      // 数据源之后会尝试调用由transformPath
-      transformPath: '',
-      // 可选项, 相对项目根目录路径。用于 Swagger 数据源需要登录才能请求成功的场景，可指定获取 Swagger 源数据的方法。默认为 node-fetch 的 fetch 方法
-      fetchMethodPath: '',
-      // 生成的代码会用 prettier 来美化。此处配置 prettier 的配置项即可，具体可以参考
-      prettierConfig: {},
-      // pont定时拉取数据，单位为秒，默认 20 分钟
-      pollingTime: 1200,
-      mocks: {
-        enable: false,
-        basePath: '',
-        port: 8080,
-        wrapper: ''
-      },
-      fetchMethod: this.config.fetchSwaggerDataMethod
-    }
-
-    const reqs = this.config.origins.map(async ({ url, name, version }) => {
-      name = name ? camel2Kebab(name) : ''
-      if (this.config.rename) name = rename(name, this.config.rename)
-      let originType: OriginType
-      switch (version) {
-        case '3.0':
-          originType = OriginType.SwaggerV3
-          break
-        case '2.0':
-          originType = OriginType.SwaggerV2
-          break
-        case '1.0':
-          originType = OriginType.SwaggerV1
-          break
-        default:
-          originType = OriginType.SwaggerV2
-      }
-      config.originUrl = url
-      config.originType = originType
-
-      const data = await readRemoteDataSource(config, (text: string) => {
-        log.info(`${name}-${text}`)
-      })
-      data.mods.forEach(item => {
-        item.name = getName(item.name)
-        item.interfaces.forEach(j => {
-          j.name = getName(j.name)
-        })
-      })
-
-      this.StandardDataSourceList.push({ data, name })
+    this.docList.forEach(i => {
+      buidTsTypeFile(i, this.config)
     })
 
-    await Promise.all(reqs)
-
-    // const data = await readRemoteDataSource(config, (text: string) => {
-    //   log.info(text)
-    // })
-    // fs.writeFileSync(path.join(__dirname, `../../mock/modelInfoList.json`), JSON.stringify(this.StandardDataSourceList))
+    // console.log(this.docList)
+    // const doc = await docInit(this.config.origins)
+    // fs.writeFileSync(path.join(__dirname, `../../mock/openapi.json`), JSON.stringify(this.docList[0]))
   }
 
   async generateFileData() {

@@ -33,7 +33,6 @@
   ],
   "dependencies": {
     "@types/node": "^17.0.25",
-    "axios": "^1.1.3",
     "babel": "^6.23.0",
     "chalk": "^4.1.2",
     "child_process": "^1.0.2",
@@ -48,10 +47,16 @@
     "lodash": "^4.17.5",
     "node-fetch": "^2.6.7",
     "prettier": "^2.6.2",
-    "translate": "^1.4.1",
     "translation.js": "^0.7.15",
     "ts-node": "^10.7.0",
-    "typescript": "^4.6.3"
+    "typescript": "^4.6.3",
+    "axios": "^1.2.0-alpha.1",
+    "balanced-match": "^2.0.0",
+    "openapi-types": "^12.0.2",
+    "is-chinese": "^1.4.8",
+    "is-es2016-keyword": "^1.0.0",
+    "openapi": "^1.0.1",
+    "swagger2openapi": "^7.0.8"
   },
   "devDependencies": {
     "@types/escodegen": "^0.0.7",
