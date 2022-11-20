@@ -1,36 +1,58 @@
+import _ from 'lodash'
 import path from 'path'
-import DocApi from '../doc/docApi/index'
 import { Config } from '../common/config'
 import { DocListItem } from '../types/newType'
-import { createFile, firstToUpper, resolveOutPath } from '../utils'
+import { createParams, getOutputDir } from './common'
+import { FuncGroupList } from '../doc/docApi'
 import { getGenericsType } from '../doc/common/utils'
+import { createFile, getDesc } from '../utils'
+import { TypeInfoItem } from '../doc/docApi/components'
 
-export function buidTsTypeFile(doc: DocListItem, config: Config) {
-  const { outDir } = config
-  const { docApi, moduleName = '' } = doc
-  // FIXME 存在 模块重名，方法重名 问题。
-  const outputDir = path.join(resolveOutPath(outDir), `${moduleName}${moduleName ? 'M' : 'm'}odule`)
-
-  // docApi.components.typeList
+function createTypes(typeInfoList: TypeInfoItem[]) {
   let content = ''
-  for (const typeInfo of docApi.components.typeList) {
-    const [typeName, { typeItems, description, refValue }] = typeInfo
-    // console.log(typeInfo)
-    content += `interface ${typeName} ${refValue ? ` extends ${refValue.typeName}` : ''} {\n`
-    // const {  } = typeItems
+  for (const { typeName, typeInfo } of typeInfoList) {
+    const { typeItems, description, refValues, isEmpty, deprecated } = typeInfo
+
+    if (isEmpty) continue
+    const desc = getDesc(description, deprecated)
+
+    const extendsStr = refValues.length > 0 ? ` extends ${refValues.map(i => i.typeName).join(',')}` : ''
+    content += `${desc}export interface ${typeName} ${extendsStr} {\n`
     typeItems.sort((a, b) => a.name.length - b.name.length)
     for (const typeItem of typeItems) {
-      const { name, type, example, enumTypes, required, genericsItem } = typeItem
+      const { name, type, description, deprecated, example, enumTypes, required, genericsItem } = typeItem
       const typeValue = typeof type === 'string' ? type : type?.typeName
 
       const genericsType = getGenericsType(genericsItem, enumTypes)
-
-      content += `${name.replace(/-/g, '_')}${required ? '' : '?'}:${typeValue}${genericsType}\n`
+      const desc = getDesc(description, deprecated, example)
+      content += `${desc}${name.replace(/-/g, '_')}${required ? '' : '?'}:${typeValue}${genericsType}\n`
     }
-    content += '}\n'
+    content += '}\r\n\r\n'
+  }
+  return content
+}
+
+function createFuncType(funcGroupList: FuncGroupList[]): string {
+  let content = ''
+  const funcInfoList = _.flatten(funcGroupList.map(i => i.funcInfoList))
+
+  for (const funcItem of funcInfoList) {
+    const { item, name, method, apiPath, bodyName, paramsName, responseName } = funcItem
+    const { responseType, parameterType, requestBodyType } = funcItem
+    const { deprecated, description } = item
+    // const { paramTypeName } = createParams(parameterType, requestBodyType)
   }
 
-  const filePath = path.join(outputDir, 'type.d.ts')
-  console.log(filePath)
+  return content
+}
+
+export function buidTsTypeFile(doc: DocListItem, config: Config) {
+  const { docApi, moduleName = '' } = doc
+  const outputDir = getOutputDir(moduleName, config)
+
+  let content = createTypes(docApi.components.typeInfoList)
+  // content += createFuncType(docApi.funcGroupList)
+
+  const filePath = path.join(outputDir, 'types.d.ts')
   createFile(filePath, content)
 }

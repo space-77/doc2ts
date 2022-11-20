@@ -1,18 +1,18 @@
+import qs from 'qs'
 import {ImportBaseCalssName} from '{BaseClassPath}'
 
 /**
  * @description 基础工具类
  */
 export default class BaseClass extends {BaseCalssName} {
+  protected formDataType = { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' }
+
   /**
    * @description 拼接参数
    */
   protected serialize(query: Record<string, any>) {
     if (!(query instanceof Object) || Array.isArray(query)) return ''
-    return Object.entries(query)
-      .map(([k, v]) => (v !== undefined && v != null ? `${k}=${v}` : undefined))
-      .filter(Boolean)
-      .join('&')
+    return qs.stringify(query)
   }
 
   /**

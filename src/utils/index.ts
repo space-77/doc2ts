@@ -7,6 +7,7 @@ import crypto from 'crypto'
 import prettier from 'prettier'
 import { keyWordsListSet, PrettierConfig } from '../common/config'
 import { Doc2TsConfig, ModelList } from '../types/type'
+const keyword = require('is-es2016-keyword')
 
 /**
  * @param str
@@ -152,6 +153,7 @@ export function createFile(filePath: string, content: string, nolog = false) {
  * @description 格式化代码
  */
 export function format(fileContent: string, prettierOpts = {}, isTsFile: boolean) {
+  console.log(prettierOpts)
   try {
     return prettier.format(fileContent, {
       parser: isTsFile ? 'typescript' : 'babel',
@@ -273,3 +275,17 @@ export function getName(name: string) {
 export function getFuncType(funName: string) {
   return `${firstToUpper(funName)}Fun`
 }
+
+export function getDesc(description?: string, deprecated?: boolean, example?: string) {
+  if (!description && !example) return ''
+  const exampleStr = example ? `\r\n* @example ${example}` : ''
+  const deprecatedStr = deprecated ? '\r\n* @deprecated' : ''
+  const descriptionStr = description ? `\r\n* @description ${description}` : ''
+  return `/**${exampleStr}${descriptionStr}${deprecatedStr}\r\n*/\r\n`
+}
+
+export function isKeyword(key: string): boolean {
+  return keyword(key)
+}
+
+function name(key: string) {}

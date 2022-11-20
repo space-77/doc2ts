@@ -27,6 +27,7 @@ import {
 import DocApi from '../doc/docApi'
 import docInit from '../doc/index'
 import type { DocListItem } from '../types/newType'
+import { buildApiFile } from '../buildFiles/buildTsFile'
 import { buidTsTypeFile } from '../buildFiles/buildType'
 
 export default class Doc2Ts {
@@ -74,14 +75,17 @@ export default class Doc2Ts {
     // const { outDir } = this.config
     // const outputDir = resolveOutPath(outDir)
     // const typeDirPaht = path.join(outputDir, `types${modulePath}`)
+    const { prettierPath, origins } = this.config
+    await loadPrettierConfig(prettierPath)
 
-    const reqs = this.config.origins.map(async i => {
+    const reqs = origins.map(async i => {
       const docApi = await docInit(i.url)
       return { docApi, moduleName: i.name }
     })
     this.docList = await Promise.all(reqs)
 
     this.docList.forEach(i => {
+      buildApiFile(i, this.config)
       buidTsTypeFile(i, this.config)
     })
 

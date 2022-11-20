@@ -98,13 +98,14 @@ async function generateConfig(answers: InitConfig) {
 
     await createFile(CONFIG_FILE_PATH, content)
     log.success('配置文件已生成')
-    if (createBaseClass) generateBacsClass(baseClassPath, baseClassName, languageType)
+    if (createBaseClass) generateBacsClass(answers)
   } catch (error) {
     console.error(error)
   }
 }
 
-async function generateBacsClass(baseClassPath: string, baseClassName: string, languageType: Surrounding) {
+async function generateBacsClass(answers: InitConfig) {
+  const { baseClassPath, baseClassName, languageType } = answers
   log.info('基类文件生成中...')
   try {
     const isJs = /(js|javascript)/i.test(languageType)
@@ -112,12 +113,20 @@ async function generateBacsClass(baseClassPath: string, baseClassName: string, l
     let content = loadTempFile('../temp/baseClassFile')
     content = content.replace(/\{baseClassName\}/, baseClassName)
 
-    const filePath = path.join(process.cwd(), baseClassPath)
+    const filePath = path.join(process.cwd(), baseClassPath.endsWith('.ts') ? baseClassPath : `${baseClassPath}.ts`)
     await createFile(filePath, content)
+    
+    // let contentBase = loadTempFile('../temp/baseClass')
+    // const baseFilePath = path.join(process.cwd(), outDir, 'base.ts')
+    // contentBase = contentBase.replace(/\{ImportBaseCalssName\}/g, '')
+    // // content = content.replace(/\{ImportBaseCalssName\}/g, importBaseCalssName)
+    // await createFile(baseFilePath, contentBase)
 
     if (isJs) {
       ts2Js([filePath], true)
+      // ts2Js([baseFilePath], true)
       fs.unlinkSync(filePath)
+      // fs.unlinkSync(baseFilePath)
     }
 
     log.success('基类文件已生成')
