@@ -153,7 +153,6 @@ export function createFile(filePath: string, content: string, nolog = false) {
  * @description 格式化代码
  */
 export function format(fileContent: string, prettierOpts = {}, isTsFile: boolean) {
-  console.log(prettierOpts)
   try {
     return prettier.format(fileContent, {
       parser: isTsFile ? 'typescript' : 'babel',

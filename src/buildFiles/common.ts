@@ -5,7 +5,7 @@ import TypeItem from '../doc/docApi/typeItem'
 import { isKeyword, resolveOutPath } from '../utils'
 import { ComponentsChildBase } from '../doc/docApi/type'
 
-type TypeBase = ComponentsChildBase
+export type TypeBase = ComponentsChildBase
 
 export function getOutputDir(moduleName: string, { outDir }: Config) {
   // FIXME 存在 模块重名，方法重名 问题。
@@ -21,7 +21,7 @@ type ParamType = Required<TypeItem['paramType']>
 type ConstType = 'query' | 'headers' | 'path' | 'body'
 export type ParamsInfo = ReturnType<typeof createParams>
 
-export function createParams(param?: TypeBase, body?: TypeBase) {
+export function createParams(paramsTypeInfo: TypeBase[]) {
   const paramsInfo = {
     // 参数种类
     kind: 0,
@@ -37,8 +37,7 @@ export function createParams(param?: TypeBase, body?: TypeBase) {
     paramsContents: [] as { type: ConstType; content: string }[]
   }
 
-  const typeInfo = [param, body].filter(i => i && !i.isEmpty) as TypeBase[]
-  const typeItems = _.flatten(typeInfo.map(i => i.typeItems))
+  const typeItems = _.flatten(paramsTypeInfo.map(i => i.typeItems))
   const typeGroup = _.groupBy(typeItems, 'paramType')
   const typeGroupList = Object.entries(typeGroup)
 
@@ -47,17 +46,18 @@ export function createParams(param?: TypeBase, body?: TypeBase) {
   paramsInfo.typeGroupList = typeGroupList
 
   if (typeItems.length === 1) {
-    // 只有一个参数，直接取
-    const { name, type, paramType } = typeItems[0]
+    // 只有一个参数，直接取出来
+    const [{ name, paramType }] = typeItems
     paramsInfo.kind = 1
-    paramsInfo.paramType = getTypeName(type)
+    paramsInfo.paramType = `${paramsTypeInfo[0].typeName}['${name}']`
     paramsInfo.paramName = isKeyword(name) ? `_${name}` : name
     paramsInfo.paramTypes = [paramType]
   } else if (typeItems.length > 1) {
     paramsInfo.kind = typeGroupList.length
     paramsInfo.paramTypes = typeGroupList.map(([paramType]) => paramType) as TypeItem['paramType'][]
 
-    paramsInfo.paramType = typeInfo.map(i => i.typeName).join('&')
+    paramsInfo.paramType = paramsTypeInfo.map(i => i.typeName).join('&')
+
     if (typeGroupList.length === 1) {
       // 所有参数都是同一种类型
       paramsInfo.paramName = typeGroupList[0][0]
@@ -70,7 +70,7 @@ export function createParams(param?: TypeBase, body?: TypeBase) {
     }
   }
 
-  // 参数只有个一 或 参数多余一个并且参数类型大于一个时，生成参数类型重组代码。【参数类型只有一个时，形参就是对应类型名字】
+  // 参数只有个一 或 参数多于一个并且参数类型大于一个时，生成参数类型重组代码。【参数类型只有一个时，形参就是对应类型名字】
   if (typeItems.length === 1 || (typeItems.length > 1 && typeGroupList.length > 1)) {
     for (const [paramType, typeitems] of typeGroupList) {
       let key = paramType as any

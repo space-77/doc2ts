@@ -50,7 +50,7 @@ export default class Doc2Ts {
       // await this.generateFileData()
       // this.createFiles()
       // await this.transform2js()
-      log.clear()
+      // log.clear()
       log.success(log.done(' ALL DONE '))
     } catch (error) {
       console.error(error)
@@ -85,6 +85,7 @@ export default class Doc2Ts {
     this.docList = await Promise.all(reqs)
 
     this.docList.forEach(i => {
+      // fs.writeFileSync(path.join(__dirname, `../../mock/openapi.json`), JSON.stringify(i.docApi.json))
       buildApiFile(i, this.config)
       buidTsTypeFile(i, this.config)
     })
