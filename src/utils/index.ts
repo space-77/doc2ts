@@ -275,16 +275,27 @@ export function getFuncType(funName: string) {
   return `${firstToUpper(funName)}Fun`
 }
 
-export function getDesc(description?: string, deprecated?: boolean, example?: string) {
-  if (!description && !example) return ''
+type DescType = {
+  def?: string
+  title?: string
+  example?: string
+  deprecated?: boolean
+  description?: string
+  externalDocs?: { description?: string; url: string }
+}
+export function getDesc(info: DescType) {
+  const { description, deprecated, example, def, externalDocs, title } = info
+  if (!description && !example && !deprecated && !def && !externalDocs && !title) return ''
+  const { url, description: linkDescription } = externalDocs ?? {}
+  const titleStr = title ? `\r\n* @title ${title}` : ''
+  const defaultStr = def ? `\r\n* @default ${def}` : ''
   const exampleStr = example ? `\r\n* @example ${example}` : ''
   const deprecatedStr = deprecated ? '\r\n* @deprecated' : ''
   const descriptionStr = description ? `\r\n* @description ${description}` : ''
-  return `/**${exampleStr}${descriptionStr}${deprecatedStr}\r\n*/\r\n`
+  const link = url ? `\r\n* @link ${url} ${linkDescription}` : ''
+  return `/**${titleStr}${exampleStr}${defaultStr}${descriptionStr}${deprecatedStr}${link}\r\n*/\r\n`
 }
 
 export function isKeyword(key: string): boolean {
   return keyword(key)
 }
-
-function name(key: string) {}

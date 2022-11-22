@@ -1,3 +1,6 @@
+// TODO 方法缺少 title
+// TODO 整理方法的 query 入参，删除 query 声明
+
 import fs from 'fs'
 import _ from 'lodash'
 import path from 'path'
@@ -36,12 +39,12 @@ function createApiBaseClass(config: Config) {
 
 function createClass(moduleInfo: FuncGroupList, className: string, docApi: DocApi) {
   const { description, funcInfoList } = moduleInfo
-  const desc = getDesc(description)
+  const desc = getDesc({ description })
   let content = `${desc}class ${className} extends Base {`
   for (const funcItem of funcInfoList) {
     const { item, name, method, apiPath, bodyName, paramsName, responseName } = funcItem
     const { responseType, parameterType, requestBodyType } = funcItem
-    const { deprecated, description } = item
+    const { deprecated, description, externalDocs } = item
 
     const paramsTypeInfo = [parameterType, requestBodyType].filter(i => i && !i.isEmpty) as TypeBase[]
 
@@ -86,7 +89,7 @@ function createClass(moduleInfo: FuncGroupList, className: string, docApi: DocAp
       }
     }
 
-    const desc = getDesc(description, deprecated)
+    const desc = getDesc({ description, deprecated, externalDocs })
     const returnType = responseType && !responseType.isEmpty ? `<types.${responseType.typeName}>` : ''
 
     //TODO 根据返回类型 调用下载方法
