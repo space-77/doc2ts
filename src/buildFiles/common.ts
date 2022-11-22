@@ -2,10 +2,10 @@ import _ from 'lodash'
 import path from 'path'
 import { Config } from '../common/config'
 import TypeItem from '../doc/docApi/typeItem'
+import ComponentsBase from '../doc/docApi/components/base'
 import { isKeyword, resolveOutPath } from '../utils'
-import { ComponentsChildBase } from '../doc/docApi/type'
 
-export type TypeBase = ComponentsChildBase
+export type TypeBase = ComponentsBase
 
 export function getOutputDir(moduleName: string, { outDir }: Config) {
   // FIXME 存在 模块重名，方法重名 问题。

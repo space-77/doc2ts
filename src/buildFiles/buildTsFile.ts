@@ -4,14 +4,14 @@
 import fs from 'fs'
 import _ from 'lodash'
 import path from 'path'
-import { Config } from '../common/config'
-import { DocListItem } from '../types/newType'
-import { createParams, getOutputDir, TypeBase } from './common'
-import { createFile, findDiffPath, firstToLower, firstToUpper, getDesc, resolveOutPath } from '../utils'
-import RequestBodies from '../doc/docApi/components/requestBodies'
-import DocApi, { FuncGroupList } from '../doc/docApi'
 import Custom from '../doc/docApi/components/custom'
+import { Config } from '../common/config'
+import RequestBodies from '../doc/docApi/components/requestBodies'
+import { DocListItem } from '../types/newType'
 import { customInfoList } from './buildType'
+import DocApi, { FuncGroupList } from '../doc/docApi'
+import { createParams, getOutputDir, TypeBase } from './common'
+import { createFile, findDiffPath, firstToUpper, getDesc, resolveOutPath } from '../utils'
 
 const FileContentType = new Set(['application/octet-stream'])
 // FormData 的 content type
