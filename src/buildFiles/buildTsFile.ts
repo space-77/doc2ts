@@ -53,7 +53,7 @@ function createClass(moduleInfo: FuncGroupList, className: string, docApi: DocAp
       // 需要做类型合并
       typeInfo = docApi.typeGroup.addCustomType(firstToUpper(`${name}Params`), [])
       typeInfo.init()
-      typeInfo.refs.push(...paramsTypeInfo)
+      typeInfo.refs.push(...paramsTypeInfo.map(i => ({ typeInfo: i })))
       typeInfo.attrs.hide = true // 只占名字不生成类型，在 customInfoList 里生成对应类型
       customInfoList.push(typeInfo)
     }

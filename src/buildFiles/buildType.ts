@@ -36,11 +36,26 @@ function createTypes(typeInfoList: TypeInfoItem[]) {
     if (isEmpty || attrs.hide) continue
     const desc = getDesc({ description, deprecated, externalDocs, title })
 
-    const extendsStr = refs.length > 0 ? ` extends ${refs.map(({typeInfo, genericsItem}) => {
-      let t = genericsItem?.typeName
-      t = t? `<${t}>`: ''
-      return typeInfo.typeName + t
-    }).join(',')}` : ''
+    let extendsStr = ''
+
+    if (refs.length > 0) {
+      extendsStr = ' extends '
+      const ff = refs.map(({ typeInfo, genericsItem }) => {
+        let t = genericsItem?.typeName
+        console.log({ genericsItem })
+        t = t ? `<${t}>` : ''
+        // console.log(typeInfo.typeName + t)
+        return typeInfo.typeName + t
+      })
+      extendsStr += _.uniqWith(ff).join(',')
+    }
+
+    // const extendsStr = refs.length > 0 ? ` extends ${refs.map(({typeInfo, genericsItem}) => {
+    //   let t = genericsItem?.typeName
+    //   t = t ? `<${t}>`: ''
+    //   console.log(typeInfo.typeName + t)
+    //   return typeInfo.typeName + t
+    // }).join(',')}` : ''
     content += `${desc}export interface ${typeName} ${extendsStr} {\n`
     typeItems.sort((a, b) => a.name.length - b.name.length)
     for (const typeItem of typeItems) {
