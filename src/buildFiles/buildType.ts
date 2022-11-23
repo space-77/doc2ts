@@ -42,12 +42,10 @@ function createTypes(typeInfoList: TypeInfoItem[]) {
       extendsStr = ' extends '
       const ff = refs.map(({ typeInfo, genericsItem }) => {
         let t = genericsItem?.typeName
-        console.log({ genericsItem })
         t = t ? `<${t}>` : ''
-        // console.log(typeInfo.typeName + t)
         return typeInfo.typeName + t
       })
-      extendsStr += _.uniqWith(ff).join(',')
+      extendsStr += ff.join(',')
     }
 
     // const extendsStr = refs.length > 0 ? ` extends ${refs.map(({typeInfo, genericsItem}) => {
