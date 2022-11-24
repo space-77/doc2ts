@@ -44,9 +44,15 @@ function createClass(moduleInfo: FuncGroupList, className: string, docApi: DocAp
   for (const funcItem of funcInfoList) {
     const { item, name, method, apiPath, bodyName, paramsName, responseName } = funcItem
     const { responseType, parameterType, requestBodyType } = funcItem
-    const { deprecated, description, externalDocs } = item
+    const { deprecated, description, externalDocs, summary } = item
 
-    const paramsTypeInfo = [parameterType, requestBodyType].filter(i => i && !i.isEmpty) as TypeBase[]
+    let paramsTypeInfo = [parameterType, requestBodyType].filter(Boolean) as TypeBase[]
+    paramsTypeInfo.forEach(i => {
+      // TODO 文档： 过滤 cookie 类型参数
+      // TODO 文档： 过滤 header 类型参数，header 参数一般是用于设置token，token信息一般都是在拦截器为所有接口配置，不需要每个参数都显式传入
+      i.typeItems = i.typeItems.filter(({ paramType }) => paramType !== 'cookie' && paramType !== 'header')
+    })
+    paramsTypeInfo = paramsTypeInfo.filter(i => i && !i.isEmpty) as TypeBase[]
 
     let typeInfo: Custom | undefined = undefined
     if (paramsTypeInfo.length === 2) {
@@ -59,12 +65,24 @@ function createClass(moduleInfo: FuncGroupList, className: string, docApi: DocAp
     }
 
     const paramsInfo = createParams(paramsTypeInfo)
-    const { paramName, paramsContents, deconstruct, typeItems, paramType } = paramsInfo
+    const { paramName, paramsContents, deconstruct, typeItems, paramType, typeGroupList } = paramsInfo
     let paramTypeStr = typeInfo?.typeName || paramType
     paramTypeStr = paramTypeStr ? `:types.${paramTypeStr}` : ''
 
+    // 整理 query 参数
     const hasQuery = typeItems.some(i => i.paramType === 'query')
-    const query = hasQuery ? '${this.serialize(query)}' : ''
+    let query = ''
+    if (hasQuery) {
+      if (typeGroupList.length === 1 && typeItems.length > 1) {
+        query = '?${this.serialize(query)}'
+      } else {
+        const index = paramsContents.findIndex(i => i.type === 'query')
+        if (index > -1) {
+          query = `?\${this.serialize(${paramsContents[index].content})}`
+          paramsContents.splice(index, 1)
+        }
+      }
+    }
 
     const hasPath = typeItems.some(i => i.paramType === 'path')
     const urlSemicolon = hasPath || hasQuery ? '`' : "'"
@@ -89,20 +107,28 @@ function createClass(moduleInfo: FuncGroupList, className: string, docApi: DocAp
       }
     }
 
-    const desc = getDesc({ description, deprecated, externalDocs })
+    const desc = getDesc({ description, deprecated, externalDocs, summary })
     const returnType = responseType && !responseType.isEmpty ? `<types.${responseType.typeName}>` : ''
 
     //TODO 根据返回类型 调用下载方法
     // Blob ArrayBuffer
     // application/octet-stream
     const { resConentType } = responseType ?? {}
+
+    // 接口数据返回的是不是 文件流，如果是文件流则调用 下载方法
     const isFile = resConentType && FileContentType.has(resConentType)
+
+    let configStr = `{ url ${bodyStr} ${headersStr}, method: '${method}' }`
+    let urlStr = `\nconst url = ${urlSemicolon}${apiPath.replace(/\{/g, '${')}${query}${urlSemicolon}`
+    if (configStr.length + urlStr.length < 60) {
+      urlStr = ''
+      configStr = `{ url: ${urlSemicolon}${apiPath.replace(/\{/g, '${')}${query}${urlSemicolon}  ${bodyStr} ${headersStr}, method: '${method}' }`
+    }
 
     content += `\n ${desc} ${name}(${paramName}${paramTypeStr}){
       ${deconstruct}
-      ${paramsContents.map(({ type, content }) => `const ${type} = ${content}`).join('\r\n')}
-      const url = ${urlSemicolon}${apiPath.replace(/\{/g, '${')}${query}${urlSemicolon}
-      const config = { url ${bodyStr} ${headersStr}, method: '${method}' }
+      ${paramsContents.map(({ type, content }) => `const ${type} = ${content}`).join('\r\n')}${urlStr}    
+      const config = ${configStr}
       return this.${isFile ? 'download' : 'request'}${returnType}(config)
     }\n`
   }

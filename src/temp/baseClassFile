@@ -6,8 +6,13 @@ export default class {baseClassName} implements IApiClient {
     return Promise.reject('需自行实现请求逻辑')
   }
 
-  download<T=File>(config: DocReqConfig): Promise<T> {
-    // TODO 需自行实现文件下载方法逻辑
-    return Promise.reject('需自行实现请求逻辑')
+  async download<T=File>(config: DocReqConfig): Promise<T> {
+    try {
+      const blob = await this.request(config)
+      // TODO 需自行实现文件下载方法逻辑
+      return Promise.reject('需自行实现请求逻辑')
+    } catch (error) {
+      
+    }
   }
 }

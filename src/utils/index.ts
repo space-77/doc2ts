@@ -279,23 +279,31 @@ type DescType = {
   def?: string
   title?: string
   example?: string
+  summary?: string
   deprecated?: boolean
   description?: string
   externalDocs?: { description?: string; url: string }
 }
 export function getDesc(info: DescType) {
-  const { description, deprecated, example, def, externalDocs, title } = info
-  if (!description && !example && !deprecated && !def && !externalDocs && !title) return ''
+  const { description, deprecated, example, def, externalDocs, title, summary } = info
+  if (!description && !example && !deprecated && !def && !externalDocs && !title && !summary) return ''
   const { url, description: linkDescription } = externalDocs ?? {}
   const titleStr = title ? `\r\n* @title ${title}` : ''
   const defaultStr = def ? `\r\n* @default ${def}` : ''
+  const summaryStr = summary ? `\r\n* @summary ${summary}` : ''
   const exampleStr = example ? `\r\n* @example ${example}` : ''
   const deprecatedStr = deprecated ? '\r\n* @deprecated' : ''
   const descriptionStr = description ? `\r\n* @description ${description}` : ''
   const link = url ? `\r\n* @link ${url} ${linkDescription}` : ''
-  return `/**${titleStr}${exampleStr}${defaultStr}${descriptionStr}${deprecatedStr}${link}\r\n*/\r\n`
+  return `/**${titleStr}${exampleStr}${defaultStr}${summaryStr}${descriptionStr}${deprecatedStr}${link}\r\n*/\r\n`
 }
 
+// 方法已使用的名字, 避免重复声明
+const funcKeyword = new Set(['body', 'url', 'headers', 'config'])
+
+/**
+ * @description 检查变量是不是使用了js 内置的关键字 ESMA2015
+ */
 export function isKeyword(key: string): boolean {
-  return keyword(key)
+  return funcKeyword.has(key) || keyword(key)
 }

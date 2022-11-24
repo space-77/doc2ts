@@ -1,32 +1,15 @@
 import _ from 'lodash'
 import path from 'path'
-import TypeItem from '../doc/docApi/typeItem'
+// import TypeItem from '../doc/docApi/typeItem'
 import { Config } from '../common/config'
 import { DocListItem } from '../types/newType'
 import { TypeInfoItem } from '../doc/docApi/components'
-import { getGenericsType } from '../doc/common/utils'
+// import { getGenericsType } from '../doc/common/utils'
 import { createFile, getDesc } from '../utils'
 import { getOutputDir, TypeBase } from './common'
 
 // 数据整合产生的类型，使用 type 定义类型
 export const customInfoList: TypeBase[] = []
-
-function getTypeKeyValue(typeItem: TypeItem): string {
-  const { name, type, description, deprecated, example, enumTypes, required, genericsItem } = typeItem
-  const { nullable, default: def, externalDocs, children = [] } = typeItem
-  let typeValue = typeof type === 'string' ? type : type?.typeName
-
-  if (children.length > 0) {
-    typeValue = `{${children.map(i => getTypeKeyValue(i)).join('')}}`
-  }
-
-  if (typeValue && nullable) typeValue += '| null'
-
-  const genericsType = getGenericsType(genericsItem, enumTypes)
-  const desc = getDesc({ description, deprecated, example, def, externalDocs })
-
-  return `${desc}${name.replace(/-/g, '_')}${required ? '' : '?'}:${typeValue}${genericsType}\n`
-}
 
 function createTypes(typeInfoList: TypeInfoItem[]) {
   let content = ''
@@ -41,7 +24,12 @@ function createTypes(typeInfoList: TypeInfoItem[]) {
     if (refs.length > 0) {
       extendsStr = ' extends '
       const ff = refs.map(({ typeInfo, genericsItem }) => {
-        let t = genericsItem?.typeName
+        let t = ''
+        if (typeof genericsItem === 'string') {
+          t = genericsItem
+        } else if (genericsItem) {
+          t = genericsItem.typeName
+        }
         t = t ? `<${t}>` : ''
         return typeInfo.typeName + t
       })
@@ -57,7 +45,7 @@ function createTypes(typeInfoList: TypeInfoItem[]) {
     content += `${desc}export interface ${typeName} ${extendsStr} {\n`
     typeItems.sort((a, b) => a.name.length - b.name.length)
     for (const typeItem of typeItems) {
-      content += getTypeKeyValue(typeItem)
+      content += typeItem.getTypeValue() // getTypeKeyValue(typeItem)
     }
     content += '}\r\n\r\n'
   }
@@ -74,7 +62,7 @@ function createCustomType() {
     if (typeItems.length > 0) {
       typeStr += '{'
       for (const typeItem of typeItems) {
-        typeStr += getTypeKeyValue(typeItem)
+        typeStr += typeItem.getTypeValue() // getTypeKeyValue(typeItem)
       }
       typeStr += '}'
     }
