@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'fs-extra'
 import log from '../utils/log'
 import Api from '../utils/api'
 import path from 'path'
@@ -29,6 +29,7 @@ import docInit from '../doc/index'
 import type { DocListItem } from '../types/newType'
 import { buildApiFile } from '../buildFiles/buildTsFile'
 import { buidTsTypeFile } from '../buildFiles/buildType'
+import { DictList } from '../doc/common/translate'
 
 export default class Doc2Ts {
   api = new Api()
@@ -73,13 +74,17 @@ export default class Doc2Ts {
 
   async initRemoteDataSource() {
     // const { outDir } = this.config
-    // const outputDir = resolveOutPath(outDir)
     // const typeDirPaht = path.join(outputDir, `types${modulePath}`)
-    const { prettierPath, origins } = this.config
+    const { prettierPath, origins, outDir } = this.config
+    const outputDir = resolveOutPath(outDir)
     await loadPrettierConfig(prettierPath)
 
     const reqs = origins.map(async i => {
-      const docApi = await docInit(i.url)
+      const dictPath = path.join(outputDir, `dicts/${i.name ?? 'dict'}.json`)
+      const dictListJson: DictList[] = fs.existsSync(dictPath) ? require(dictPath) : []
+      const { docApi, dictList } = await docInit(i.url, dictListJson)
+      fs.createFileSync(dictPath)
+      fs.writeFileSync(dictPath, JSON.stringify(dictList, null, 2))
       return { docApi, moduleName: i.name }
     })
     this.docList = await Promise.all(reqs)

@@ -11,7 +11,7 @@ import { DocListItem } from '../types/newType'
 import { customInfoList } from './buildType'
 import DocApi, { FuncGroupList } from '../doc/docApi'
 import { createParams, getOutputDir, TypeBase } from './common'
-import { createFile, findDiffPath, firstToUpper, getDesc, resolveOutPath } from '../utils'
+import { createFile, findDiffPath, firstToLower, firstToUpper, getDesc, resolveOutPath } from '../utils'
 
 const FileContentType = new Set(['application/octet-stream'])
 // FormData 的 content type
@@ -149,7 +149,7 @@ export function buildApiFile(doc: DocListItem, config: Config) {
     content = `import type * as types from './types'\n${content}`
     content = `${content}\nexport default new ${className}()`
 
-    const filePaht = path.join(outputDir, `${fileName}.ts`)
+    const filePaht = path.join(outputDir, `${firstToLower(fileName)}.ts`)
     createFile(filePaht, content)
   }
 

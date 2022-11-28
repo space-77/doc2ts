@@ -16,7 +16,8 @@ function createTypes(typeInfoList: TypeInfoItem[]) {
   for (const { typeName, typeInfo } of typeInfoList) {
     const { typeItems, description, refs, isEmpty, deprecated, attrs, externalDocs, title } = typeInfo
 
-    if (isEmpty || attrs.hide) continue
+    // if (isEmpty || attrs.hide) continue
+    if (attrs.hide) continue
     const desc = getDesc({ description, deprecated, externalDocs, title })
 
     let extendsStr = ''
