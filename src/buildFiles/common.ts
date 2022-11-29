@@ -21,14 +21,14 @@ type ParamType = Required<TypeItem['paramType']>
 type ConstType = 'query' | 'headers' | 'path' | 'body'
 export type ParamsInfo = ReturnType<typeof createParams>
 
-export function createParams(paramsTypeInfo: TypeBase[]) {
+export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) {
   const paramsInfo = {
     // 参数种类
     kind: 0,
     resType: '',
     paramType: '',
     paramName: '',
-    typeItems: [] as TypeItem[],
+    // typeItems: [] as TypeItem[],
     deconstruct: '', // 参数解构
     paramTypes: [] as ParamType[],
     typeGroupList: [] as [string, TypeItem[]][],
@@ -37,11 +37,11 @@ export function createParams(paramsTypeInfo: TypeBase[]) {
     paramsContents: [] as { type: ConstType; content: string }[]
   }
 
-  const typeItems = _.flatten(paramsTypeInfo.map(i => i.getTypeItems()))
+  // const typeItems = _.flatten(paramsTypeInfo.map(i => i.getTypeItems()))
   const typeGroup = _.groupBy(typeItems, 'paramType')
   const typeGroupList = Object.entries(typeGroup)
 
-  paramsInfo.typeItems = typeItems
+  // paramsInfo.typeItems = typeItems
   // paramsInfo.typeLength = typeItems.length
   paramsInfo.typeGroupList = typeGroupList
 

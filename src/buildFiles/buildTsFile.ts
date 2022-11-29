@@ -41,9 +41,11 @@ function createApiBaseClass(config: Config) {
   fileList.push({ filePath, content })
 }
 
-function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi) {
+function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, config: Config) {
   const { tagInfo, pathItems } = moduleInfo
   const { description } = tagInfo ?? {}
+
+  const { disableParams = [] } = config
 
   const desc = getDesc({ description })
   let content = `${desc}class ${className} extends Base {`
@@ -53,11 +55,14 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi) {
     const { deprecated, description, externalDocs, summary } = item
 
     let paramsTypeInfo = [parameterType, requestBodyType].filter(Boolean) as TypeBase[]
-    paramsTypeInfo.forEach(i => {
-      // TODO 文档： 过滤 cookie 类型参数
-      // TODO 文档： 过滤 header 类型参数，header 参数一般是用于设置token，token信息一般都是在拦截器为所有接口配置，不需要每个参数都显式传入
-      i.typeItems = i.typeItems.filter(({ paramType }) => paramType !== 'cookie' && paramType !== 'header')
-    })
+
+    let typeItems = _.flatten(paramsTypeInfo.map(i => i.getTypeItems()))
+
+    // TODO 文档： 过滤 cookie 类型参数
+    // TODO 文档： 过滤 header 类型参数，header 参数一般是用于设置token，token信息一般都是在拦截器为所有接口配置，不需要每个参数都显式传入
+    typeItems = typeItems.filter(({ paramType }) => paramType !== 'cookie' && paramType !== 'header')
+    typeItems = typeItems.filter(({ paramType, name }) => !disableParams.find(i => i.name === name && i.type === paramType))
+
     paramsTypeInfo = paramsTypeInfo.filter(i => i && !i.isEmpty) as TypeBase[]
 
     let typeInfo: Custom | undefined = undefined
@@ -70,8 +75,8 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi) {
       customInfoList.push(typeInfo)
     }
 
-    const paramsInfo = createParams(paramsTypeInfo)
-    const { paramName = '', paramsContents, deconstruct, typeItems, paramType, typeGroupList } = paramsInfo
+    const paramsInfo = createParams(paramsTypeInfo, typeItems)
+    const { paramName = '', paramsContents, deconstruct, paramType, typeGroupList } = paramsInfo
     let paramTypeStr = ''
     if (typeItems.length > 0) {
       paramTypeStr = typeInfo?.typeName || paramType
@@ -157,7 +162,7 @@ export function buildApiFile(doc: DocListItem, config: Config) {
   for (const moduleInfo of funcGroupList) {
     const { moduleName: fileName } = moduleInfo
     const className = firstToUpper(fileName)
-    let content = createClass(moduleInfo, className, docApi)
+    let content = createClass(moduleInfo, className, docApi, config)
     content = `import type * as types from './types'\n${content}`
     content = `import Base from '../base'\n${content}`
     content = `${content}\nexport default new ${className}()`
