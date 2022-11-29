@@ -88,12 +88,6 @@ export type Doc2TsConfig = {
   outDir: string
 
   /**
-   * @default true
-   * @description 生成文件前，是否清空文件输出文件夹
-   */
-  clearOutDir?: boolean
-
-  /**
    * @default ApiClient
    * @description 每个模块继承的基类名称， 注意：基类必须 实现 IApiClient 接口
    */
@@ -143,17 +137,6 @@ export type Doc2TsConfig = {
     | ((typeName: string, typeInfo: Property[], info: { modelName?: string; funId?: string }) => string)
 
   /**
-   * @description 模块改名
-   * @description 传入 正则类型或字符串类型则对模块名称进行 `name.replace` 操作
-   */
-  rename?: RegExp | string | ((modelName: string) => string)
-
-  /**
-   * @description 隐藏请求方法，达到简化代码
-   */
-  hideMethod?: boolean
-
-  /**
    * @param content 即将生成文件的内容
    * @param moduleName 文件对应的模块名称
    * @param config  配置文件
@@ -168,13 +151,7 @@ export type Doc2TsConfig = {
    */
   typeFileRender?(content: string, modelName: string): string
 
-  generateTypeRender?(operation: GenerateTypeRender): RenderVlaue[]
-
-  // moduleConfig?: ModuleConfig
-
-  methodConfig?: {
-    [key: string]: MethodConfig
-  }
+  generateTypeRender?(typeName: string, typeInfo: TypeInfoBase): TypeInfoBase
 }
 
 export type Doc2TsConfigKey = keyof Doc2TsConfig
@@ -187,16 +164,12 @@ export type ModelInfo = {
   dirPath: string
   filePath: string
   fileName: string
-  hideMethod: boolean
   moduleName?: string
   interfaces: Interface[]
   typeDirPaht: string
   description: string
   diffClassPath: string
   render: Doc2TsConfig['render']
-  methodConfig?: {
-    [key: string]: MethodConfig
-  }
   // resultTypeRender: Doc2TsConfig['resultTypeRender']
 }
 

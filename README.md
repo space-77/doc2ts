@@ -197,20 +197,6 @@ export default {
 } as Doc2TsConfig
 ```
 
-### 清空文件输出文件夹
-
-- 参数：`clearOutDir`
-- 必传：`否`
-- 类型：`Boolean`
-- 默认：`true`
-- 说明：成文件前，是否清空文件输出文件夹
-
-```typescript
-export default {
-  clearOutDir: true
-} as Doc2TsConfig
-```
-
 ### 基类位置
 
 - 参数：`baseClassPath`
@@ -380,13 +366,13 @@ export default {
 
 - 参数：`render`
 - 必传：`否`
-- 类型：`(content: string, modelName: string, config: Doc2TsConfig['config']) => string`
+- 类型：`(content: string, modelName: string) => string`
 - 默认：``
 - 说明：生成接口文件前的钩子，用于修改生成的内容
 
 ```typescript
 export default {
-  render(content, modelName, config) {
+  render(content, modelName) {
     // TODO
     return 'xxx'
   }
@@ -397,13 +383,13 @@ export default {
 
 - 参数：`typeFileRender`
 - 必传：`否`
-- 类型：`(content: string, modelName: string, config: Doc2TsConfig['config']) => string`
+- 类型：`(content: string, modelName: string) => string`
 - 默认：``
 - 说明：生成接口类型文件前的钩子，用于修改生成内容
 
 ```typescript
 export default {
-  typeFileRender(content, modelName, config) {
+  typeFileRender(content, modelName) {
     // TODO
     return 'xxx'
   }
@@ -414,89 +400,21 @@ export default {
 
 - 参数：`generateTypeRender`
 - 必传：`否`
-- 类型：`(operation: GenerateTypeRender) => RenderVlaue[]`
+- 类型：`(typeName: string, typeInfo: TypeInfoBase) => TypeInfoBase`
 - 默认：``
 - 说明：生成类型前的回调函数，用于修改生成内容
 
 ```typescript
 export default {
-  generateTypeRender({fileName; typeName, values}) {
+  generateTypeRender(typeName, typeInfo) {
     // TODO
     // eg: 把 某个文件下的 某个类型的某个值，由 可选 改为 必选
-    if (fileName === 'xxxx' && typeName === 'xxx' ) {
-      values.forEach(i => {
-        if (i.name === 'xx') i.required = true        
+    if (typeName === 'xxx' ) {
+      typeInfo.typeItems.forEach(i => {
+        i.required = true
       })
     }
-    return values
+    return typeInfo
   }
 } as Doc2TsConfig
-```
-
-### 请求接口方法配置
-
-- 参数：`methodConfig.name`
-- 必传：`否`
-- 类型：`MethodConfig`
-- 默认：``
-- 说明：
-  1.  `xxxName` 每个接口请求方法上的一个 `@name xxx`的注释 xxxName
-
-```typescript
-export default {
-  methodConfig: {
-    "xxxName": {
-      ...
-    }
-  }
-} as Doc2TsConfig
-```
-
-##### 修改某个请求接口方法描述
-
-- 参数：`moduleConfig.name.description`
-- 必传：`否`
-- 类型：`String`
-- 默认：``
-- 说明：
-  1. 修改方法描述
-  2. `xxxName` 每个接口请求方法上的一个 `@name xxx`的注释 xxxName
-
-```typescript
-export default {
-  methodConfig: {
-    xxxName: {
-      description: 'xxx'
-    }
-  }
-} as Doc2TsConfig
-```
-
-##### 自定义接口配置参数
-
-- 参数：`moduleConfig.name.config`
-- 必传：`否`
-- 类型：`Object`
-- 默认：``
-- 说明：
-  1. 接口的自定义配置，会传递到调用对应基类的方法里
-  2. `xxxName` 每个接口请求方法上的一个 `@name xxx`的注释 xxxName
-  3. 在基类里的 `request` 方法可以的入参 `params.config` 拿到该方法的 `config` 信息
-
-```typescript
-export default {
-  moduleConfig: {
-    'xxxName': {
-      config: {...}
-    }
-  }
-} as Doc2TsConfig
-
-// 基类文件
-export default class ApiClient implements IApiClient {
-  request(params: DocReqConfig): Promise<any> {
-    const { config } = params
-    // config 即特定方法，自定义接口配置参数
-  }
-}
 ```

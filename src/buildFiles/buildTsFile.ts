@@ -5,16 +5,20 @@ import _ from 'lodash'
 import path from 'path'
 import Custom from '../doc/docApi/components/custom'
 import { Config } from '../common/config'
+import { fileList } from '../generators/fileList'
 import RequestBodies from '../doc/docApi/components/requestBodies'
 import { DocListItem } from '../types/newType'
 import { customInfoList } from './buildType'
 import DocApi, { PathInfo } from '../doc/docApi'
 import { createParams, getOutputDir, TypeBase } from './common'
-import { createFile, findDiffPath, firstToLower, firstToUpper, getDesc, resolveOutPath } from '../utils'
+import { findDiffPath, firstToLower, firstToUpper, getDesc, resolveOutPath } from '../utils'
 
 const FileContentType = new Set(['application/octet-stream'])
-// FormData 的 content type
 const FormDataKey = new Set(['multipart/form-data', 'application/x-www-form-urlencoded'])
+const indexFileContent: string[] = []
+
+export const importList: string[] = []
+export const exportList: string[] = []
 
 /***
  * @desc 创建内部 api calss 继承的基类
@@ -23,17 +27,18 @@ function createApiBaseClass(config: Config) {
   const { outDir, baseClassName: importBaseCalssName, baseClassPath } = config
 
   let content = fs.readFileSync(path.join(__dirname, '../temp/baseClass')).toString()
-  const baseFilePath = path.join(process.cwd(), outDir, 'base.ts')
+  const filePath = path.join(process.cwd(), outDir, 'base.ts')
 
   const baseClassName = importBaseCalssName.replace(/^\{(.+)\}$/, (_, $1) => $1)
-  const tempClassDirList = baseFilePath.split(path.sep)
+  const tempClassDirList = filePath.split(path.sep)
   const tempClassDir = path.join(...tempClassDirList.slice(0, tempClassDirList.length - 1))
   const importPath = findDiffPath(tempClassDir, resolveOutPath(baseClassPath))
 
   content = content.replace(/\{BaseClassPath\}/g, importPath)
   content = content.replace(/\{BaseCalssName\}/g, baseClassName)
   content = content.replace(/\{ImportBaseCalssName\}/g, importBaseCalssName)
-  createFile(baseFilePath, content)
+  // createFile(filePath, content)
+  fileList.push({ filePath, content })
 }
 
 function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi) {
@@ -43,7 +48,7 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi) {
   const desc = getDesc({ description })
   let content = `${desc}class ${className} extends Base {`
   for (const funcItem of pathItems) {
-    const { item, name, method, apiPath, bodyName, paramsName, responseName } = funcItem
+    const { item, name, method, apiPath } = funcItem
     const { responseType, parameterType, requestBodyType } = funcItem
     const { deprecated, description, externalDocs, summary } = item
 
@@ -143,6 +148,9 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi) {
 
 export function buildApiFile(doc: DocListItem, config: Config) {
   const { docApi, moduleName = '' } = doc
+  const { outDir, render } = config
+  const outDirDir = resolveOutPath(outDir)
+  // const indexPath = path.join(resolveOutPath(outDir), 'index.ts')
   const outputDir = getOutputDir(moduleName, config)
   const { funcGroupList } = docApi
 
@@ -150,12 +158,27 @@ export function buildApiFile(doc: DocListItem, config: Config) {
     const { moduleName: fileName } = moduleInfo
     const className = firstToUpper(fileName)
     let content = createClass(moduleInfo, className, docApi)
-    content = `import Base from '../base'\n${content}`
     content = `import type * as types from './types'\n${content}`
+    content = `import Base from '../base'\n${content}`
     content = `${content}\nexport default new ${className}()`
 
-    const filePaht = path.join(outputDir, `${firstToLower(fileName)}.ts`)
-    createFile(filePaht, content)
+    const _fileName = firstToLower(fileName)
+    const filePath = path.join(outputDir, `${firstToLower(fileName)}.ts`)
+
+    if (typeof render === 'function') {
+      content = render(content, filePath)
+    }
+
+    fileList.push({ filePath, content })
+
+    // console.log(outDirDir)
+    // console.log(filePath)
+    const fileExPath = findDiffPath(outDirDir, filePath).replace(/\.ts$/, '')
+    importList.push(`import ${_fileName} from '${fileExPath}'`)
+    exportList.push(_fileName)
+    // indexContnt += `import ${_fileName} from '${fileExPath}'`
+
+    // indexFileContent
   }
 
   createApiBaseClass(config)

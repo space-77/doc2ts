@@ -3,7 +3,6 @@ import ts, { ModuleKind, ScriptTarget } from 'typescript'
 import Api from './api'
 import log from './log'
 import path from 'path'
-import crypto from 'crypto'
 import prettier from 'prettier'
 import { keyWordsListSet, PrettierConfig } from '../common/config'
 import { Doc2TsConfig, ModelList } from '../types/type'
@@ -111,14 +110,14 @@ export async function getConfig(configPath: string): Promise<Doc2TsConfig> {
   }
 }
 
-export function rename(name: string, method: Doc2TsConfig['rename']) {
-  if (typeof method === 'function') {
-    return method(name)
-  } else if (typeof method === 'string' || method instanceof RegExp) {
-    return name.replace(method, '')
-  }
-  return name
-}
+// export function rename(name: string, method: Doc2TsConfig['rename']) {
+//   if (typeof method === 'function') {
+//     return method(name)
+//   } else if (typeof method === 'string' || method instanceof RegExp) {
+//     return name.replace(method, '')
+//   }
+//   return name
+// }
 
 /**
  * @param preDirPath
