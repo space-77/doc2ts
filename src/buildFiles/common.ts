@@ -37,7 +37,7 @@ export function createParams(paramsTypeInfo: TypeBase[]) {
     paramsContents: [] as { type: ConstType; content: string }[]
   }
 
-  const typeItems = _.flatten(paramsTypeInfo.map(i => i.typeItems))
+  const typeItems = _.flatten(paramsTypeInfo.map(i => i.getTypeItems()))
   const typeGroup = _.groupBy(typeItems, 'paramType')
   const typeGroupList = Object.entries(typeGroup)
 
@@ -59,14 +59,20 @@ export function createParams(paramsTypeInfo: TypeBase[]) {
     paramsInfo.paramType = paramsTypeInfo.map(i => i.typeName).join('&')
 
     if (typeGroupList.length === 1) {
-      // 所有参数都是同一种类型
-      paramsInfo.paramName = typeGroupList[0][0]
+      // 所有参数都是同一种类型，这里是多个参数一起，需要解构
+      const paramName = typeGroupList[0][0]
+      if (paramName === 'path') {
+        const params = typeItems.map(({ name }) => `${isKeyword(name) ? `_${name}` : name}`)
+        paramsInfo.paramName = `{${params.join(',')}}`
+      } else {
+        paramsInfo.paramName = paramName
+      }
     } else if (typeGroupList.length > 1) {
       // 存在不同类型的参数，需要分开
       paramsInfo.paramName = 'params'
       // 参数结构
-      const deconstructStr = typeItems.map(({ name }) => `${isKeyword(name) ? `_${name}` : name}`)
-      paramsInfo.deconstruct = `const {${deconstructStr.join(',')}} = params`
+      const params = typeItems.map(({ name }) => `${isKeyword(name) ? `_${name}` : name}`)
+      paramsInfo.deconstruct = `const {${params.join(',')}} = params`
     }
   }
 

@@ -1,5 +1,4 @@
 // TODO 方法缺少 title
-// TODO 整理方法的 query 入参，删除 query 声明
 
 import fs from 'fs'
 import _ from 'lodash'
@@ -9,7 +8,7 @@ import { Config } from '../common/config'
 import RequestBodies from '../doc/docApi/components/requestBodies'
 import { DocListItem } from '../types/newType'
 import { customInfoList } from './buildType'
-import DocApi, { FuncGroupList } from '../doc/docApi'
+import DocApi, { PathInfo } from '../doc/docApi'
 import { createParams, getOutputDir, TypeBase } from './common'
 import { createFile, findDiffPath, firstToLower, firstToUpper, getDesc, resolveOutPath } from '../utils'
 
@@ -37,11 +36,13 @@ function createApiBaseClass(config: Config) {
   createFile(baseFilePath, content)
 }
 
-function createClass(moduleInfo: FuncGroupList, className: string, docApi: DocApi) {
-  const { description, funcInfoList } = moduleInfo
+function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi) {
+  const { tagInfo, pathItems } = moduleInfo
+  const { description } = tagInfo ?? {}
+
   const desc = getDesc({ description })
   let content = `${desc}class ${className} extends Base {`
-  for (const funcItem of funcInfoList) {
+  for (const funcItem of pathItems) {
     const { item, name, method, apiPath, bodyName, paramsName, responseName } = funcItem
     const { responseType, parameterType, requestBodyType } = funcItem
     const { deprecated, description, externalDocs, summary } = item
@@ -65,9 +66,12 @@ function createClass(moduleInfo: FuncGroupList, className: string, docApi: DocAp
     }
 
     const paramsInfo = createParams(paramsTypeInfo)
-    const { paramName, paramsContents, deconstruct, typeItems, paramType, typeGroupList } = paramsInfo
-    let paramTypeStr = typeInfo?.typeName || paramType
-    paramTypeStr = paramTypeStr ? `:types.${paramTypeStr}` : ''
+    const { paramName = '', paramsContents, deconstruct, typeItems, paramType, typeGroupList } = paramsInfo
+    let paramTypeStr = ''
+    if (typeItems.length > 0) {
+      paramTypeStr = typeInfo?.typeName || paramType
+      paramTypeStr = paramTypeStr ? `:types.${paramTypeStr}` : ''
+    }
 
     // 整理 query 参数
     const hasQuery = typeItems.some(i => i.paramType === 'query')
@@ -122,7 +126,8 @@ function createClass(moduleInfo: FuncGroupList, className: string, docApi: DocAp
     let urlStr = `\nconst url = ${urlSemicolon}${apiPath.replace(/\{/g, '${')}${query}${urlSemicolon}`
     if (configStr.length + urlStr.length < 60) {
       urlStr = ''
-      configStr = `{ url: ${urlSemicolon}${apiPath.replace(/\{/g, '${')}${query}${urlSemicolon}  ${bodyStr} ${headersStr}, method: '${method}' }`
+      const url = apiPath.replace(/\{/g, '${')
+      configStr = `{ url: ${urlSemicolon}${url}${query}${urlSemicolon}  ${bodyStr} ${headersStr}, method: '${method}' }`
     }
 
     content += `\n ${desc} ${name}(${paramName}${paramTypeStr}){

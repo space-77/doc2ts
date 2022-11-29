@@ -31,8 +31,7 @@ function createTypes(typeInfoList: TypeInfoItem[]) {
         } else if (genericsItem) {
           t = genericsItem.typeName
         }
-        t = t ? `<${t}>` : ''
-        return typeInfo.typeName + t
+        return typeInfo.typeName + (t ? `<${t}>` : '')
       })
       extendsStr += ff.join(',')
     }
