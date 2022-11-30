@@ -1,6 +1,6 @@
 {
   "name": "doc2ts",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "description": "根据接口文档生成ts接口文件",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -50,7 +50,7 @@
     "prettier": "^2.6.2",
     "qs": "*",
     "ts-node": "^10.7.0",
-    "doc-pre-data": "1.0.0-beta.1",
+    "doc-pre-data": "1.0.0-beta.2",
     "typescript": "^4.6.3"
   },
   "devDependencies": {

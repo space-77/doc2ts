@@ -39,14 +39,27 @@ function createApiBaseClass(config: Config) {
   fileList.push({ filePath, content })
 }
 
+function getClientPath(config: Config, filePath: string) {
+  const { baseClassPath } = config
+  const tempClassDirList = filePath.split(path.sep)
+  const tempClassDir = path.join(...tempClassDirList.slice(0, tempClassDirList.length - 1))
+  return findDiffPath(tempClassDir, resolveOutPath(baseClassPath))
+}
+
+function getBaseFileName(config: Config) {
+  const { baseClassName } = config
+  return baseClassName.replace(/^\{(.+)\}$/, (_, $1) => $1)
+}
+
 function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, config: Config) {
   const { tagInfo, pathItems } = moduleInfo
   const { description } = tagInfo ?? {}
 
   const { disableParams = [] } = config
+  const baseClassName = getBaseFileName(config)
 
   const desc = getDesc({ description })
-  let content = `${desc}class ${className} extends Base {`
+  let content = `${desc}class ${className} extends ${baseClassName} {`
   for (const funcItem of pathItems) {
     const { item, name, method, apiPath } = funcItem
     const { responseType, parameterType, requestBodyType } = funcItem
@@ -55,18 +68,20 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
     // FIXME 这里不能拿真身，真身的 paramType 不一样
     let paramsTypeInfo = [parameterType, requestBodyType].filter(Boolean) as TypeBase[]
 
-    let typeItems = _.flatten(paramsTypeInfo.map(i => i.getTypeItems()))
+    let typeItems = _.uniqBy(_.flatten(paramsTypeInfo.map(i => i.getTypeItems())), 'name')
 
     // TODO 文档： 过滤 cookie 类型参数
     // TODO 文档： 过滤 header 类型参数，header 参数一般是用于设置token，token信息一般都是在拦截器为所有接口配置，不需要每个参数都显式传入
 
-    typeItems = typeItems.filter(i => {
-      i.disable =
-        i.paramType === 'cookie' ||
-        // paramType === 'header' ||
-        !!disableParams.find(j => j.name === i.name && j.type === i.paramType)
-      return !i.disable
-    })
+    typeItems = typeItems
+      .filter(i => {
+        i.disable =
+          i.paramType === 'cookie' ||
+          // paramType === 'header' ||
+          !!disableParams.find(j => j.name === i.name && j.type === i.paramType)
+        return !i.disable
+      })
+      .sort((a, b) => a.name.length - b.name.length)
 
     paramsTypeInfo = paramsTypeInfo.filter(i => i && !i.isEmpty) as TypeBase[]
 
@@ -148,7 +163,7 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
     content += `\n ${desc} ${name}(${paramName}${paramTypeStr}){
       ${deconstruct}
       ${paramsContents.map(({ type, content }) => `const ${type} = ${content}`).join('\r\n')}${urlStr}    
-      const config = ${configStr}
+      const config: DocReqConfig = ${configStr}
       return this.${isFile ? 'download' : 'request'}${returnType}(config)
     }\n`
   }
@@ -164,16 +179,20 @@ export function buildApiFile(doc: DocListItem, config: Config) {
   const outputDir = getOutputDir(moduleName, config)
   const { funcGroupList } = docApi
 
+  const baseName = getBaseFileName(config)
+
   for (const moduleInfo of funcGroupList) {
     const { moduleName: fileName } = moduleInfo
     const className = firstToUpper(fileName)
+    const filePath = path.join(outputDir, `${firstToLower(fileName)}.ts`)
+
     let content = createClass(moduleInfo, className, docApi, config)
+    content = `import type { DocReqConfig } from "doc2ts";\n${content}`
     content = `import type * as types from './types'\n${content}`
-    content = `import Base from '../base'\n${content}`
+    content = `import ${baseName} from '${getClientPath(config, filePath)}'\n${content}`
     content = `${content}\nexport default new ${className}()`
 
     const _fileName = firstToLower(fileName)
-    const filePath = path.join(outputDir, `${firstToLower(fileName)}.ts`)
 
     if (typeof render === 'function') {
       content = render(content, filePath)
@@ -191,5 +210,5 @@ export function buildApiFile(doc: DocListItem, config: Config) {
     // indexFileContent
   }
 
-  createApiBaseClass(config)
+  // createApiBaseClass(config)
 }

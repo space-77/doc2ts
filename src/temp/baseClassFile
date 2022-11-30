@@ -1,18 +1,41 @@
+import {qs} from 'doc2ts'
 import type { IApiClient, DocReqConfig } from 'doc2ts'
 
 export default class {baseClassName} implements IApiClient {
+  protected formDataType = { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' }
+
   request<T=any>(config: DocReqConfig): Promise<T> {
     // TODO 需自行实现请求逻辑
     return Promise.reject('需自行实现请求逻辑')
   }
 
-  async download<T=File>(config: DocReqConfig): Promise<T> {
+  async download<T=ArrayBuffer>(config: DocReqConfig): Promise<T> {
     try {
       const blob = await this.request(config)
       // TODO 需自行实现文件下载方法逻辑
       return Promise.reject('需自行实现请求逻辑')
     } catch (error) {
-      
+      return Promise.reject(error)
     }
+  }
+
+  /**
+   * @description 拼接参数
+   */
+  protected serialize(query: Record<string, any>) {
+    if (!(query instanceof Object) || Array.isArray(query)) return ''
+    return qs.stringify(query)
+  }
+
+  /**
+   * @description 创建 formdata
+   */
+  protected formData(formData: Record<string, any>) {
+    if (!(formData instanceof Object) || Array.isArray(formData)) return
+    const fd = new URLSearchParams()
+    Object.entries(formData).forEach(([k, v]) => {
+      fd.set(k, v)
+    })
+    return fd
   }
 }

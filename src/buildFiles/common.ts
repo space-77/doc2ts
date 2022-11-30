@@ -128,5 +128,5 @@ export function createReturnType(config: Config, docApi: DocApi, funcName: strin
     }
     return `<types.${createNewType(typeValue)}>`
   }
-  return responseType ? `<types.${responseType.getRealBody().typeName}>` : 'any'
+  return responseType ? `<types.${responseType.getRealBody().typeName}>` : '<any>'
 }
