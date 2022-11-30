@@ -1,4 +1,4 @@
-import type { TypeInfoBase, TypeItem } from '../doc'
+import type { TypeInfoBase, TypeItem } from 'doc-pre-data'
 
 export interface ModelList {
   url: string
