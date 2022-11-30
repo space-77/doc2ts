@@ -306,7 +306,7 @@ export default {
 
 - 参数：`resultTypeRender`
 - 必传：`否`
-- 类型：`(typeName: string, typeInfo: Property[]) => string`
+- 类型：`(funcName: string, typeInfo?: TypeInfoBase) => string`
 - 默认：``
 - 说明：
   1.  可以根据自己的需求去自定义返回类型
@@ -317,8 +317,8 @@ export default {
 ```typescript
 // 默认
 export default {
-  resultTypeRender(typeName, typeInfo) {
-    return `Promise<${typeName}>` // default
+  resultTypeRender(funcName, typeInfo) {
+    return `${typeInfo.ypeName}` // default
   }
 } as Doc2TsConfig
 
@@ -334,11 +334,15 @@ export default {
 
 // 回调函数方式
 export default {
-  resultTypeRender(typeName, typeInfo) {
-    // 检查返回类型里是否包含 'data' 字段，预防类型异常
-    const hasKey = typeInfo.some(i => i.name === 'data')
-    // 重新定义数据返回类型
-    return `Promise<${hasKey ? `[any, ${typeName}['data'], ${typeName}]` : typeName}>`
+  resultTypeRender(funcName, typeInfo) {
+    if (typeInfo) return `any[]`
+    // 查找 'data' 字段类型
+    const typeItem = typeInfo.typeItems.find(i => i.name === 'data')
+    const resTypeName = typeInfo.typeName
+    if (typeItem) {
+      return `[any, ${resTypeName}['${typeItem}'], ${resTypeName}]`
+    }
+    return `any[]`
   }
 } as Doc2TsConfig
 
@@ -353,12 +357,12 @@ const [err, data, res] = response
 字符串方式
 
 - `{typeName}`会被替换成返回数据类型名字
-- `{dataKey:xxx}` 这个结构会替换 `xxx`
+- `{typeName}["xxx"]` 这个结构会取出类名名字里的一个值
 
 ```typescript
-// 字符串方式, 以下方式结果是 Promise<[any, Xxx["data"], Xxx]>
+// 字符串方式, 以下方式结果是 [any, Xxx["data"], Xxx]
 export default {
-  resultTypeRender: 'Promise<[any, {typeName}["{dataKey:data}"], {typeName}]>'
+  resultTypeRender: '[any, {typeName}["data"], {typeName}]'
 } as Doc2TsConfig
 ```
 

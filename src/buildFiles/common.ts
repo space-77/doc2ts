@@ -1,9 +1,11 @@
 import _ from 'lodash'
 import path from 'path'
 import { Config } from '../common/config'
-import TypeItem from '../doc/docApi/typeItem'
-import TypeInfoBase from '../doc/docApi/components/base'
-import { isKeyword, resolveOutPath } from '../utils'
+import { TypeDataKey } from '../common/reg'
+import { typeStringList } from './buildType'
+import { FileContentType } from './buildTsFile'
+import { DocApi, TypeItem, TypeInfoBase } from 'doc-pre-data'
+import { firstToUpper, isKeyword, resolveOutPath } from '../utils'
 
 export type TypeBase = TypeInfoBase
 
@@ -88,4 +90,43 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
   }
 
   return paramsInfo
+}
+
+export function createReturnType(config: Config, docApi: DocApi, funcName: string, responseType?: TypeInfoBase) {
+  const { resultTypeRender: render } = config
+  const { resConentType } = responseType ?? {}
+
+  function createNewType(typeValue: string) {
+    const typeInfo = docApi.typeGroup.addCustomType(firstToUpper(`${funcName}Res`), [])
+    typeInfo.attrs.hide = true // 只占名字不生成类型，在 customInfoList 里生成对应类型
+    typeStringList.push({ typeName: typeInfo.typeName, typeValue })
+    return typeInfo.typeName
+  }
+
+  // 这是文件类型返回
+  if (resConentType && FileContentType.has(resConentType)) return 'ArrayBuffer'
+
+  if (render) {
+    let typeValue = ''
+    if (typeof render === 'string') {
+      // typeValue = render(funcName, responseType)
+      const typeInfo = responseType?.getRealBody()
+      typeValue = render
+      let [_, keyName] = render.match(TypeDataKey) || []
+      if (keyName && typeInfo) {
+        keyName = keyName.replace(/['"]/g, '')
+        const dataKeyItemType = typeInfo.typeItems.find(i => i.name === keyName)
+        if (dataKeyItemType) {
+          const typeValueStr = dataKeyItemType.getKeyValue()
+          typeValue = typeValue.replace(TypeDataKey, typeValueStr)
+        }
+      }
+
+      typeValue = typeValue.replace(/\{typeName\}/g, typeInfo?.typeName ?? 'any')
+    } else if (typeof render === 'function') {
+      typeValue = render(funcName, responseType?.getRealBody())
+    }
+    return `<types.${createNewType(typeValue)}>`
+  }
+  return responseType ? `<types.${responseType.getRealBody().typeName}>` : 'any'
 }

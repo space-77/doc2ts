@@ -4,16 +4,21 @@ import { Config } from '../common/config'
 import { getDesc } from '../utils'
 import { fileList } from '../generators/fileList'
 import { DocListItem } from '../types/newType'
-import { TypeInfoItem } from '../doc/docApi/components'
+import { TypeInfoItem } from 'doc-pre-data'
 import { getOutputDir, TypeBase } from './common'
 
 // 数据整合产生的类型，使用 type 定义类型
 export const customInfoList: TypeBase[] = []
+export const typeStringList: { typeName: string; typeValue: string }[] = []
 
 function createTypes(typeInfoList: TypeInfoItem[], config: Config) {
   let content = ''
   const { generateTypeRender } = config
   for (let { typeName, typeInfo } of typeInfoList) {
+    // if (typeInfo.d) {
+
+    // }
+
     if (typeof generateTypeRender === 'function') {
       typeInfo = generateTypeRender(typeName, typeInfo)
     }
@@ -42,6 +47,7 @@ function createTypes(typeInfoList: TypeInfoItem[], config: Config) {
     content += `${desc}export interface ${typeName} ${extendsStr} {\n`
     typeItems.sort((a, b) => a.name.length - b.name.length)
     for (const typeItem of typeItems) {
+      if (typeItem.disable) continue
       content += typeItem.getTypeValue() // getTypeKeyValue(typeItem)
     }
     content += '}\r\n\r\n'
@@ -63,6 +69,7 @@ function createCustomType(config: Config) {
     if (typeItems.length > 0) {
       typeStr += '{'
       for (const typeItem of typeItems) {
+        if (typeItem.disable) continue
         typeStr += typeItem.getTypeValue() // getTypeKeyValue(typeItem)
       }
       typeStr += '}'
@@ -74,11 +81,17 @@ function createCustomType(config: Config) {
 
     if (extendList || typeStr) {
       const desc = getDesc({ description, deprecated, externalDocs, title })
-      content += `${desc}export type ${typeName} = ${typeStr} ${extendList ? `&${extendList}` : ''}\n\n`
+      const extendStr = extendList ? `${typeStr ? '&' : ''}${extendList}` : ''
+      content += `${desc}export type ${typeName} = ${typeStr} ${extendStr}\n\n`
     }
   })
 
   return content
+}
+
+function createStringType() {
+  typeStringList.sort((a, b) => a.typeName.length - b.typeName.length)
+  return typeStringList.map(i => `export type ${i.typeName} = ${i.typeValue}`).join('\r\n')
 }
 
 export function buidTsTypeFile(doc: DocListItem, config: Config) {
@@ -88,6 +101,7 @@ export function buidTsTypeFile(doc: DocListItem, config: Config) {
 
   let content = createTypes(docApi.typeGroup.typeInfoList, config)
   content += createCustomType(config)
+  content += createStringType()
 
   const filePath = path.join(outputDir, 'types.ts')
 

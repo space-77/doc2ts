@@ -5,7 +5,7 @@ import log from './log'
 import path from 'path'
 import prettier from 'prettier'
 import { keyWordsListSet, PrettierConfig } from '../common/config'
-import { Doc2TsConfig, ModelList } from '../types/type'
+import { Doc2TsConfig, ModelList } from '../types/types'
 const keyword = require('is-es2016-keyword')
 
 /**

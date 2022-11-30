@@ -6,8 +6,8 @@ import { Config, CONFIG_PATH } from '../common/config'
 import { ts2Js, getConfig, checkJsLang, resolveOutPath, loadPrettierConfig, createFile } from '../utils'
 
 // ------------------------------------
-import docInit from '../doc/index'
-import { DictList } from '../doc/common/translate'
+import docInit from 'doc-pre-data'
+import { DictList } from 'doc-pre-data/lib/common/translate'
 import { buidTsTypeFile } from '../buildFiles/buildType'
 import type { DocListItem } from '../types/newType'
 import { buildApiFile, exportList, importList } from '../buildFiles/buildTsFile'

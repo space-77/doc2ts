@@ -4,7 +4,7 @@ import escodegen from 'escodegen'
 import puppeteer, { Page, Browser, HTTPResponse } from 'puppeteer-core'
 import { CONFIG_PATH } from '../common/config'
 import { getRootFilePath } from '../utils'
-import { ModelList, Origin } from '../types/type'
+import { ModelList, Origin } from '../types/types'
 const chromePaths = require('chrome-paths')
 const { getEdgePath } = require('edge-paths')
 

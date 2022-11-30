@@ -3,19 +3,17 @@
 import fs from 'fs'
 import _ from 'lodash'
 import path from 'path'
-import Custom from '../doc/docApi/components/custom'
 import { Config } from '../common/config'
 import { fileList } from '../generators/fileList'
-import RequestBodies from '../doc/docApi/components/requestBodies'
 import { DocListItem } from '../types/newType'
 import { customInfoList } from './buildType'
-import DocApi, { PathInfo } from '../doc/docApi'
-import { createParams, getOutputDir, TypeBase } from './common'
+import { DocApi, PathInfo, RequestBodies, Custom } from 'doc-pre-data'
+import { createParams, createReturnType, getOutputDir, TypeBase } from './common'
 import { findDiffPath, firstToLower, firstToUpper, getDesc, resolveOutPath } from '../utils'
 
-const FileContentType = new Set(['application/octet-stream'])
-const FormDataKey = new Set(['multipart/form-data', 'application/x-www-form-urlencoded'])
-const indexFileContent: string[] = []
+export const FileContentType = new Set(['application/octet-stream'])
+export const FormDataKey = new Set(['multipart/form-data', 'application/x-www-form-urlencoded'])
+export const indexFileContent: string[] = []
 
 export const importList: string[] = []
 export const exportList: string[] = []
@@ -54,14 +52,21 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
     const { responseType, parameterType, requestBodyType } = funcItem
     const { deprecated, description, externalDocs, summary } = item
 
+    // FIXME 这里不能拿真身，真身的 paramType 不一样
     let paramsTypeInfo = [parameterType, requestBodyType].filter(Boolean) as TypeBase[]
 
     let typeItems = _.flatten(paramsTypeInfo.map(i => i.getTypeItems()))
 
     // TODO 文档： 过滤 cookie 类型参数
     // TODO 文档： 过滤 header 类型参数，header 参数一般是用于设置token，token信息一般都是在拦截器为所有接口配置，不需要每个参数都显式传入
-    typeItems = typeItems.filter(({ paramType }) => paramType !== 'cookie' && paramType !== 'header')
-    typeItems = typeItems.filter(({ paramType, name }) => !disableParams.find(i => i.name === name && i.type === paramType))
+
+    typeItems = typeItems.filter(i => {
+      i.disable =
+        i.paramType === 'cookie' ||
+        // paramType === 'header' ||
+        !!disableParams.find(j => j.name === i.name && j.type === i.paramType)
+      return !i.disable
+    })
 
     paramsTypeInfo = paramsTypeInfo.filter(i => i && !i.isEmpty) as TypeBase[]
 
@@ -122,7 +127,7 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
     }
 
     const desc = getDesc({ description, deprecated, externalDocs, summary })
-    const returnType = responseType && !responseType.isEmpty ? `<types.${responseType.typeName}>` : ''
+    const returnType = createReturnType(config, docApi, name, responseType) // responseType ? `<types.${responseType.getRealBody().typeName}>` : 'any'
 
     //TODO 根据返回类型 调用下载方法
     // Blob ArrayBuffer

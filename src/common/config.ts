@@ -1,5 +1,5 @@
 import type prettier from 'prettier'
-import { DisableParams, Doc2TsConfig, Doc2TsConfigKey } from '../types/type'
+import { DisableParams, Doc2TsConfig, Doc2TsConfigKey } from '../types/types'
 
 export const CONFIG_PATH = 'doc2ts-config.ts'
 

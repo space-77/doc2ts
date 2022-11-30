@@ -8,7 +8,7 @@ import fs from 'fs-extra'
 import Doc2Ts from '../doc2TsCore/index'
 import { mergeConflict, notBranch, replacedLF } from './messagekey'
 import { CONFIG_PATH } from '../common/config'
-import { Doc2TsConfig } from '../types/type'
+import { Doc2TsConfig } from '../types/types'
 import { CODE, GIT_BRANCHNAME } from './config'
 import { getConfig, getRootFilePath } from '../utils/index'
 import {

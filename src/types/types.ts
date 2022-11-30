@@ -1,10 +1,8 @@
-import type { PARAMS_NAME } from '../common/config'
-import type { Interface, Property, StandardDataSource } from '../pont-engine/standard'
+import type { TypeInfoBase, TypeItem } from '../doc'
 
 export interface ModelList {
   url: string
   name?: string
-  version?: '3.0' | '2.0' | '1.0'
 }
 
 export type MethodConfig = {
@@ -52,17 +50,7 @@ export type GitConfig = {
 
 export type Origin = ModelList
 
-export type DisableParams = { type: Property['in']; name: string }
-
-export type RenderVlaue = {
-  name: string
-  required: boolean
-  valueType: string
-  description: string
-  dataType: StandardDataType
-}
-
-export type GenerateTypeRender = { fileName: string; typeName: string; values: RenderVlaue[] }
+export type DisableParams = { type: Required<TypeItem>['paramType']; name: string }
 
 export type Doc2TsConfig = {
   /**
@@ -132,9 +120,7 @@ export type Doc2TsConfig = {
   /**
    * @description 接口返回数据类型钩子
    */
-  resultTypeRender?:
-    | string
-    | ((typeName: string, typeInfo: Property[], info: { modelName?: string; funId?: string }) => string)
+  resultTypeRender?: string | ((funcName: string, typeInfo?: TypeInfoBase) => string)
 
   /**
    * @param content 即将生成文件的内容
@@ -155,44 +141,5 @@ export type Doc2TsConfig = {
 }
 
 export type Doc2TsConfigKey = keyof Doc2TsConfig
-
-export type StandardDataSourceLister = { name?: string; data: StandardDataSource }
-
-export type ModelInfo = {
-  isJs?: boolean
-  // config: ModuleConfigInfo
-  dirPath: string
-  filePath: string
-  fileName: string
-  moduleName?: string
-  interfaces: Interface[]
-  typeDirPaht: string
-  description: string
-  diffClassPath: string
-  render: Doc2TsConfig['render']
-  // resultTypeRender: Doc2TsConfig['resultTypeRender']
-}
-
-export type GetParamsStr = {
-  methodBody: string
-  onlyType: boolean
-  hasPath: boolean
-  hasQuery: boolean
-  hasBody: boolean
-  hasHeader: boolean
-  hasformData: boolean
-  bodyName: PARAMS_NAME.BODY
-  // queryName: PARAMS_NAME.QUERY
-  headerName: PARAMS_NAME.HEADER
-  formDataName: PARAMS_NAME.FORMDATA
-  body: string
-  header: string
-  formData: string
-  paramsName: string
-  queryValue?: string
-  pathParams: Property[]
-}
-
-export type FilePathList = { moduleName?: string; data: { fileName: string; filePath: string }[] }
 
 export type FileListItem = { filePath: string; content: string }
