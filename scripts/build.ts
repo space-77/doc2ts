@@ -4,7 +4,7 @@ import log from '../src/utils/log'
 log.clear()
 fs.emptyDirSync(path.join(__dirname, '../lib'))
 
-const copyList = ['temp', 'types', 'pont-engine']
+const copyList = ['temp', 'types']
 log.info('资源复制中...')
 copyList.forEach(p => {
   const sourceTemp = path.join(__dirname, `../src/${p}`)
