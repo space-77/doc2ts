@@ -7,6 +7,7 @@ import { ts2Js, getConfig, checkJsLang, resolveOutPath, loadPrettierConfig, crea
 
 // ------------------------------------
 import docInit from 'doc-pre-data'
+import { checkName } from 'doc-pre-data/lib/common/utils'
 import { DictList } from 'doc-pre-data/lib/common/translate'
 import { buidTsTypeFile } from '../buildFiles/buildType'
 import type { DocListItem } from '../types/newType'
@@ -53,6 +54,13 @@ export default class Doc2Ts {
       const { docApi, dictList } = await docInit(dataOrUrl, dictListJson)
       fs.createFileSync(dictPath)
       fs.writeFileSync(dictPath, JSON.stringify(dictList, null, 2))
+
+      docApi.funcGroupList.forEach(mod => {
+        const names = docApi.funcGroupList.filter(i => mod !== i).map(i => i.moduleName)
+        // types 是保留文件，防止和模块文件重名
+        mod.moduleName = checkName(mod.moduleName, n => names.includes(n) || /^types$/i.test(n))
+      })
+
       return { docApi, moduleName: i.name }
     })
     this.docList = await Promise.all(reqs)
@@ -92,8 +100,8 @@ export default class Doc2Ts {
 
       const indexFilePath = path.join(outDirPath, 'index.ts')
       const indexFileJsPath = indexFilePath.replace(/\.ts$/, '.js')
+
       ts2Js([indexFilePath], declaration, (fileName, content) => {
-        console.log(fileName)
         content = content.replace(/(\/\*\*)/g, '\n$1')
         content = content.replace(/(export\s+const)/g, '\n$1')
         content = content.replace(/(export\s+declare)/g, '\n$1')

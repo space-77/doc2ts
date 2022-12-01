@@ -59,7 +59,7 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
   const baseClassName = getBaseFileName(config)
 
   const desc = getDesc({ description })
-  let content = `${desc}class ${className} extends ${baseClassName} {`
+  let content = `${desc} export default class ${className} extends ${baseClassName} {`
   for (const funcItem of pathItems) {
     const { item, name, method, apiPath } = funcItem
     const { responseType, parameterType, requestBodyType } = funcItem
@@ -185,14 +185,13 @@ export function buildApiFile(doc: DocListItem, config: Config) {
     const { moduleName: fileName } = moduleInfo
     const className = firstToUpper(fileName)
     const filePath = path.join(outputDir, `${firstToLower(fileName)}.ts`)
+    const _fileName = firstToLower(fileName)
 
     let content = createClass(moduleInfo, className, docApi, config)
     content = `import type { DocReqConfig } from "doc2ts";\n${content}`
     content = `import type * as types from './types'\n${content}`
     content = `import ${baseName} from '${getClientPath(config, filePath)}'\n${content}`
-    content = `${content}\nexport default new ${className}()`
-
-    const _fileName = firstToLower(fileName)
+    content = `${content}\nexport const ${_fileName} = new ${className}()`
 
     if (typeof render === 'function') {
       content = render(content, filePath)
@@ -203,7 +202,7 @@ export function buildApiFile(doc: DocListItem, config: Config) {
     // console.log(outDirDir)
     // console.log(filePath)
     const fileExPath = findDiffPath(outDirDir, filePath).replace(/\.ts$/, '')
-    importList.push(`import ${_fileName} from '${fileExPath}'`)
+    importList.push(`import { ${_fileName} } from '${fileExPath}'`)
     exportList.push(_fileName)
     // indexContnt += `import ${_fileName} from '${fileExPath}'`
 

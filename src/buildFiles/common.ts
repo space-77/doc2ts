@@ -16,7 +16,7 @@ export function getOutputDir(moduleName: string, { outDir }: Config) {
 
 export function getTypeName(type: TypeItem['type']) {
   if (typeof type === 'string') return type
-  return type?.typeName ?? 'any'
+  return type?.typeName ?? 'unknown'
 }
 
 type ParamType = Required<TypeItem['paramType']>
@@ -104,7 +104,7 @@ export function createReturnType(config: Config, docApi: DocApi, funcName: strin
   }
 
   // 这是文件类型返回
-  if (resConentType && FileContentType.has(resConentType)) return 'ArrayBuffer'
+  if (resConentType && FileContentType.has(resConentType)) return 'Blob'
 
   if (render) {
     let typeValue = ''
@@ -113,20 +113,22 @@ export function createReturnType(config: Config, docApi: DocApi, funcName: strin
       const typeInfo = responseType?.getRealBody()
       typeValue = render
       let [_, keyName] = render.match(TypeDataKey) || []
-      if (keyName && typeInfo) {
-        keyName = keyName.replace(/['"]/g, '')
-        const dataKeyItemType = typeInfo.typeItems.find(i => i.name === keyName)
-        if (dataKeyItemType) {
-          const typeValueStr = dataKeyItemType.getKeyValue()
+      if (keyName) {
+        if (typeInfo) {
+          keyName = keyName.replace(/['"]/g, '')
+          const dataKeyItemType = typeInfo.typeItems.find(i => i.name === keyName)
+          const typeValueStr = dataKeyItemType?.getKeyValue() ?? 'unknown'
           typeValue = typeValue.replace(TypeDataKey, typeValueStr)
+        } else {
+          typeValue = typeValue.replace(TypeDataKey, 'unknown')
         }
       }
 
-      typeValue = typeValue.replace(/\{typeName\}/g, typeInfo?.typeName ?? 'any')
+      typeValue = typeValue.replace(/\{typeName\}/g, typeInfo?.typeName ?? 'unknown')
     } else if (typeof render === 'function') {
       typeValue = render(funcName, responseType?.getRealBody())
     }
     return `<types.${createNewType(typeValue)}>`
   }
-  return responseType ? `<types.${responseType.getRealBody().typeName}>` : '<any>'
+  return responseType ? `<types.${responseType.getRealBody().typeName}>` : '<unknown>'
 }
