@@ -1,6 +1,4 @@
 // TODO 方法缺少 title
-
-import fs from 'fs'
 import _ from 'lodash'
 import path from 'path'
 import { Config } from '../common/config'
@@ -18,27 +16,6 @@ export const indexFileContent: string[] = []
 export const importList: string[] = []
 export const exportList: string[] = []
 
-/***
- * @desc 创建内部 api calss 继承的基类
- */
-function createApiBaseClass(config: Config) {
-  const { outDir, baseClassName: importBaseCalssName, baseClassPath } = config
-
-  let content = fs.readFileSync(path.join(__dirname, '../temp/baseClass')).toString()
-  const filePath = path.join(process.cwd(), outDir, 'base.ts')
-
-  const baseClassName = importBaseCalssName.replace(/^\{(.+)\}$/, (_, $1) => $1)
-  const tempClassDirList = filePath.split(path.sep)
-  const tempClassDir = path.join(...tempClassDirList.slice(0, tempClassDirList.length - 1))
-  const importPath = findDiffPath(tempClassDir, resolveOutPath(baseClassPath))
-
-  content = content.replace(/\{BaseClassPath\}/g, importPath)
-  content = content.replace(/\{BaseCalssName\}/g, baseClassName)
-  content = content.replace(/\{ImportBaseCalssName\}/g, importBaseCalssName)
-  // createFile(filePath, content)
-  fileList.push({ filePath, content })
-}
-
 function getClientPath(config: Config, filePath: string) {
   const { baseClassPath } = config
   const tempClassDirList = filePath.split(path.sep)
@@ -53,12 +30,12 @@ function getBaseFileName(config: Config) {
 
 function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, config: Config) {
   const { tagInfo, pathItems } = moduleInfo
-  const { description } = tagInfo ?? {}
+  const { description, name } = tagInfo ?? {}
 
   const { disableParams = [] } = config
   const baseClassName = getBaseFileName(config)
 
-  const desc = getDesc({ description })
+  const desc = getDesc({ description, name })
   let content = `${desc} export default class ${className} extends ${baseClassName} {`
   for (const funcItem of pathItems) {
     const { item, name, method, apiPath } = funcItem

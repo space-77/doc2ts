@@ -23,6 +23,7 @@ yarn add -D doc2ts
 pnpm add -D doc2ts
 ```
 
+同时需要安装 qs 处理请求参数。  
 安装后需要在 package.json 添加以下脚本命令
 
 ```json

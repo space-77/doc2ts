@@ -1,4 +1,4 @@
-import {qs} from 'doc2ts'
+import qs from 'qs'
 import type { IApiClient, DocReqConfig } from 'doc2ts'
 
 export default class {baseClassName} implements IApiClient {
@@ -23,8 +23,7 @@ export default class {baseClassName} implements IApiClient {
    * @description 拼接参数
    */
   protected serialize(query: Record<string, any>) {
-    if (!(query instanceof Object) || Array.isArray(query)) return ''
-    return qs.stringify(query)
+    return qs.stringify(query, { skipNulls: true })
   }
 
   /**
