@@ -3,6 +3,7 @@ import ts, { ModuleKind, ScriptTarget } from 'typescript'
 import Api from './api'
 import log from './log'
 import path from 'path'
+import axios from 'axios'
 import prettier from 'prettier'
 import { keyWordsListSet, PrettierConfig } from '../common/config'
 import { Doc2TsConfig, ModelList } from '../types/types'
@@ -307,4 +308,19 @@ const funcKeyword = new Set(['body', 'url', 'headers', 'config'])
  */
 export function isKeyword(key: string): boolean {
   return funcKeyword.has(key) || keyword(key)
+}
+
+export async function getApiJson(url: string): Promise<object> {
+  try {
+    const { data } = await axios.get(url)
+    const { pathname } = new URL(url)
+    if (path.extname(pathname) === '.js') {
+      const [, json] = data.match(/"swaggerDoc":([\s\S]*),\s*"customOptions"/) ?? []
+      return JSON.parse(json)
+    } else {
+      return data
+    }
+  } catch (error) {
+    throw new Error('获取文档数据异常')
+  }
 }

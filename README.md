@@ -98,7 +98,7 @@ Origin 类型说明如下表：
 
 | 键值    | 类型   | 必传 | 说明                                                                                           |
 | ------- | ------ | ---- | ---------------------------------------------------------------------------------------------- |
-| url     | String | 是   | swagger 的接口信息地址，返回数据与[示例地址](https://petstore.swagger.io/v2/swagger.json) 一致 |
+| url     | String | 是   | swagger 的接口信息地址，返回数据与[示例地址](https://petstore.swagger.io/v2/swagger.json) 一致，也可以是 js 文件地址【有些swagger是通过js方式写入文档数据】 |
 | version | String | 否   | swagger 版本                                                                                   |
 | name    | String | 否   | 模块名                                                                                         |
 

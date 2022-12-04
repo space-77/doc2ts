@@ -3,7 +3,7 @@ import log from '../utils/log'
 import path from 'path'
 import { fileList } from '../generators/fileList'
 import { Config, CONFIG_PATH } from '../common/config'
-import { ts2Js, getConfig, checkJsLang, resolveOutPath, loadPrettierConfig, createFile } from '../utils'
+import { ts2Js, getConfig, checkJsLang, resolveOutPath, loadPrettierConfig, createFile, getApiJson } from '../utils'
 
 // ------------------------------------
 import docInit from 'doc-pre-data'
@@ -51,7 +51,9 @@ export default class Doc2Ts {
         dataOrUrl = JSON.parse(swagger)
       }
 
-      const { docApi, dictList } = await docInit(dataOrUrl, dictListJson)
+      const json = await getApiJson(i.url)
+
+      const { docApi, dictList } = await docInit(json, dictListJson)
       fs.createFileSync(dictPath)
       fs.writeFileSync(dictPath, JSON.stringify(dictList, null, 2))
 
