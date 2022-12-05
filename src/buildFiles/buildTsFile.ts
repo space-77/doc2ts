@@ -32,6 +32,8 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
   const { tagInfo, pathItems } = moduleInfo
   const { description, name } = tagInfo ?? {}
 
+  pathItems.sort((a, b) => a.name.length - b.name.length)
+
   const { disableParams = [] } = config
   const baseClassName = getBaseFileName(config)
 
