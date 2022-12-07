@@ -139,7 +139,7 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
       configStr = `{ url: ${urlSemicolon}${url}${query}${urlSemicolon}  ${bodyStr} ${headersStr}, method: '${method}' }`
     }
 
-    content += `\n ${desc} ${name}(${paramName}${paramTypeStr}){
+    content += `\n ${desc} ${firstToLower(name)}(${paramName}${paramTypeStr}){
       ${deconstruct}
       ${paramsContents.map(({ type, content }) => `const ${type} = ${content}`).join('\r\n')}${urlStr}    
       const config: DocReqConfig = ${configStr}

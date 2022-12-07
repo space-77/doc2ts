@@ -117,7 +117,12 @@ export function createReturnType(config: Config, docApi: DocApi, funcName: strin
         if (typeInfo) {
           keyName = keyName.replace(/['"]/g, '')
           const dataKeyItemType = typeInfo.typeItems.find(i => i.name === keyName)
-          const typeValueStr = dataKeyItemType?.getKeyValue() ?? 'unknown'
+          const required = dataKeyItemType?.required ?? false
+          const typeName = dataKeyItemType?.getKeyValue() ?? ''
+
+          const typeValueStr = typeName
+            ? `${typeName}${!required && typeName !== 'null' ? ' | undefined' : ''}`
+            : 'unknown'
           typeValue = typeValue.replace(TypeDataKey, typeValueStr)
         } else {
           typeValue = typeValue.replace(TypeDataKey, 'unknown')
