@@ -43,7 +43,23 @@ export default class Doc2Ts {
 
     const reqs = origins.map(async i => {
       const dictPath = path.join(outputDir, `dicts/${i.name ?? 'dict'}.json`)
-      const dictListJson: DictList[] = fs.existsSync(dictPath) ? require(dictPath) : []
+      let dict: DictList[] = []
+      
+      try {
+        const dictListJson: { dict: DictList[]; desc: string[] } = fs.existsSync(dictPath) ? require(dictPath) : {}
+        dict = dictListJson.dict ?? []
+      } catch (error) {}
+      dict = dict.filter(i => {
+        i.en = i.en.trim()
+        return !!i.en
+      })
+      const desc = [
+        '----- 这是一个翻译缓存文件 -----',
+        '----- 这是一个翻译缓存文件 -----',
+        '----- 这是一个翻译缓存文件 -----',
+        '如果您对翻译不满意可以在这里修改，在下次生成新的代码有效',
+        '注意：修改翻译后生成的代码或文件名，都随之变化，引用的地方也需要做对应的修改'
+      ]
 
       let dataOrUrl: string | object = i.url
       if (typeof fetchSwaggerDataMethod === 'function') {
@@ -53,9 +69,9 @@ export default class Doc2Ts {
 
       const json = await getApiJson(i.url)
 
-      const { docApi, dictList } = await docInit(json, dictListJson)
+      const { docApi, dictList } = await docInit(json, dict)
       fs.createFileSync(dictPath)
-      fs.writeFileSync(dictPath, JSON.stringify(dictList, null, 2))
+      fs.writeFileSync(dictPath, JSON.stringify({ desc, dict: dictList }, null, 2))
 
       docApi.funcGroupList.forEach(mod => {
         const names = docApi.funcGroupList.filter(i => mod !== i).map(i => i.moduleName)

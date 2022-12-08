@@ -31,6 +31,7 @@ export class Config {
   readonly declaration?: boolean
   readonly prettierPath?: string
   readonly baseClassPath!: string
+  readonly arrowFunc: Doc2TsConfig['arrowFunc'] = false
   readonly languageType?: Doc2TsConfig['languageType']
   readonly render: Doc2TsConfig['render']
   readonly typeFileRender: Doc2TsConfig['typeFileRender']

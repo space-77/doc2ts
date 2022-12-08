@@ -34,7 +34,7 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
 
   pathItems.sort((a, b) => a.name.length - b.name.length)
 
-  const { disableParams = [] } = config
+  const { disableParams = [], arrowFunc } = config
   const baseClassName = getBaseFileName(config)
 
   const desc = getDesc({ description, name })
@@ -139,7 +139,7 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
       configStr = `{ url: ${urlSemicolon}${url}${query}${urlSemicolon}  ${bodyStr} ${headersStr}, method: '${method}' }`
     }
 
-    content += `\n ${desc} ${firstToLower(name)}(${paramName}${paramTypeStr}){
+    content += `\n ${desc} ${firstToLower(name)} ${arrowFunc ? '=' : ''} (${paramName}${paramTypeStr}) ${arrowFunc ? '=>' : ''}{
       ${deconstruct}
       ${paramsContents.map(({ type, content }) => `const ${type} = ${content}`).join('\r\n')}${urlStr}    
       const config: DocReqConfig = ${configStr}

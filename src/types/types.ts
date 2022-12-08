@@ -86,6 +86,13 @@ export type Doc2TsConfig = {
    */
   languageType?: 'typeScript' | 'javaScript' | 'typescript' | 'javascript' | 'ts' | 'js'
 
+
+  /**
+   * @default false
+   * @description 是否生成箭头函数
+   */
+  arrowFunc?: boolean
+
   /**
    * @default false
    * @description 是否输出 ts 文件【languageType 为 js 模式下有效】
