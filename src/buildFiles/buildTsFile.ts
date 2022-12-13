@@ -74,11 +74,12 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
     }
 
     const paramsInfo = createParams(paramsTypeInfo, typeItems)
-    const { paramName = '', paramsContents, deconstruct, paramType, typeGroupList } = paramsInfo
+    const { paramName = '', paramsContents, deconstruct, paramType, typeGroupList, paramTypeDesc } = paramsInfo
     let paramTypeStr = ''
     if (typeItems.length > 0) {
-      paramTypeStr = typeInfo?.typeName || paramType
-      paramTypeStr = paramTypeStr ? `:types.${paramTypeStr}` : ''
+      let { typeName } = typeInfo ?? {}
+      typeName = typeName ? `:types.${typeName}` : undefined
+      paramTypeStr = typeName || paramType
     }
 
     // 整理 query 参数
@@ -119,7 +120,7 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
       }
     }
 
-    const desc = getDesc({ description, deprecated, externalDocs, summary })
+    const desc = getDesc({ description, deprecated, externalDocs, summary }, paramTypeDesc)
     const returnType = createReturnType(config, docApi, name, responseType) // responseType ? `<types.${responseType.getRealBody().typeName}>` : 'any'
 
     //TODO 根据返回类型 调用下载方法
@@ -138,7 +139,9 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
       configStr = `{ url: ${urlSemicolon}${url}${query}${urlSemicolon}  ${bodyStr} ${headersStr}, method: '${method}' }`
     }
 
-    content += `\n ${desc} ${firstToLower(name)} ${arrowFunc ? '=' : ''} (${paramName}${paramTypeStr}) ${arrowFunc ? '=>' : ''}{
+    content += `\n ${desc} ${firstToLower(name)} ${arrowFunc ? '=' : ''} (${paramName}${paramTypeStr}) ${
+      arrowFunc ? '=>' : ''
+    }{
       ${deconstruct}
       ${paramsContents.map(({ type, content }) => `const ${type} = ${content}`).join('\r\n')}${urlStr}    
       const config: DocReqConfig = ${configStr}

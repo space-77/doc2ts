@@ -285,7 +285,7 @@ type DescType = {
   description?: string
   externalDocs?: { description?: string; url: string }
 }
-export function getDesc(info: DescType) {
+export function getDesc(info: DescType, after?: string) {
   const { name, description, deprecated, example, def, externalDocs, title, summary } = info
   if (Object.values(info).filter(Boolean).length === 0) return ''
   const { url, description: linkDescription } = externalDocs ?? {}
@@ -297,7 +297,8 @@ export function getDesc(info: DescType) {
   const deprecatedStr = deprecated ? '\r\n* @deprecated' : ''
   const descriptionStr = description ? `\r\n* @description ${description}` : ''
   const link = url ? `\r\n* @link ${url} ${linkDescription}` : ''
-  return `/**${nameStr}${titleStr}${exampleStr}${defaultStr}${summaryStr}${descriptionStr}${deprecatedStr}${link}\r\n*/\r\n`
+  const afterStr = after ? `\r\n${after}` : ''
+  return `/**${nameStr}${titleStr}${exampleStr}${defaultStr}${summaryStr}${descriptionStr}${deprecatedStr}${link}${afterStr}\r\n*/\r\n`
 }
 
 // 方法已使用的名字, 避免重复声明
@@ -321,6 +322,7 @@ export async function getApiJson(url: string): Promise<object> {
       return data
     }
   } catch (error) {
-    throw new Error('获取文档数据异常')
+    log.error('获取文档数据异常，请检查网络是否正常。')
+    throw new Error('')
   }
 }

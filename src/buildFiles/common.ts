@@ -30,6 +30,7 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
     resType: '',
     paramType: '',
     paramName: '',
+    paramTypeDesc: undefined as string | undefined,
     // typeItems: [] as TypeItem[],
     deconstruct: '', // 参数解构
     paramTypes: [] as ParamType[],
@@ -49,16 +50,26 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
 
   if (typeItems.length === 1) {
     // 只有一个参数，直接取出来
-    const [{ name, paramType }] = typeItems
+    const [firstItem] = typeItems
+    const { name, paramType, type, ref, required, deprecated, description } = firstItem
     paramsInfo.kind = 1
-    paramsInfo.paramType = `${paramsTypeInfo[0].typeName}['${name}']`
+
+    const isDefType = typeof type === 'string' && !ref
+    const oneTypeValue = firstItem.getKeyValue()
+    const reqStr = required ? '' : '?'
+    const typeInfo = isDefType ? `${reqStr}:${oneTypeValue}` : `:types.${paramsTypeInfo[0].typeName}['${name}']`
+
+    paramsInfo.paramType = typeInfo
+    paramsInfo.paramTypeDesc = isDefType
+      ? `* @param {${firstToUpper(oneTypeValue)}} ${name} ${description || ''}`
+      : undefined
     paramsInfo.paramName = isKeyword(name) ? `_${name}` : name
     paramsInfo.paramTypes = [paramType]
   } else if (typeItems.length > 1) {
     paramsInfo.kind = typeGroupList.length
     paramsInfo.paramTypes = typeGroupList.map(([paramType]) => paramType) as TypeItem['paramType'][]
 
-    paramsInfo.paramType = paramsTypeInfo.map(i => i.typeName).join('&')
+    paramsInfo.paramType = paramsTypeInfo.map(i => `:types.${i.typeName}`).join('&')
 
     if (typeGroupList.length === 1) {
       // 所有参数都是同一种类型，这里是多个参数一起，需要解构
