@@ -821,10 +821,10 @@ diff@^4.0.1:
   resolved "https://registry.npmjs.org/diff/-/diff-4.0.2.tgz#60f3aecb89d5fae520c11aa19efc2bb982aade7d"
   integrity sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==
 
-doc-pre-data@1.0.0-beta.19:
-  version "1.0.0-beta.19"
-  resolved "https://registry.npmjs.org/doc-pre-data/-/doc-pre-data-1.0.0-beta.19.tgz#39c87614e920a86e56439e113baa2eae90b01853"
-  integrity sha512-+xVUEaxcldrYmy6WSxohk/VPsbaQVq8B3MQNCDMyhilgtaidf+mjI5T3H/TKiQLIMkGH7LJArHAQkbin5W20iA==
+doc-pre-data@1.0.0-beta.21:
+  version "1.0.0-beta.21"
+  resolved "https://registry.npmjs.org/doc-pre-data/-/doc-pre-data-1.0.0-beta.21.tgz#9c42a5f0dfdf7fdfb4d99f3a1f0d6427fa8c113f"
+  integrity sha512-4C6xqZ+J3yHO8U0eVBKiNjV6bdTdDUVjVcegA0jLtkyz3/J5MHU44I7j+RDXwSVq2yFsMB648jzpOCC2cRT8sA==
   dependencies:
     axios "*"
     balanced-match "^2.0.0"
@@ -832,7 +832,7 @@ doc-pre-data@1.0.0-beta.19:
     is-chinese "^1.4.8"
     is-es2016-keyword "^1.0.0"
     lodash "^4.17.21"
-    node-translates "^1.2.2"
+    node-translates "^1.3.1"
     openapi "^1.0.1"
     openapi-types "^12.0.2"
     swagger2openapi "^7.0.8"
@@ -1680,10 +1680,10 @@ node-readfiles@^0.2.0:
   dependencies:
     es6-promise "^3.2.1"
 
-node-translates@^1.2.0, node-translates@^1.2.2:
-  version "1.2.2"
-  resolved "https://registry.npmjs.org/node-translates/-/node-translates-1.2.2.tgz#e0db7a19c6a593b5b966340b25d27f6b0e4ed3ff"
-  integrity sha512-KW87+p121MiRNjB9og5cgTG8f5fW68z2wvsxcE5Rmk5dwNvUtga4COpJPeNanAzBI0U8Rr/gWGbEH4eyfC5xXw==
+node-translates@^1.3.1:
+  version "1.3.1"
+  resolved "https://registry.npmjs.org/node-translates/-/node-translates-1.3.1.tgz#c3db9b5ba4eb2bfb702e6ec8747c5f40ff7d05a3"
+  integrity sha512-3Jzs+q0C1L+I97xvINYh780/8LMMRyUw8bxtlGAkuEU9XqD/bK8GM+eWt5jpLgEpmRcjnhoYI6a/p61KiB6t3w==
   dependencies:
     axios "^1.2.0"
     axios-cookiejar-support "^4.0.3"
@@ -1693,7 +1693,8 @@ node-translates@^1.2.0, node-translates@^1.2.2:
     edge-paths "^2.2.1"
     form-data "^4.0.0"
     got-cjs "^12.5.4"
-    puppeteer-core "^19.3.0"
+    lodash "*"
+    puppeteer-core "^19.4.0"
     tough-cookie "^4.1.2"
 
 nodemon@^2.0.15:
@@ -2024,7 +2025,7 @@ pupa@^2.1.1:
   dependencies:
     escape-goat "^2.0.0"
 
-puppeteer-core@^19.3.0:
+puppeteer-core@^19.4.0:
   version "19.4.0"
   resolved "https://registry.npmjs.org/puppeteer-core/-/puppeteer-core-19.4.0.tgz#3f52945d8cfa20cf8721a7902afcd8a1a299b54d"
   integrity sha512-gG/jxseleZStinBn86x8r7trjcE4jcjx1hIQWOpACQhquHYMuKnrWxkzg+EDn8sN3wUtF/Ry9mtJgjM49oUOFQ==

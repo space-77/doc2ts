@@ -44,8 +44,7 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
     const { responseType, parameterType, requestBodyType } = funcItem
     const { deprecated, description, externalDocs, summary } = item
 
-    // FIXME 这里不能拿真身，真身的 paramType 不一样
-    let paramsTypeInfo = [parameterType, requestBodyType].filter(Boolean) as TypeBase[]
+    let paramsTypeInfo = [parameterType, requestBodyType].map(i => i?.getRealBody()).filter(Boolean) as TypeBase[]
 
     let typeItems = _.uniqBy(_.flatten(paramsTypeInfo.map(i => i.getTypeItems())), 'name')
 
