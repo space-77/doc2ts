@@ -43,7 +43,7 @@
     "child_process": "^1.0.2",
     "chrome-paths": "^1.0.1",
     "commander": "^9.2.0",
-    "doc-pre-data": "1.0.0-beta.21",
+    "doc-pre-data": "1.0.0-beta.22",
     "edge-paths": "^2.2.1",
     "escodegen": "^2.0.0",
     "fs-extra": "^10.1.0",
