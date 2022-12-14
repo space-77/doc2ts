@@ -61,7 +61,7 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
 
     paramsInfo.paramType = typeInfo
     paramsInfo.paramTypeDesc = isDefType
-      ? `* @param {${firstToUpper(oneTypeValue)}} ${name} ${description || ''}`
+      ? `* @param { ${firstToUpper(oneTypeValue)} } ${name} ${description || ''}`
       : undefined
     paramsInfo.paramName = isKeyword(name) ? `_${name}` : name
     paramsInfo.paramTypes = [paramType]
