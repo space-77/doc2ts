@@ -203,7 +203,7 @@ export function buildApiFile(doc: DocListItem, config: Config) {
     // 不保留 .d.ts 文件，在 .js 文件添引入 types.d.ts 类型
     const isJs = checkJsLang(languageType)
     if (declaration === false && isJs && !!typesStr) {
-      const descriptionStr = '* @description 一下是js模式下引入类型说明，有助于类型提示'
+      const descriptionStr = '* @description 以下是js模式下的类型引入，有助于类型提示'
       content += `\n/**\r\n${descriptionStr}\r\n${typesStr}\n */`
     }
 
