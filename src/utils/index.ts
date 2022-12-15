@@ -285,7 +285,13 @@ type DescType = {
   description?: string
   externalDocs?: { description?: string; url: string }
 }
-export function getDesc(info: DescType, after?: string, ) {
+
+type OtherOptions = {
+  paramList?: string[]
+  returnType?: string
+}
+
+export function getDesc(info: DescType, { paramList = [], returnType }: OtherOptions = {}) {
   const { name, description, deprecated, example, def, externalDocs, title, summary } = info
   if (Object.values(info).filter(Boolean).length === 0) return ''
   const { url, description: linkDescription } = externalDocs ?? {}
@@ -297,8 +303,9 @@ export function getDesc(info: DescType, after?: string, ) {
   const deprecatedStr = deprecated ? '\r\n* @deprecated' : ''
   const descriptionStr = description ? `\r\n* @description ${description}` : ''
   const link = url ? `\r\n* @link ${url} ${linkDescription}` : ''
-  const afterStr = after ? `\r\n${after}` : ''
-  return `/**${nameStr}${titleStr}${exampleStr}${defaultStr}${afterStr}${summaryStr}${descriptionStr}${deprecatedStr}${link}\r\n*/\r\n`
+  const paramsStr = paramList.length > 0 ? `\r\n${paramList.join('\r\n')}` : ''
+  const returnTypeStr = returnType ? `\r\n${returnType}` : ''
+  return `/**${nameStr}${titleStr}${exampleStr}${defaultStr}${paramsStr}${summaryStr}${descriptionStr}${deprecatedStr}${link}${returnTypeStr}\r\n*/\r\n`
 }
 
 // 方法已使用的名字, 避免重复声明

@@ -128,9 +128,21 @@ export default class Doc2Ts {
       })
 
       if (!emitTs) {
-        // 不保留 ts 源文件，删除源ts文件
-        const filesInfo: string[] = fileList.map(i => i.filePath)
-        // filesInfo.push(indexFilePath)
+        // 不保留 ts 源文件，删除源ts文件 declaration
+        let filesInfo: string[] = fileList.map(i => i.filePath)
+        if (!declaration) {
+          const reg = /types\.ts$/
+          filesInfo = filesInfo.filter(i => {
+            if (reg.test(i)) {
+              const jsFilePath = i.replace(/\.ts$/, '.js')
+              const tsDFilePath = i.replace(/\.ts$/, '.d.ts')
+              if (fs.existsSync(jsFilePath)) fs.unlinkSync(jsFilePath)
+              if (fs.existsSync(i)) fs.renameSync(i, tsDFilePath)
+              return false
+            }
+            return true
+          })
+        }
         filesInfo.forEach(filePath => fs.existsSync(filePath) && fs.unlinkSync(filePath))
       }
 

@@ -7,7 +7,7 @@ import { DocListItem } from '../types/newType'
 import { customInfoList } from './buildType'
 import { DocApi, PathInfo, RequestBodies, Custom } from 'doc-pre-data'
 import { createParams, createReturnType, getOutputDir, TypeBase } from './common'
-import { findDiffPath, firstToLower, firstToUpper, getDesc, resolveOutPath } from '../utils'
+import { checkJsLang, findDiffPath, firstToLower, firstToUpper, getDesc, resolveOutPath } from '../utils'
 
 export const FileContentType = new Set(['application/octet-stream'])
 export const FormDataKey = new Set(['multipart/form-data', 'application/x-www-form-urlencoded'])
@@ -34,10 +34,12 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
 
   pathItems.sort((a, b) => a.name.length - b.name.length)
 
-  const { disableParams = [], arrowFunc } = config
+  const { disableParams = [], arrowFunc, declaration, languageType } = config
   const baseClassName = getBaseFileName(config)
 
   const desc = getDesc({ description, name })
+  const isJs = checkJsLang(languageType)
+  let typesList: string[] = []
   let content = `${desc} export default class ${className} extends ${baseClassName} {`
   for (const funcItem of pathItems) {
     const { item, name, method, apiPath } = funcItem
@@ -103,6 +105,7 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
     const hasHeader = typeItems.some(i => i.paramType === 'header')
     let headersStr = hasHeader ? ',headers' : ''
 
+    const paramList: string[] = []
     const hasBody = typeItems.some(i => i.paramType === 'body')
     const bodyStr = hasBody ? ',body' : ''
     if (hasBody) {
@@ -120,8 +123,29 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
       }
     }
 
-    const desc = getDesc({ description, deprecated, externalDocs, summary }, paramTypeDesc)
-    const returnType = createReturnType(config, docApi, name, responseType) // responseType ? `<types.${responseType.getRealBody().typeName}>` : 'any'
+    const returnType = createReturnType(config, docApi, name, responseType)
+
+    // 生成 js文件，并且 不保留 .d.ts 类型文件时，生成方法类型注释
+    let returnTypeStrName: string | undefined
+    if (declaration === false && isJs) {
+      const [, returnTypeStr] = returnType.match(/\<types\.(.*)\>/) ?? []
+      const [, _paramTypeStr] = paramTypeStr.match(/:types\.(.*)/) ?? []
+
+      if (_paramTypeStr) {
+        paramList.push(`* @param { ${_paramTypeStr} } ${paramName}`)
+        typesList.push(` * @typedef { import("./types").${_paramTypeStr} } ${_paramTypeStr}`)
+      }
+      if (returnTypeStr) {
+        returnTypeStrName = `* @return { ${returnTypeStr} }`
+        typesList.push(` * @typedef { import("./types").${returnTypeStr} } ${returnTypeStr}`)
+      }
+    }
+
+    if (paramTypeDesc) paramList.push(paramTypeDesc)
+    const desc = getDesc(
+      { description, deprecated, externalDocs, summary },
+      { paramList, returnType: returnTypeStrName }
+    )
 
     //TODO 根据返回类型 调用下载方法
     // Blob ArrayBuffer
@@ -139,9 +163,9 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
       configStr = `{ url: ${urlSemicolon}${url}${query}${urlSemicolon}  ${bodyStr} ${headersStr}, method: '${method}' }`
     }
 
-    content += `\n ${desc} ${firstToLower(name)} ${arrowFunc ? '=' : ''} (${paramName}${paramTypeStr}) ${
-      arrowFunc ? '=>' : ''
-    }{
+    const arrowFuncStr = arrowFunc ? '=>' : ''
+    const paramStr = ` (${paramName}${paramTypeStr}) `
+    content += `\n ${desc} ${firstToLower(name)} ${arrowFunc ? '=' : ''}${paramStr}${arrowFuncStr}{
       ${deconstruct}
       ${paramsContents.map(({ type, content }) => `const ${type} = ${content}`).join('\r\n')}${urlStr}    
       const config: DocReqConfig = ${configStr}
@@ -149,14 +173,16 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
     }\n`
   }
   content += '}'
-  return content
+  const typesStr = _.uniq(typesList)
+    .sort((a, b) => a.length - b.length)
+    .join('\n')
+  return { content, typesStr }
 }
 
 export function buildApiFile(doc: DocListItem, config: Config) {
   const { docApi, moduleName = '' } = doc
-  const { outDir, render } = config
+  const { outDir, render, declaration, languageType } = config
   const outDirDir = resolveOutPath(outDir)
-  // const indexPath = path.join(resolveOutPath(outDir), 'index.ts')
   const outputDir = getOutputDir(moduleName, config)
   const { funcGroupList } = docApi
 
@@ -168,11 +194,18 @@ export function buildApiFile(doc: DocListItem, config: Config) {
     const filePath = path.join(outputDir, `${firstToLower(fileName)}.ts`)
     const _fileName = firstToLower(fileName)
 
-    let content = createClass(moduleInfo, className, docApi, config)
+    let { content, typesStr } = createClass(moduleInfo, className, docApi, config)
     content = `import type { DocReqConfig } from "doc2ts";\n${content}`
     content = `import type * as types from './types'\n${content}`
     content = `import ${baseName} from '${getClientPath(config, filePath)}'\n${content}`
     content = `${content}\nexport const ${_fileName} = new ${className}()`
+
+    // 不保留 .d.ts 文件，在 .js 文件添引入 types.d.ts 类型
+    const isJs = checkJsLang(languageType)
+    if (declaration === false && isJs && !!typesStr) {
+      const descriptionStr = '* @description 一下是js模式下引入类型说明，有助于类型提示'
+      content += `\n/**\r\n${descriptionStr}\r\n${typesStr}\n */`
+    }
 
     if (typeof render === 'function') {
       content = render(content, filePath)
@@ -180,15 +213,8 @@ export function buildApiFile(doc: DocListItem, config: Config) {
 
     fileList.push({ filePath, content })
 
-    // console.log(outDirDir)
-    // console.log(filePath)
     const fileExPath = findDiffPath(outDirDir, filePath).replace(/\.ts$/, '')
     importList.push(`import { ${_fileName} } from '${fileExPath}'`)
     exportList.push(_fileName)
-    // indexContnt += `import ${_fileName} from '${fileExPath}'`
-
-    // indexFileContent
   }
-
-  // createApiBaseClass(config)
 }
