@@ -131,7 +131,8 @@ export default class Manage {
     }
 
     const [err, stdout, stderr] = await checkout(this.docBranchname)
-    if (notBranch.test(stderr)) return this.initBranchname()
+    if (/^error/.test(stderr)) return this.initBranchname()
+    // if (notBranch.test(stderr)) return this.initBranchname()
     if (err) throw new Error(stderr)
     fs.writeFileSync(getRootFilePath(CONFIG_PATH), this.doc2tsConfigContent)
   }

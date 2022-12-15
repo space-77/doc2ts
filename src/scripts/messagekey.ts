@@ -7,7 +7,7 @@ export const noChanges = /no\s+changes\s+added\s+to\s+commit/i
 // 没有代码commit
 export const nothingCommit = /(nothing\s+to\s+commit)|(nothing\s+added\s+to\s+commit)/i
 
-// 没有代码commit
+// 没有分支
 export const notBranch = /did\s+not\s+match\s+any\s+file\(s\)\s+known\s+to\s+git/i
 
 // Git 更换换行符
