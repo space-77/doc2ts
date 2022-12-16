@@ -1,129 +1,60 @@
 import fs from 'fs'
-import iconv from 'iconv-lite'
-import {
-  GET_CHECKOUT,
-  GET_REV_PARSE,
-  GIT_ADD,
-  GIT_BRANCH,
-  GIT_COMMIT,
-  GIT_DELETE_BRANCH,
-  GIT_HEAD,
-  GIT_LOG,
-  GIT_MERGE,
-  GIT_STATUS,
-  GIT_VERSION
-} from './commands'
-import { exec, ExecException } from 'child_process'
-import { noChanges, notGit, nothingCommit } from './messagekey'
-import { CODE } from './config'
-import log from '../utils/log'
+import { simpleGit } from 'simple-git'
 import { getRootFilePath } from '../utils'
 
-const encoding = 'cp936'
-const binaryEncoding = 'binary'
-
-export function decodeRes(str: string) {
-  return iconv.decode(Buffer.from(str, binaryEncoding), encoding)
+const options = {
+  binary: 'git',
+  trimmed: false,
+  baseDir: process.cwd(),
+  maxConcurrentProcesses: 6
 }
 
-type ExecExceptions = [ExecException | null, string, string]
+const git = simpleGit(options)
 
-export function execSync(command: string): Promise<ExecExceptions> {
-  return new Promise(resolve => {
-    log.info(command)
-    exec(command, { encoding: binaryEncoding }, (err, stdout, stderr) => {
-      resolve([
-        JSON.parse(decodeRes(JSON.stringify(err))),
-        decodeRes(stdout).replace(/[\n\r?]+$/, ''),
-        decodeRes(stderr)
-      ])
-    })
-  })
-}
-
-/**
- * @desc 获取 当前 git 版本
- */
-export async function getGitVersion(): Promise<ExecExceptions> {
-  const [err, stdout, stderr] = await execSync(GIT_VERSION)
-
-  const [_, version] = stdout.match(/(\d+\.\d+\.\d+)/) ?? []
-  return [err, version, stderr]
-}
-
-export async function getCommitId() {
-  return await execSync(GET_REV_PARSE)
-}
-// originalBranchname
 export async function getBranchname() {
-  return await execSync(GIT_BRANCH)
+  const { current } = await git.branchLocal()
+  return current
 }
 
 export async function createBranchname(branchname: string, commitId?: string) {
-  // git checkout -b branchname commitId
-  return await execSync(`${GET_CHECKOUT} -b ${branchname} ${commitId ?? ''}`)
+  return await git.checkout(['-b', branchname, commitId ?? ''])
 }
 
 export async function checkout(branchname: string) {
-  return await execSync(`${GET_CHECKOUT} ${branchname}`)
+  return await git.checkout(branchname)
 }
 
-export async function deleteBranch(branchname: string) {
-  return await execSync(GIT_DELETE_BRANCH + branchname)
-}
-
-export async function checkGit(): Promise<ExecExceptions> {
-  const [err, stdout, stderr] = await execSync(GIT_STATUS)
-  if (notGit.test(stdout)) {
-    // 不是 git 管理的仓库
-    return [null, CODE.NOT_GIT, '']
-  }
-  return [err, stdout, stderr]
+export async function checkGit() {
+  const { files } = await git.status()
+  return files
 }
 
 export async function filesStatus(dirPath: string) {
-  const [err, stdout, stderr] = await execSync(`${GIT_STATUS} ${dirPath} -z`)
-  if (err) throw new Error(stderr)
-  return stdout
+  const { files } = await git.status([dirPath])
+  return files
 }
 
 export async function hasFileChange(dirPath: string) {
-  return !!(await filesStatus(dirPath)).trim()
+  return await filesStatus(dirPath)
 }
 
-export async function gitAdd(dirPath: string): Promise<ExecExceptions> {
-  return await execSync(GIT_ADD + dirPath)
+export async function gitAdd(dirPath: string[]) {
+  return await git.add(dirPath)
 }
 
-export async function getCommit() {
-  return await execSync(GIT_HEAD)
+export async function gitCommit(message: string, verify: string) {
+  return await git.commit(['-m', message, verify])
 }
 
-export async function gitCommit(message: string): Promise<ExecExceptions> {
-  const [err, stdout, stderr] = await execSync(GIT_COMMIT + message)
-  if (nothingCommit.test(stdout)) {
-    // 没有更改 正常返回
-    return [null, CODE.NOTHING_COMMIT, '']
-  }
-
-  if (err) {
-    if (noChanges.test(stdout)) {
-      // 没有更改 正常返回
-      return [null, CODE.NOTHING_COMMIT, stderr]
-    }
-  }
-
-  return [err, stdout, stderr]
-}
-
-export async function gitMerge(branchname: string): Promise<ExecExceptions> {
-  return await execSync(GIT_MERGE + branchname)
+export async function gitMerge(branchname: string) {
+  return await git.merge([branchname])
 }
 
 export async function getFirstCommitId(fileName: string) {
   if (!fs.existsSync(getRootFilePath(fileName))) return
-  const [err, stdout, stderr] = await execSync(GIT_LOG + fileName)
-  if (err) throw new Error(stderr)
-  const [_, id] = stdout.match(/(\S+)/) ?? []
+  const { latest } = await git.log(['--pretty=oneline', '--reverse', fileName])
+  const { hash } = latest ?? {}
+  if (!hash) return
+  const [, id] = hash.match(/(\S+)/) ?? []
   return id
 }
