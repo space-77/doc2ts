@@ -43,7 +43,7 @@ export async function gitAdd(dirPath: string[]) {
 }
 
 export async function gitCommit(message: string, verify: string) {
-  return await git.commit(['-m', message, verify])
+  return await git.commit(message, [verify])
 }
 
 export async function gitMerge(branchname: string) {

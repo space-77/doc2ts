@@ -116,7 +116,9 @@ export default class Manage {
 
     try {
       await checkout(this.docBranchname)
-    } catch (error) {
+    } catch (error: any) {
+      const errStr: string = error.toString()
+      if (/Your\s+local\s+changes/i.test(errStr)) throw new Error(errStr.replace(/Error:\s*/ig, ''))
       return this.initBranchname()
     }
     fs.writeFileSync(getRootFilePath(CONFIG_PATH), this.doc2tsConfigContent)
