@@ -72,7 +72,7 @@ export default class Manage {
       await this.checkout2Base()
 
       // 合并 doc 分支代码
-      if (changedFileCount === 0) await this.mergeCode()
+      if (changedFileCount > 0) await this.mergeCode()
     } catch (error) {
       console.error(error)
       const { originalBranchname } = this
