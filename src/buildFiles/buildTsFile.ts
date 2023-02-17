@@ -109,7 +109,7 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
     const hasBody = typeItems.some(i => i.paramType === 'body')
     const bodyStr = hasBody ? ',body' : ''
     if (hasBody) {
-      const { contentType } = requestBodyType as RequestBodies
+      const { contentType } = requestBodyType!.getRealBody() as RequestBodies
       if (contentType && FormDataKey.has(contentType)) {
         const bodyItem = paramsContents.find(i => i.type === 'body')
         if (bodyItem) bodyItem.content = `this.formData(${bodyItem.content})`
@@ -123,7 +123,7 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
       }
     }
 
-    const returnType = createReturnType(config, docApi, name, responseType)
+    const returnType = createReturnType(config, docApi, name, responseType?.getRealBody())
 
     // 生成 js文件，并且 不保留 .d.ts 类型文件时，生成方法类型注释
     let returnTypeStrName: string | undefined
@@ -150,7 +150,7 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
     //TODO 根据返回类型 调用下载方法
     // Blob ArrayBuffer
     // application/octet-stream
-    const { resConentType } = responseType ?? {}
+    const { resConentType } = responseType?.getRealBody() ?? {}
 
     // 接口数据返回的是不是 文件流，如果是文件流则调用 下载方法
     const isFile = resConentType && FileContentType.has(resConentType)
