@@ -19,19 +19,14 @@ export default class Doc2Ts {
   docList: DocListItem[] = []
 
   async init() {
-    try {
-      await this.getConfig()
-      await this.initRemoteDataSource()
-      this.createFiles()
-      await this.transform2js()
-      log.clear()
-      log.success(log.done(' ALL DONE '))
-    } catch (error) {
-      console.error(error)
-    }
+    await this.getConfig()
+    await this.initRemoteDataSource()
+    this.createFiles()
+    await this.transform2js()
   }
 
   async getConfig() {
+    log.info('正在读取配置文件')
     const config = await getConfig(CONFIG_PATH)
     this.config = new Config(config)
   }
@@ -44,7 +39,7 @@ export default class Doc2Ts {
     const reqs = origins.map(async i => {
       const dictPath = path.join(outputDir, `dicts/${i.name ?? 'dict'}.json`)
       let dict: DictList[] = []
-      
+
       try {
         const dictListJson: { dict: DictList[]; desc: string[] } = fs.existsSync(dictPath) ? require(dictPath) : {}
         dict = dictListJson.dict ?? []

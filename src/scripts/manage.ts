@@ -118,7 +118,7 @@ export default class Manage {
       await checkout(this.docBranchname)
     } catch (error: any) {
       const errStr: string = error.toString()
-      if (/Your\s+local\s+changes/i.test(errStr)) throw new Error(errStr.replace(/Error:\s*/ig, ''))
+      if (/Your\s+local\s+changes/i.test(errStr)) throw new Error(errStr.replace(/Error:\s*/gi, ''))
       return this.initBranchname()
     }
     fs.writeFileSync(getRootFilePath(CONFIG_PATH), this.doc2tsConfigContent)
@@ -156,11 +156,18 @@ export default class Manage {
 
   async mergeCode() {
     log.clear()
-    const { result } = await gitMerge(this.docBranchname)
-    if (mergeConflict.test(result)) {
-      log.log(log.warning('=== 合并冲突，请手动处理 ==='))
-      log.log(log.warning('=== 合并冲突，请手动处理 ==='))
-      log.log(log.warning('=== 合并冲突，请手动处理 ==='))
+    try {
+      await gitMerge(this.docBranchname)
+    } catch (error: any) {
+      const { merges = [] } = error?.git ?? {}
+      if (Array.isArray(merges) && merges.length > 0) {
+        merges.forEach(file => {
+          log.log(log.warning(file))
+        })
+        log.log(log.warning('=== 合并冲突，请手动处理 ==='))
+        log.log(log.warning('=== 合并冲突，请手动处理 ==='))
+        log.log(log.warning('=== 合并冲突，请手动处理 ==='))
+      }
     }
     log.done(' ALL DONE ')
   }

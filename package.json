@@ -56,6 +56,7 @@
     "typescript": "^4.6.3"
   },
   "devDependencies": {
+    "@types/commander": "^2.12.2",
     "@types/escodegen": "^0.0.7",
     "@types/fs-extra": "^9.0.13",
     "@types/inquirer": "^8.2.1",

@@ -86,7 +86,6 @@ export async function getConfig(configPath: string): Promise<Doc2TsConfig> {
   const jsName = path.join(__dirname, `__${noCacheFix}__.js`)
 
   try {
-    log.info('正在读取配置文件')
     const filePath = getRootFilePath(configPath)
     const stat = fs.statSync(filePath)
     if (!stat.isFile()) throw new Error('配置文件不存在')
