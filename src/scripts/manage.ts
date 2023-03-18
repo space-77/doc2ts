@@ -28,7 +28,8 @@ import {
   hasFileChange,
   gitUpdate,
   gitPull,
-  gitPush
+  gitPush,
+  getrRemote
 } from './utils'
 import log from '../utils/log'
 import { mergeConflict } from './messagekey'
@@ -40,6 +41,7 @@ export default class Manage {
   // commitId?: string
   includeFiles: string[] = []
   remote!: string
+  hasRemote = false
   docBranchname!: string
   remotesBranchKey!: string
   originalBranchname!: string
@@ -82,10 +84,10 @@ export default class Manage {
       // commit
       const changedFileCount = await this.commitFile()
 
-      if (changedFileCount) {
-        // 有代码提交，把doc分支代码也推送到服务器
-        await this.pushCommit()
-      }
+      // 把doc分支代码也推送到服务器
+      await this.pushCommit()
+      // if (changedFileCount) {
+      // }
 
       // 切换源分支
       await this.checkout2Base()
@@ -94,18 +96,15 @@ export default class Manage {
       if (changedFileCount > 0) await this.mergeCode()
     } catch (error) {
       console.error(error)
-      const { originalBranchname } = this
-      if (!originalBranchname) return
-      await checkout(originalBranchname)
+      // const { originalBranchname } = this
+      // if (!originalBranchname) return
+      // await checkout(originalBranchname)
     }
   }
 
   async loadConfig() {
     // 检测是不是使用 git 管理的代码
     await checkGit()
-
-    // 更新远程分支信息
-    await gitUpdate()
 
     // 读取 配置文件
     this.config = await getConfig(CONFIG_PATH)
@@ -129,6 +128,11 @@ export default class Manage {
   }
 
   async checkout2Doc() {
+    if (this.originalBranchname === this.docBranchname) {
+      log.error(log.errColor(`${log.errTag(' error ')}当前分支为doc2ts的git自动管理分支，请把分支切回开发分支再操作。`))
+      process.exit(0)
+    }
+
     const { outDir } = this.config
     const files = await filesStatus(`${outDir}/*`)
 
@@ -138,45 +142,42 @@ export default class Manage {
       process.exit(0)
     }
 
-    try {
-      // const remotesBranchKey = `remotes/origin/${this.docBranchname}`
-      const { all, branches } = await getBranchList()
-      const hasBranch = all.some(i => i === this.docBranchname)
-      const [, remotesBranch] = Object.entries(branches).find(([key]) => key === this.remotesBranchKey) ?? []
-      this.remotesBranch = remotesBranch
-      // remotes/origin/pont
+    const remote = await getrRemote()
+    this.hasRemote = typeof remote === 'string' && remote !== ''
 
-      if (hasBranch || remotesBranch) {
-        // 本地存在doc分支
-        await checkout(this.docBranchname)
-        if (hasBranch) {
-          // doc分支本地存在，需要更新
-          const { behind } = await status()
+    // console.log(this.hasRemote)
 
-          if (behind > 0) {
-            // 更新远程分支
-            try {
-              await gitPull(this.remote, this.docBranchname)
-            } catch (error) {
-              log.error(`获取更新远程 ${this.docBranchname} 出错，请手动处理错误：`)
-              log.error((error as GitResponseError<PullFailedResult>).message)
-              process.exit(0)
-            }
+    // 更新远程分支信息
+    if (this.hasRemote) await gitUpdate()
+
+    const { all, branches } = await getBranchList()
+    const hasBranch = all.some(i => i === this.docBranchname)
+    const [, remotesBranch] = Object.entries(branches).find(([key]) => key === this.remotesBranchKey) ?? []
+    this.remotesBranch = remotesBranch
+    // remotes/origin/pont
+
+    if (hasBranch || remotesBranch) {
+      // 本地存在doc分支
+      await checkout(this.docBranchname)
+      if (hasBranch && this.hasRemote) {
+        // doc分支本地存在，需要更新
+        const { behind } = await status()
+
+        if (behind > 0) {
+          // 更新远程分支
+          try {
+            await gitPull(this.remote, this.docBranchname)
+          } catch (error) {
+            log.error(`获取更新远程 ${this.docBranchname} 出错，请手动处理错误：`)
+            log.error((error as GitResponseError<PullFailedResult>).message)
+            process.exit(0)
           }
         }
-      } else if (remotesBranch) {
-        console.log(remotesBranch)
       }
-
-      console.log(hasBranch)
-
-      // await checkout(this.docBranchname)
-    } catch (error: any) {
-      // const errStr: string = error.toString()
-      // if (/Your\s+local\s+changes/i.test(errStr)) throw new Error(errStr.replace(/Error:\s*/gi, ''))
-      // return this.initBranchname()
+    } else {
+      await this.initBranchname()
     }
-    // fs.writeFileSync(getRootFilePath(CONFIG_PATH), this.doc2tsConfigContent)
+    fs.writeFileSync(getRootFilePath(CONFIG_PATH), this.doc2tsConfigContent)
   }
 
   async getBranch() {
@@ -254,18 +255,23 @@ export default class Manage {
   // }
 
   async pushCommit() {
+    if (!this.hasRemote) return
     try {
-      if (!this.remotesBranch) {
-        // 远程分支不存在
-        // 推送分支
-        await gitPush(this.remote, this.docBranchname, ['-u'])
-      } else {
-        // 远程分支已存在
-        // 直接posh代码即可
-        await gitPush(this.remote, this.docBranchname)
+      const res = await status()
+      const { ahead, tracking } = res
+      if (ahead > 0 || tracking === null) {
+        if (!this.remotesBranch) {
+          // 远程分支不存在
+          // 推送分支
+          await gitPush(this.remote, this.docBranchname, ['-u'])
+        } else {
+          // 远程分支已存在
+          // 直接posh代码即可
+          await gitPush(this.remote, this.docBranchname)
+        }
       }
     } catch (error) {
-      log.error(`推送${this.docBranchname}分支的代码到远程服务器失败，请手动操作`)
+      log.error(`推送${this.docBranchname}分支的代码到远程服务器失败，请手动处理`)
       process.exit(0)
     }
   }

@@ -67,12 +67,11 @@ export async function getFirstCommitId(fileName: string) {
 }
 
 export async function getBranchList() {
-  // if (!fs.existsSync(getRootFilePath(fileName))) return
   return await git.branch()
-  // const { hash } = latest ?? {}
-  // if (!hash) return
-  // const [, id] = hash.match(/(\S+)/) ?? []
-  // return id
+}
+
+export async function getrRemote() {
+  return await git.remote(['-v'])
 }
 
 export async function gitPull(remote: string, branch: string) {
