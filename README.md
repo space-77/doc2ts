@@ -185,6 +185,26 @@ export default {
 } as Doc2TsConfig
 ```
 
+### 自动git管理
+
+- 参数：`gitConfig`
+- 必传：`否`
+- 类型：`GitConfig`
+- 默认：``
+- 说明：自动git管理配置信息
+
+```typescript
+export default {
+  gitConfig: {
+    // 远程仓库，默认是 origin
+    remote: 'origin',
+
+    // 自动管理分支名，默认是 doc2ts
+    branchname: 'doc2ts'
+  }
+} as Doc2TsConfig
+```
+
 ### 配置 文件输出的位置
 
 - 参数：`outDir`
@@ -198,7 +218,7 @@ export default {
   outDir: 'xxx'
 } as Doc2TsConfig
 ```
-
+ 
 ### 基类位置
 
 - 参数：`baseClassPath`

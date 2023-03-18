@@ -5,6 +5,8 @@
 //  解决：切换到 doc 分支前，复制 当前分支的 doc2ts-config.ts 内容到内存，等待分支切换成功后，把内容覆盖到 当前分支的 doc2ts-config.ts 文件
 
 import fs from 'fs-extra'
+// import program from 'commander'
+import inquirer, { QuestionCollection } from 'inquirer'
 import Doc2Ts from '../doc2TsCore/index'
 // import { mergeConflict, notBranch, replacedLF } from './messagekey'
 import { CONFIG_PATH } from '../common/config'
@@ -12,28 +14,37 @@ import { Doc2TsConfig } from '../types/types'
 import { CODE, GIT_BRANCHNAME } from './config'
 import { getConfig, getRootFilePath } from '../utils/index'
 import {
+  status,
   checkGit,
   checkout,
   createBranchname,
   filesStatus,
+  getBranchList,
   getBranchname,
   getFirstCommitId,
   gitAdd,
   gitCommit,
   gitMerge,
-  hasFileChange
+  hasFileChange,
+  gitUpdate,
+  gitPull,
+  gitPush
 } from './utils'
 import log from '../utils/log'
 import { mergeConflict } from './messagekey'
+import { BranchSummaryBranch, GitResponseError, PullFailedResult, PushResult } from 'simple-git'
 
 export default class Manage {
   config!: Doc2TsConfig
   noVerify = true
   // commitId?: string
   includeFiles: string[] = []
+  remote!: string
   docBranchname!: string
+  remotesBranchKey!: string
   originalBranchname!: string
   doc2tsConfigContent!: Buffer
+  remotesBranch?: BranchSummaryBranch // 远程分支
 
   constructor() {
     this.init()
@@ -49,6 +60,9 @@ export default class Manage {
 
       // 切换到 doc 分支
       await this.checkout2Doc()
+
+      // // 更新远程分支信息，确保当前分支是最新代码
+      // await this.checkBranch()
 
       // 生成接口信息
       const doc2ts = new Doc2Ts()
@@ -68,6 +82,11 @@ export default class Manage {
       // commit
       const changedFileCount = await this.commitFile()
 
+      if (changedFileCount) {
+        // 有代码提交，把doc分支代码也推送到服务器
+        await this.pushCommit()
+      }
+
       // 切换源分支
       await this.checkout2Base()
 
@@ -85,13 +104,18 @@ export default class Manage {
     // 检测是不是使用 git 管理的代码
     await checkGit()
 
+    // 更新远程分支信息
+    await gitUpdate()
+
     // 读取 配置文件
     this.config = await getConfig(CONFIG_PATH)
 
     const { outDir, gitConfig } = this.config
     this.includeFiles.push(...[`${outDir}/*`, CONFIG_PATH])
     this.noVerify = gitConfig?.noVerify ?? true
+    this.remote = gitConfig?.remote ?? 'origin'
     this.docBranchname = gitConfig?.branchname ?? GIT_BRANCHNAME
+    this.remotesBranchKey = `remotes/${this.remote}/${this.docBranchname}`
 
     // 复制 切换分支前的 doc2ts-config.ts 文件内容到 内存
     this.doc2tsConfigContent = fs.readFileSync(getRootFilePath(CONFIG_PATH)) // .toString()
@@ -115,13 +139,44 @@ export default class Manage {
     }
 
     try {
-      await checkout(this.docBranchname)
+      // const remotesBranchKey = `remotes/origin/${this.docBranchname}`
+      const { all, branches } = await getBranchList()
+      const hasBranch = all.some(i => i === this.docBranchname)
+      const [, remotesBranch] = Object.entries(branches).find(([key]) => key === this.remotesBranchKey) ?? []
+      this.remotesBranch = remotesBranch
+      // remotes/origin/pont
+
+      if (hasBranch || remotesBranch) {
+        // 本地存在doc分支
+        await checkout(this.docBranchname)
+        if (hasBranch) {
+          // doc分支本地存在，需要更新
+          const { behind } = await status()
+
+          if (behind > 0) {
+            // 更新远程分支
+            try {
+              await gitPull(this.remote, this.docBranchname)
+            } catch (error) {
+              log.error(`获取更新远程 ${this.docBranchname} 出错，请手动处理错误：`)
+              log.error((error as GitResponseError<PullFailedResult>).message)
+              process.exit(0)
+            }
+          }
+        }
+      } else if (remotesBranch) {
+        console.log(remotesBranch)
+      }
+
+      console.log(hasBranch)
+
+      // await checkout(this.docBranchname)
     } catch (error: any) {
-      const errStr: string = error.toString()
-      if (/Your\s+local\s+changes/i.test(errStr)) throw new Error(errStr.replace(/Error:\s*/gi, ''))
-      return this.initBranchname()
+      // const errStr: string = error.toString()
+      // if (/Your\s+local\s+changes/i.test(errStr)) throw new Error(errStr.replace(/Error:\s*/gi, ''))
+      // return this.initBranchname()
     }
-    fs.writeFileSync(getRootFilePath(CONFIG_PATH), this.doc2tsConfigContent)
+    // fs.writeFileSync(getRootFilePath(CONFIG_PATH), this.doc2tsConfigContent)
   }
 
   async getBranch() {
@@ -168,7 +223,50 @@ export default class Manage {
         log.log(log.warning('=== 合并冲突，请手动处理 ==='))
         log.log(log.warning('=== 合并冲突，请手动处理 ==='))
       }
+      process.exit(0)
     }
     log.done(' ALL DONE ')
+  }
+
+  // async checkBranch() {
+  //   // 1、更新远程分支信息
+  //   // 2、检查远程分支是否存在
+  //   // 3、查看远程分支是否有更新
+  //   // 4、有更新则更新，否则跳过
+
+  //   // 2、检查远程分支是否存在
+  //   const { branches } = await getBranchList()
+  //   const remotesBranch = Object.entries(branches).find(([key]) => key === `remotes/origin/${this.docBranchname}`)
+  //   if (remotesBranch) {
+  //     // 更新 远程分支
+  //     const { behind } = await status()
+
+  //     if (behind > 0) {
+  //       // 更新远程分支
+  //       try {
+  //         await gitPull(this.docBranchname)
+  //       } catch (error) {
+  //         log.error(`获取更新远程 ${this.docBranchname} 出错，请手动处理错误：`)
+  //         log.error((error as GitResponseError<PullFailedResult>).message)
+  //       }
+  //     }
+  //   }
+  // }
+
+  async pushCommit() {
+    try {
+      if (!this.remotesBranch) {
+        // 远程分支不存在
+        // 推送分支
+        await gitPush(this.remote, this.docBranchname, ['-u'])
+      } else {
+        // 远程分支已存在
+        // 直接posh代码即可
+        await gitPush(this.remote, this.docBranchname)
+      }
+    } catch (error) {
+      log.error(`推送${this.docBranchname}分支的代码到远程服务器失败，请手动操作`)
+      process.exit(0)
+    }
   }
 }

@@ -30,14 +30,21 @@ export type MethodConfig = {
 
 export type GitConfig = {
   /**
-   * @desc 管理 自动拉取代码的分支
+   * @desc 远程仓库
+   * @default "origin"
    */
-  branchname: string
+  remote?: string
+
+  /**
+   * @desc 管理 自动拉取代码的分支
+   * @default "doc2ts"
+   */
+  branchname?: string
 
   /**
    * @desc 上次 commit 记录
    */
-  commitId?: string
+  initCommitId?: string
 
   /**
    * @default true
@@ -85,7 +92,6 @@ export type Doc2TsConfig = {
    * @description 生成的文件类型
    */
   languageType?: 'typeScript' | 'javaScript' | 'typescript' | 'javascript' | 'ts' | 'js'
-
 
   /**
    * @default false
