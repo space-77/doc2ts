@@ -1,17 +1,8 @@
-//  TODO 切换到 doc 分支后，被 .gitignore 忽略的文件肯能会重现导致 commit 异常
-//  解决：只操作代码存放文件夹【待测试】
-
-//  TODO doc2ts-config.ts 文件 内容可能不是最新的
-//  解决：切换到 doc 分支前，复制 当前分支的 doc2ts-config.ts 内容到内存，等待分支切换成功后，把内容覆盖到 当前分支的 doc2ts-config.ts 文件
-
 import fs from 'fs-extra'
-// import program from 'commander'
-import inquirer, { QuestionCollection } from 'inquirer'
 import Doc2Ts from '../doc2TsCore/index'
-// import { mergeConflict, notBranch, replacedLF } from './messagekey'
 import { CONFIG_PATH } from '../common/config'
 import { Doc2TsConfig } from '../types/types'
-import { CODE, GIT_BRANCHNAME } from './config'
+import { GIT_BRANCHNAME } from './config'
 import { getConfig, getRootFilePath } from '../utils/index'
 import {
   status,
@@ -32,7 +23,6 @@ import {
   getrRemote
 } from './utils'
 import log from '../utils/log'
-import { mergeConflict } from './messagekey'
 import { BranchSummaryBranch, GitResponseError, PullFailedResult, PushResult } from 'simple-git'
 
 export default class Manage {
@@ -70,14 +60,6 @@ export default class Manage {
       const doc2ts = new Doc2Ts()
       await doc2ts.init()
 
-      // commit 代码【检查有没有代码】
-      if ((await this.checkStatus()).length > 0) {
-        // 没有代码变更
-        // 切换源分支
-        await this.checkout2Base()
-        return
-      }
-
       // add
       await this.addFile()
 
@@ -86,14 +68,21 @@ export default class Manage {
 
       // 把doc分支代码也推送到服务器
       await this.pushCommit()
-      // if (changedFileCount) {
-      // }
 
       // 切换源分支
       await this.checkout2Base()
 
       // 合并 doc 分支代码
-      if (changedFileCount > 0) await this.mergeCode()
+      if (changedFileCount > 0) {
+        await this.mergeCode()
+      }
+      log.clear()
+      if (changedFileCount > 0) {
+        log.info(`本次操作共计 ${changedFileCount} 个文件更新`)
+      } else {
+        log.info(`本次操作没有文件更新`)
+      }
+      log.success(log.done(' ALL DONE '))
     } catch (error) {
       console.error(error)
       // const { originalBranchname } = this
@@ -104,6 +93,7 @@ export default class Manage {
 
   async loadConfig() {
     // 检测是不是使用 git 管理的代码
+    log.info('正在同步远程仓库代码')
     await checkGit()
 
     // 读取 配置文件
@@ -226,7 +216,7 @@ export default class Manage {
       }
       process.exit(0)
     }
-    log.done(' ALL DONE ')
+    log.success(log.done(' ALL DONE '))
   }
 
   // async checkBranch() {
@@ -260,6 +250,7 @@ export default class Manage {
       const res = await status()
       const { ahead, tracking } = res
       if (ahead > 0 || tracking === null) {
+        log.info('正在同步代码到远程仓库')
         if (!this.remotesBranch) {
           // 远程分支不存在
           // 推送分支

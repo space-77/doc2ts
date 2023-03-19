@@ -99,5 +99,5 @@
     "skipLibCheck": true,                                 /* Skip type checking all .d.ts files. */
     "types": ["node"]
   },
-  "include": ["src/index.ts", "src/scripts/*"]
+  "include": ["src/index.ts", "src/scripts/*", "src/utils/cmd.ts"]
 }
