@@ -13,34 +13,18 @@
 
 ### 安装
 
-#### 项目上安装
-
 ```shell
-npm i -D doc2ts
-# or
-yarn add -D doc2ts
-
-# or
-pnpm add -D doc2ts
+npm i -g doc2ts
 ```
 
 同时需要安装 qs 处理请求参数。  
 安装后需要在 package.json 添加以下脚本命令
 
-```json
-{
-  "scripts": {
-    "api-init": "doc2ts init",
-    "api-build": "doc2ts build"
-  }
-}
-```
-
 ### 初始化配置
 
 ```shell
 # 根据提示选择你的配置
-npm run api-init
+doc2ts init
 ```
 
 - 输入命令后全按回车键，会生成一份示例配置。
@@ -50,19 +34,23 @@ npm run api-init
 ### 生成文件
 
 ```shell
-npm run api-build
+doc2ts start
 ```
 
 ### 使用 git 管理生成的代码
 
-> 版本 v0.9.1 及以上有效
+> 版本 v0.9.1 及以上有效  
+
+每次生成的代码都会覆盖上一次的代码，而很多时候需要手动修改生成后的代码（接口文档不能百分百准确），这时候可以使用 git 分支去管理。  
+自动流程：
+复制当前分支的配置文件（doc2ts-config.ts） -> 切换到 doc2ts 分支 -> 更新doc2ts 分支代码 -> 生成代码 -> commit -> 提交 doc2ts 分支代码 -> 切回到原分支 -> merge doc2ts 分支。
 
 ```shell
-npm run api-build --git
+doc2ts start --git
+# or
+doc2ts start -g
 ```
 
-流程：
-复制当前分支的配置文件（doc2ts-config.ts） -> 切换到 doc2ts 分支 -> 生成代码 -> commit -> 切回到原分支 -> merge doc2ts 分支。
 
 ## 基类文件说明
 
