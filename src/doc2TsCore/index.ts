@@ -8,7 +8,7 @@ import { ts2Js, getConfig, checkJsLang, resolveOutPath, loadPrettierConfig, crea
 // ------------------------------------
 import docInit from 'doc-pre-data'
 import { checkName } from 'doc-pre-data/lib/common/utils'
-import { DictList } from 'doc-pre-data/lib/common/translate'
+import { DictList, TranslateCode } from 'doc-pre-data/lib/common/translate'
 import { buidTsTypeFile } from '../buildFiles/buildType'
 import type { DocListItem } from '../types/newType'
 import { buildApiFile, exportList, importList } from '../buildFiles/buildTsFile'
@@ -31,6 +31,18 @@ export default class Doc2Ts {
     this.config = new Config(config)
   }
 
+  saveDict(dictList: DictList[], dictPath: string) {
+    const desc = [
+      '----- 这是一个翻译缓存文件 -----',
+      '----- 这是一个翻译缓存文件 -----',
+      '----- 这是一个翻译缓存文件 -----',
+      '如果您对翻译不满意可以在这里修改，在下次生成新的代码有效',
+      '注意：修改翻译后生成的代码或文件名，都随之变化，引用的地方也需要做对应的修改'
+    ]
+    fs.createFileSync(dictPath)
+    fs.writeFileSync(dictPath, JSON.stringify({ desc, dict: dictList }, null, 2))
+  }
+
   async initRemoteDataSource() {
     const { prettierPath, origins, outDir, fetchSwaggerDataMethod } = this.config
     const outputDir = resolveOutPath(outDir)
@@ -45,16 +57,16 @@ export default class Doc2Ts {
         dict = dictListJson.dict ?? []
       } catch (error) {}
       dict = dict.filter(i => {
-        i.en = i.en.trim()
+        i.en = i.en?.trim() ?? null
         return !!i.en
       })
-      const desc = [
-        '----- 这是一个翻译缓存文件 -----',
-        '----- 这是一个翻译缓存文件 -----',
-        '----- 这是一个翻译缓存文件 -----',
-        '如果您对翻译不满意可以在这里修改，在下次生成新的代码有效',
-        '注意：修改翻译后生成的代码或文件名，都随之变化，引用的地方也需要做对应的修改'
-      ]
+      // const desc = [
+      //   '----- 这是一个翻译缓存文件 -----',
+      //   '----- 这是一个翻译缓存文件 -----',
+      //   '----- 这是一个翻译缓存文件 -----',
+      //   '如果您对翻译不满意可以在这里修改，在下次生成新的代码有效',
+      //   '注意：修改翻译后生成的代码或文件名，都随之变化，引用的地方也需要做对应的修改'
+      // ]
 
       let dataOrUrl: string | object = i.url
       if (typeof fetchSwaggerDataMethod === 'function') {
@@ -63,25 +75,44 @@ export default class Doc2Ts {
       }
 
       const json = await getApiJson(i.url)
+      // dictList
+      try {
+        const { docApi, dictList } = await docInit(json, dict)
+        this.saveDict(dictList, dictPath)
+        // fs.createFileSync(dictPath)
+        // fs.writeFileSync(dictPath, JSON.stringify({ desc, dict: this.docList }, null, 2))
 
-      const { docApi, dictList } = await docInit(json, dict)
-      fs.createFileSync(dictPath)
-      fs.writeFileSync(dictPath, JSON.stringify({ desc, dict: dictList }, null, 2))
+        docApi.funcGroupList.forEach(mod => {
+          const names = docApi.funcGroupList.filter(i => mod !== i).map(i => i.moduleName)
+          // types 是保留文件，防止和模块文件重名
+          mod.moduleName = checkName(mod.moduleName, n => names.includes(n) || /^types$/i.test(n))
+        })
+        return { docApi, moduleName: i.name }
+      } catch (error) {
+        if ((error as any)?.code === TranslateCode.TRANSLATE_ERR) {
+          const dictList = (error as any).dictList as DictList[]
+          log.clear()
+          this.saveDict(dictList, dictPath)
+          log.error(`${log.errTag(' error ')} ${log.errColor('翻译失败.')}`)
+          log.info(`您可以在 ${log.link(`${dictPath}`)} 文件里，把翻译失败（en为null）的信息翻译后重试。`)
+          process.exit(0)
+        } else {
+          return Promise.reject(error)
+        }
+      }
+    })
 
-      docApi.funcGroupList.forEach(mod => {
-        const names = docApi.funcGroupList.filter(i => mod !== i).map(i => i.moduleName)
-        // types 是保留文件，防止和模块文件重名
-        mod.moduleName = checkName(mod.moduleName, n => names.includes(n) || /^types$/i.test(n))
+    try {
+      this.docList = await Promise.all(reqs)
+
+      this.docList.forEach(i => {
+        buildApiFile(i, this.config)
+        buidTsTypeFile(i, this.config)
       })
-
-      return { docApi, moduleName: i.name }
-    })
-    this.docList = await Promise.all(reqs)
-
-    this.docList.forEach(i => {
-      buildApiFile(i, this.config)
-      buidTsTypeFile(i, this.config)
-    })
+    } catch (error) {
+      // throw new Error(error?.toString());
+      return Promise.reject(error)
+    }
   }
 
   createFiles() {

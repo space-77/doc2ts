@@ -845,10 +845,10 @@ diff@^4.0.1:
   resolved "https://registry.npmjs.org/diff/-/diff-4.0.2.tgz#60f3aecb89d5fae520c11aa19efc2bb982aade7d"
   integrity sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==
 
-doc-pre-data@1.0.0-beta.23:
-  version "1.0.0-beta.23"
-  resolved "https://registry.npmjs.org/doc-pre-data/-/doc-pre-data-1.0.0-beta.23.tgz#206ff2bd809ecdd0b8b197f5fa75705c0f60835c"
-  integrity sha512-88DgTjI4XahTE+8a5BV1UliFm/xFpehPdU+7QcXHQdPOENOCz775lM/Qn+RiaMC5nQRnN/yWDvfALzqdRTDcdg==
+doc-pre-data@1.0.1:
+  version "1.0.1"
+  resolved "https://registry.npmjs.org/doc-pre-data/-/doc-pre-data-1.0.1.tgz#8938dc2782fcb17f9ad4e43e9a20b255b6e27b54"
+  integrity sha512-gwHobqpSj8aSyTw8VjPtz9rwYboWxHwoOS4EaGrkmKgf/2xC3mVSXyeCeFrrcT/fjBfb+CtLPuWFdtbJef3jDw==
   dependencies:
     axios "*"
     balanced-match "^2.0.0"
