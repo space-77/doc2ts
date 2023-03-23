@@ -332,7 +332,7 @@ export default {
 
 ```typescript
 export default {
-  disableParams: [{ { type: 'header', name: 'accessToken' } }]
+  disableParams: [{ paramType: 'header', keys: ['accessToken', 'token', 'Authorization'] }]
 } as Doc2TsConfig
 ```
 

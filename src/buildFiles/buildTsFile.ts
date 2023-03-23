@@ -34,7 +34,7 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
 
   pathItems.sort((a, b) => a.name.length - b.name.length)
 
-  const { disableParams = [], arrowFunc, declaration, languageType } = config
+  const { disableParams, arrowFunc, declaration, languageType } = config
   const baseClassName = getBaseFileName(config)
 
   const desc = getDesc({ description, name })
@@ -58,7 +58,7 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
         i.disable =
           i.paramType === 'cookie' ||
           // paramType === 'header' ||
-          !!disableParams.find(j => j.name === i.name && j.type === i.paramType)
+          !!disableParams.find(j => j.paramType === i.paramType && j.keys.includes(i.name))
         return !i.disable
       })
       .sort((a, b) => a.name.length - b.name.length)

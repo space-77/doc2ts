@@ -57,7 +57,7 @@ export type GitConfig = {
 
 export type Origin = ModelList
 
-export type DisableParams = { type: Required<TypeItem>['paramType']; name: string }
+export type DisableParams = { paramType: Required<TypeItem>['paramType']; keys: string[] }
 
 export type Doc2TsConfig = {
   /**
