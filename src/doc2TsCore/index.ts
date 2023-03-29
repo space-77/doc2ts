@@ -44,7 +44,7 @@ export default class Doc2Ts {
   }
 
   async initRemoteDataSource() {
-    const { prettierPath, origins, outDir, fetchSwaggerDataMethod } = this.config
+    const { prettierPath, origins, outDir, translateType, fetchSwaggerDataMethod } = this.config
     const outputDir = resolveOutPath(outDir)
     await loadPrettierConfig(prettierPath)
 
@@ -77,7 +77,8 @@ export default class Doc2Ts {
       const json = await getApiJson(i.url)
       // dictList
       try {
-        const { docApi, dictList } = await docInit(json, dict)
+        const options = { translateType }
+        const { docApi, dictList } = await docInit(json, dict, options)
         this.saveDict(dictList, dictPath)
         // fs.createFileSync(dictPath)
         // fs.writeFileSync(dictPath, JSON.stringify({ desc, dict: this.docList }, null, 2))

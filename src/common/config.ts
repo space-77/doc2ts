@@ -1,5 +1,5 @@
 import type prettier from 'prettier'
-import { DisableParams, Doc2TsConfig, Doc2TsConfigKey } from '../types/types'
+import { DisableParams, Doc2TsConfig, Doc2TsConfigKey, TranslateType } from '../types/types'
 
 export const CONFIG_PATH = 'doc2ts-config.ts'
 
@@ -22,6 +22,7 @@ export class PrettierConfig {
 export class Config {
   readonly outDir: string = './services' // 文件输出地址
   readonly disableParams: DisableParams[] = [] // 文件输出地址
+  readonly translateType = TranslateType.english // 文件输出地址
   readonly origins!: Doc2TsConfig['origins'] // swagger 接口地址
   // readonly swaggerBootstrapUiUrl!: Doc2TsConfig['swaggerBootstrapUiUrl']  // swagger-bootstrap-ui 接口地址
   readonly swaggerHeaders?: Doc2TsConfig['swaggerHeaders']

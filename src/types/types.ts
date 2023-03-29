@@ -1,4 +1,6 @@
 import type { TypeInfoBase, TypeItem } from 'doc-pre-data'
+import { TranslateType } from 'doc-pre-data/lib/common/translate'
+export { TranslateType }
 
 export interface ModelList {
   url: string
@@ -92,6 +94,12 @@ export type Doc2TsConfig = {
    * @description 生成的文件类型
    */
   languageType?: 'typeScript' | 'javaScript' | 'typescript' | 'javascript' | 'ts' | 'js'
+
+  /**
+   * @default TranslateType.english
+   * @description 翻译类型，可以指定翻译成英文或拼音
+   */
+  translateType?: TranslateType
 
   /**
    * @default false
