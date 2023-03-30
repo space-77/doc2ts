@@ -47,7 +47,7 @@ program
 
 program
   .command('start')
-  .option('-g, --git', '使用 git 管理生成的代码', 80)
+  .option('-g, --git', '使用 git 管理生成的代码')
   .description('生成代码')
   .action(({ git, g }) => {
     generator(!!git || !!g)
