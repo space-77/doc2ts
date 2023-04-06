@@ -5,6 +5,7 @@ import log from './log'
 import path from 'path'
 import axios from 'axios'
 import prettier from 'prettier'
+import { jsonrepair } from 'jsonrepair'
 import { keyWordsListSet, PrettierConfig } from '../common/config'
 import { Doc2TsConfig, ModelList } from '../types/types'
 const keyword = require('is-es2016-keyword')
@@ -325,6 +326,14 @@ export async function getApiJson(url: string): Promise<object> {
       const [, json] = data.match(/"swaggerDoc":([\s\S]*),\s*"customOptions"/) ?? []
       return JSON.parse(json)
     } else {
+      if (typeof data === 'string') {
+        try {
+          return JSON.parse(jsonrepair(data))
+        } catch (error) {
+          log.error(`${url}: api 数据格式异常(不是标准JSON格式)`)
+          throw new Error('')
+        }
+      }
       return data
     }
   } catch (error) {

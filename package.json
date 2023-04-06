@@ -1,6 +1,6 @@
 {
   "name": "doc2ts",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "根据接口文档生成ts接口文件",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -48,6 +48,7 @@
     "fs-extra": "^10.1.0",
     "inquirer": "^8.2.4",
     "is-es2016-keyword": "^1.0.0",
+    "jsonrepair": "^3.0.2",
     "lodash": "*",
     "prettier": "^2.6.2",
     "qs": "*",

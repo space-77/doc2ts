@@ -68,6 +68,7 @@ export default class Doc2Ts {
       //   '注意：修改翻译后生成的代码或文件名，都随之变化，引用的地方也需要做对应的修改'
       // ]
 
+      // TODO 未实现
       let dataOrUrl: string | object = i.url
       if (typeof fetchSwaggerDataMethod === 'function') {
         const swagger = await fetchSwaggerDataMethod(i.url)
