@@ -1,4 +1,5 @@
 import type prettier from 'prettier'
+import { TranslateType } from 'doc-pre-data'
 import { DisableParams, Doc2TsConfig, Doc2TsConfigKey } from '../types/types'
 
 export const CONFIG_PATH = 'doc2ts-config.ts'
@@ -32,6 +33,7 @@ export class Config {
   readonly prettierPath?: string
   readonly baseClassPath!: string
   readonly arrowFunc: Doc2TsConfig['arrowFunc'] = false
+  readonly translateType: TranslateType = TranslateType.english
   readonly languageType?: Doc2TsConfig['languageType']
   readonly render: Doc2TsConfig['render']
   readonly typeFileRender: Doc2TsConfig['typeFileRender']
