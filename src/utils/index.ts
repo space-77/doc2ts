@@ -318,9 +318,9 @@ export function isKeyword(key: string): boolean {
   return funcKeyword.has(key) || keyword(key)
 }
 
-export async function getApiJson(url: string): Promise<object> {
+export async function getApiJson(url: string, headers?: Record<string, any>): Promise<object> {
   try {
-    const { data } = await axios.get(url)
+    const { data } = await axios.get(url, { headers })
     const { pathname } = new URL(url)
     if (path.extname(pathname) === '.js') {
       const [, json] = data.match(/"swaggerDoc":([\s\S]*),\s*"customOptions"/) ?? []

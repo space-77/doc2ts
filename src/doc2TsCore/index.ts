@@ -44,7 +44,7 @@ export default class Doc2Ts {
   }
 
   async initRemoteDataSource() {
-    const { prettierPath, origins, outDir, fetchSwaggerDataMethod, translateType } = this.config
+    const { prettierPath, origins, outDir, fetchSwaggerDataMethod, translateType, swaggerHeaders } = this.config
     const outputDir = resolveOutPath(outDir)
     await loadPrettierConfig(prettierPath)
 
@@ -68,14 +68,14 @@ export default class Doc2Ts {
       //   '注意：修改翻译后生成的代码或文件名，都随之变化，引用的地方也需要做对应的修改'
       // ]
 
-      // TODO 未实现
-      let dataOrUrl: string | object = i.url
+      let json: string | object = i.url
       if (typeof fetchSwaggerDataMethod === 'function') {
         const swagger = await fetchSwaggerDataMethod(i.url)
-        dataOrUrl = JSON.parse(swagger)
+        json = JSON.parse(swagger)
+      } else {
+        json = await getApiJson(i.url, swaggerHeaders)
       }
 
-      const json = await getApiJson(i.url)
       // dictList
       try {
         const { docApi, dictList } = await docInit(json, dict, { translateType })
