@@ -5,6 +5,7 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "bin": {
+    "dtt": "bin/doc2api.js",
     "doc2ts": "bin/doc2api.js"
   },
   "scripts": {
