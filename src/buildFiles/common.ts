@@ -23,6 +23,9 @@ type ParamType = Required<TypeItem['paramType']>
 type ConstType = 'query' | 'headers' | 'path' | 'body'
 export type ParamsInfo = ReturnType<typeof createParams>
 
+// 按照这个顺序排序
+const constTypeSort = ['path', 'header', 'query', 'body']
+
 export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) {
   const paramsInfo = {
     // 参数种类
@@ -40,13 +43,15 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
     paramsContents: [] as { type: ConstType; content: string }[]
   }
 
-  // const typeItems = _.flatten(paramsTypeInfo.map(i => i.getTypeItems()))
   const typeGroup = _.groupBy(typeItems, 'paramType')
-  const typeGroupList = Object.entries(typeGroup)
+  const typeGroupList = Object.entries(typeGroup).sort(
+    (a, b) => constTypeSort.indexOf(a[0]) - constTypeSort.indexOf(b[0])
+  )
 
   // paramsInfo.typeItems = typeItems
   // paramsInfo.typeLength = typeItems.length
   paramsInfo.typeGroupList = typeGroupList
+  const paramTypeLen = typeGroupList.length
 
   if (typeItems.length === 1) {
     // 只有一个参数，直接取出来
@@ -66,12 +71,12 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
     paramsInfo.paramName = isKeyword(name) ? `_${name}` : name
     paramsInfo.paramTypes = [paramType]
   } else if (typeItems.length > 1) {
-    paramsInfo.kind = typeGroupList.length
+    paramsInfo.kind = paramTypeLen
     paramsInfo.paramTypes = typeGroupList.map(([paramType]) => paramType) as TypeItem['paramType'][]
 
     paramsInfo.paramType = paramsTypeInfo.map(i => `:types.${i.typeName}`).join('&')
 
-    if (typeGroupList.length === 1) {
+    if (paramTypeLen === 1) {
       // 所有参数都是同一种类型，这里是多个参数一起，需要解构
       const paramName = typeGroupList[0][0]
       if (paramName === 'path') {
@@ -80,20 +85,28 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
       } else {
         paramsInfo.paramName = paramName
       }
-    } else if (typeGroupList.length > 1) {
+    } else if (paramTypeLen > 1) {
       // 存在不同类型的参数，需要分开
       paramsInfo.paramName = 'params'
+
+      let lastType = typeGroupList[paramTypeLen - 1][0]
+      if (lastType === 'header') lastType = 'headers'
+      const overType = typeGroupList.slice(0, paramTypeLen - 1).map(([, type]) => type)
+
       // 参数结构
-      const params = typeItems.map(({ name }) => `${isKeyword(name) ? `_${name}` : name}`)
-      paramsInfo.deconstruct = `const {${params.join(',')}} = params`
+      const params = _.flatten(overType).map(({ name }) => `${isKeyword(name) ? `_${name}` : name}`)
+      paramsInfo.deconstruct = `const {${params.join(',')}, ...${lastType}} = params`
     }
   }
 
   // 参数只有个一 或 参数多于一个并且参数类型大于一个时，生成参数类型重组代码。【参数类型只有一个时，形参就是对应类型名字】
-  if (typeItems.length === 1 || (typeItems.length > 1 && typeGroupList.length > 1)) {
+  if (typeItems.length === 1 || (typeItems.length > 1 && paramTypeLen > 1)) {
+    let index = -1
+
     for (const [paramType, typeitems] of typeGroupList) {
+      index++
       let key = paramType as any
-      if (key === 'path') continue
+      if (key === 'path' || (paramTypeLen > 1 && index === paramTypeLen - 1)) continue
       if (key === 'header') key = 'headers'
       const content = typeitems.map(({ name }) => (isKeyword(name) ? `${name}:_${name}` : name)).join(',')
       paramsInfo.paramsContents.push({ type: key, content: `{ ${content} }` })

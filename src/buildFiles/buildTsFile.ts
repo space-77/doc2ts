@@ -95,6 +95,8 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
         if (index > -1) {
           query = `?\${this.serialize(${paramsContents[index].content})}`
           paramsContents.splice(index, 1)
+        } else {
+          query = '?${this.serialize(query)}'
         }
       }
     }
@@ -195,9 +197,9 @@ export function buildApiFile(doc: DocListItem, config: Config) {
     const _fileName = firstToLower(fileName)
 
     let { content, typesStr } = createClass(moduleInfo, className, docApi, config)
-    content = `import type { DocReqConfig } from "doc2ts";\n${content}`
     content = `import type * as types from './types'\n${content}`
     content = `import ${baseName} from '${getClientPath(config, filePath)}'\n${content}`
+    content = `import type { DocReqConfig } from "doc2ts";\n${content}`
     content = `${content}\nexport const ${_fileName} = new ${className}()`
 
     // 不保留 .d.ts 文件，在 .js 文件添引入 types.d.ts 类型
