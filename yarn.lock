@@ -674,13 +674,41 @@ diff@^4.0.1:
   resolved "https://registry.npmjs.org/diff/-/diff-4.0.2.tgz#60f3aecb89d5fae520c11aa19efc2bb982aade7d"
   integrity sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==
 
-doc-pre-data@^1.1.4:
-  version "1.1.4"
-  resolved "https://registry.npmjs.org/doc-pre-data/-/doc-pre-data-1.1.4.tgz#69bbab5f1c48eb07d06a51d32f96d9302d25af91"
-  integrity sha512-7dD7ZfeXISy2p81dhqkegsFOKAl8ORfjpebOP8Y+cwYcBpQXdONYE+slOJ6L3uQiAKMPDXXO3NH/mxVl5JI/0Q==
+do-oas-kit-common@^1.0.10:
+  version "1.0.10"
+  resolved "https://registry.npmjs.org/do-oas-kit-common/-/do-oas-kit-common-1.0.10.tgz#35fdfd690003180ab1b0105ee198bc6db7133b72"
+  integrity sha512-9g8itL8/a+qkYkV9q6ZgQOJLmtmI54fSp7PFdQyKsvkdV0xsP1CYUGQ55XuST3CcfWQKJmGSQ6+EjL2GgavxJQ==
+  dependencies:
+    fast-safe-stringify "^2.0.7"
+    is-chinese "^2.0.0"
+    is-word-character "^1.0.4"
+
+do-swagger2openapi@^7.0.12:
+  version "7.0.12"
+  resolved "https://registry.npmjs.org/do-swagger2openapi/-/do-swagger2openapi-7.0.12.tgz#2d979e36fdbd451d15fdc89d316da3ead1ae23a7"
+  integrity sha512-l89DZzeFjQvsELqe6ZwvEZqutxfmPX/yoU8uyxBeq+3x4mqbt3peG+6rQa551R9dboxZQanAipBtz3XkuB5ruA==
+  dependencies:
+    call-me-maybe "^1.0.1"
+    deep-for-each "^3.0.0"
+    do-oas-kit-common "^1.0.10"
+    node-fetch "^2.6.1"
+    node-fetch-h2 "^2.3.0"
+    node-readfiles "^0.2.0"
+    oas-resolver "^2.5.6"
+    oas-schema-walker "^1.1.5"
+    oas-validator "^5.0.8"
+    reftools "^1.1.9"
+    yaml "^1.10.0"
+    yargs "^17.0.1"
+
+doc-pre-data@^1.1.5:
+  version "1.1.5"
+  resolved "https://registry.npmjs.org/doc-pre-data/-/doc-pre-data-1.1.5.tgz#f6c6c326675520162e98ae86627252673223600a"
+  integrity sha512-zR4XQFSGe5AsOvz2jwWGegBkVQJ6jGAtyo9SibV4K1DH7a+MWgO3YZDBL0zgcCYvFastieXcV9J4zhmqlI4cbA==
   dependencies:
     axios "*"
     deep-for-each "^3.0.0"
+    do-swagger2openapi "^7.0.12"
     is-chinese "^2.0.0"
     is-es2016-keyword "^1.0.0"
     is-word-character "^1.0.4"
@@ -690,7 +718,6 @@ doc-pre-data@^1.1.4:
     openapi "^1.0.1"
     openapi-types "^12.0.2"
     pinyin-pro "^3.13.1"
-    swagger2openapi "^7.0.8"
 
 dom-serializer@^2.0.0:
   version "2.0.0"
@@ -1853,23 +1880,6 @@ supports-color@^7.1.0:
   integrity sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==
   dependencies:
     has-flag "^4.0.0"
-
-swagger2openapi@^7.0.8:
-  version "7.0.8"
-  resolved "https://registry.npmjs.org/swagger2openapi/-/swagger2openapi-7.0.8.tgz#12c88d5de776cb1cbba758994930f40ad0afac59"
-  integrity sha512-upi/0ZGkYgEcLeGieoz8gT74oWHA0E7JivX7aN9mAf+Tc7BQoRBvnIGHoPDw+f9TXTW4s6kGYCZJtauP6OYp7g==
-  dependencies:
-    call-me-maybe "^1.0.1"
-    node-fetch "^2.6.1"
-    node-fetch-h2 "^2.3.0"
-    node-readfiles "^0.2.0"
-    oas-kit-common "^1.0.8"
-    oas-resolver "^2.5.6"
-    oas-schema-walker "^1.1.5"
-    oas-validator "^5.0.8"
-    reftools "^1.1.9"
-    yaml "^1.10.0"
-    yargs "^17.0.1"
 
 tar-fs@2.1.1:
   version "2.1.1"

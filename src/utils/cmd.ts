@@ -1,5 +1,5 @@
 import iconv from 'iconv-lite'
-import { execSync } from 'child_process'
+import { exec } from 'child_process'
 
 const encoding = 'cp936'
 const binaryEncoding = 'binary'
@@ -10,11 +10,11 @@ export function decodeRes(str: string) {
 
 // type ExecExceptions = [ExecException | null, string, string]
 
-export default function(command: string) {
-  const res = execSync(command, { encoding: binaryEncoding })
-  // JSON.parse(decodeRes(JSON.stringify(err))),
-  return decodeRes(res).replace(/[\n\r?]+$/, '')
-  // decodeRes(stderr)
-  // return new Promise(resolve => {
-  // })
+export default function (command: string) {
+  return new Promise((resolve, reject) => {
+    exec(command, { encoding: binaryEncoding }, (err, res) => {
+      if (err) reject(err)
+      else resolve(decodeRes(res).replace(/[\n\r?]+$/, ''))
+    })
+  })
 }
