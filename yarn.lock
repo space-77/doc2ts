@@ -701,10 +701,10 @@ do-swagger2openapi@^7.0.12:
     yaml "^1.10.0"
     yargs "^17.0.1"
 
-doc-pre-data@^1.1.5:
-  version "1.1.5"
-  resolved "https://registry.npmjs.org/doc-pre-data/-/doc-pre-data-1.1.5.tgz#f6c6c326675520162e98ae86627252673223600a"
-  integrity sha512-zR4XQFSGe5AsOvz2jwWGegBkVQJ6jGAtyo9SibV4K1DH7a+MWgO3YZDBL0zgcCYvFastieXcV9J4zhmqlI4cbA==
+doc-pre-data@^1.1.6:
+  version "1.1.6"
+  resolved "https://registry.npmjs.org/doc-pre-data/-/doc-pre-data-1.1.6.tgz#94095f7e5a5a2337f9aaa31a6f16f48c76fafe4c"
+  integrity sha512-WEW5HkNk2AaujqAszhl+HdrRGEwbB1S+EgBKbXeVP5CkYIqQjak+SgESCUO/AhjF5rOe4MH+SatoJMWKa7GOQA==
   dependencies:
     axios "*"
     deep-for-each "^3.0.0"
