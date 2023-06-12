@@ -15,9 +15,6 @@ function createTypes(typeInfoList: TypeInfoItem[], config: Config) {
   let content = ''
   const { generateTypeRender } = config
   for (let { typeName, typeInfo } of typeInfoList) {
-    // if (typeInfo.d) {
-
-    // }
 
     if (typeof generateTypeRender === 'function') {
       typeInfo = generateTypeRender(typeName, typeInfo)
@@ -45,7 +42,7 @@ function createTypes(typeInfoList: TypeInfoItem[], config: Config) {
     }
 
     content += `${desc}export interface ${typeName} ${extendsStr} {\n`
-    typeItems.sort((a, b) => a.name.length - b.name.length)
+    // typeItems.sort((a, b) => a.name.length - b.name.length)
     for (const typeItem of typeItems) {
       if (typeItem.disable) continue
       content += typeItem.getTypeValue() // getTypeKeyValue(typeItem)

@@ -216,7 +216,7 @@ export function buildApiFile(doc: DocListItem, config: Config) {
     fileList.push({ filePath, content })
 
     const fileExPath = findDiffPath(outDirDir, filePath).replace(/\.ts$/, '')
-    importList.push(`import { ${_fileName} } from '${fileExPath}'`)
+    importList.push(`export { ${_fileName} } from '${fileExPath}'`)
     exportList.push(_fileName)
   }
 }

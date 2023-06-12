@@ -120,11 +120,7 @@ export default class Doc2Ts {
     if (fileList.length === 0) return
 
     // 创建 index.ts 文件
-    let content = importList.sort((a, b) => a.length - b.length).join('\r\n')
-    content += '\r\n\r\n'
-    content += 'export default {'
-    content += exportList.sort((a, b) => a.length - b.length).join(',\r\n')
-    content += '}\n'
+    const content = importList.sort((a, b) => a.length - b.length).join('\r\n')
     const { outDir } = this.config
     const filePath = path.join(resolveOutPath(outDir), 'index.ts')
     fileList.push({ filePath, content })
