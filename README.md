@@ -38,18 +38,17 @@ doc2ts start
 
 ### 使用 git 管理生成的代码
 
-> 版本 v0.9.1 及以上有效  
+> 版本 v0.9.1 及以上有效
 
 每次生成的代码都会覆盖上一次的代码，而很多时候需要手动修改生成后的代码（接口文档不能百分百准确），这时候可以使用 git 分支去管理。  
 自动流程：
-复制当前分支的配置文件（doc2ts-config.ts） -> 切换到 doc2ts 分支 -> 更新doc2ts 分支代码 -> 生成代码 -> commit -> 提交 doc2ts 分支代码 -> 切回到原分支 -> merge doc2ts 分支。
+复制当前分支的配置文件（doc2ts-config.ts） -> 切换到 doc2ts 分支 -> 更新 doc2ts 分支代码 -> 生成代码 -> commit -> 提交 doc2ts 分支代码 -> 切回到原分支 -> merge doc2ts 分支。
 
 ```shell
 doc2ts start --git
 # or
 doc2ts start -g
 ```
-
 
 ## 基类文件说明
 
@@ -172,13 +171,31 @@ export default {
 } as Doc2TsConfig
 ```
 
-### 自动git管理
+### 模块过滤器
+
+- 参数：`filterModule`
+- 必传：`否`
+- 类型：`function(item: PathInfo): boolean`
+- 默认：`-`
+- 说明：如果你觉得 接口文档的模块较多，而且很多无用的模块，可以通过该钩子进行过滤。
+
+```typescript
+export default {
+  filterModule(item) {
+    // 过滤掉 模块 a b c d
+    const moduleNames = ['a', 'b', 'c']
+    return !moduleNames.includes(item.moduleName)
+  }
+} as Doc2TsConfig
+```
+
+### 自动 git 管理
 
 - 参数：`gitConfig`
 - 必传：`否`
 - 类型：`GitConfig`
 - 默认：``
-- 说明：自动git管理配置信息
+- 说明：自动 git 管理配置信息
 
 ```typescript
 export default {
@@ -205,7 +222,7 @@ export default {
   outDir: 'xxx'
 } as Doc2TsConfig
 ```
- 
+
 ### 基类位置
 
 - 参数：`baseClassPath`

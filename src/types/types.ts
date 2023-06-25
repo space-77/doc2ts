@@ -1,4 +1,4 @@
-import type { TypeInfoBase, TypeItem, TranslateType } from 'doc-pre-data'
+import type { TypeInfoBase, TypeItem, TranslateType, PathInfo } from 'doc-pre-data'
 
 export interface ModelList {
   url: string
@@ -74,6 +74,11 @@ export type Doc2TsConfig = {
    * @description 自定义请求 swagger 数据信息接口
    */
   fetchSwaggerDataMethod?(url: string): Promise<string>
+
+  /**
+   * @description 过滤模块钩子
+   */
+  filterModule?(i: PathInfo): boolean
 
   gitConfig?: GitConfig
 

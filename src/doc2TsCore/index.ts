@@ -44,7 +44,8 @@ export default class Doc2Ts {
   }
 
   async initRemoteDataSource() {
-    const { prettierPath, origins, outDir, fetchSwaggerDataMethod, translateType, swaggerHeaders } = this.config
+    const { prettierPath, origins, outDir, fetchSwaggerDataMethod, filterModule, translateType, swaggerHeaders } =
+      this.config
     const outputDir = resolveOutPath(outDir)
     await loadPrettierConfig(prettierPath)
 
@@ -82,6 +83,10 @@ export default class Doc2Ts {
         this.saveDict(dictList, dictPath)
         // fs.createFileSync(dictPath)
         // fs.writeFileSync(dictPath, JSON.stringify({ desc, dict: this.docList }, null, 2))
+
+        if (typeof filterModule === 'function') {
+          docApi.funcGroupList = docApi.funcGroupList.filter(filterModule)
+        }
 
         docApi.funcGroupList.forEach(mod => {
           const names = docApi.funcGroupList.filter(i => mod !== i).map(i => i.moduleName)

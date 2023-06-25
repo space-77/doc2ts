@@ -27,6 +27,7 @@ export class Config {
   // readonly swaggerBootstrapUiUrl!: Doc2TsConfig['swaggerBootstrapUiUrl']  // swagger-bootstrap-ui 接口地址
   readonly swaggerHeaders?: Doc2TsConfig['swaggerHeaders']
   readonly fetchSwaggerDataMethod?: Doc2TsConfig['fetchSwaggerDataMethod']
+  readonly filterModule?: Doc2TsConfig['filterModule']
   readonly baseClassName: string = 'ApiClient'
   readonly emitTs?: boolean
   readonly declaration?: boolean
