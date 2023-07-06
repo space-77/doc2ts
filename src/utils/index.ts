@@ -309,7 +309,7 @@ export function getDesc(info: DescType, { paramList = [], returnType }: OtherOpt
 }
 
 // 方法已使用的名字, 避免重复声明
-const funcKeyword = new Set(['body', 'url', 'headers', 'config'])
+const funcKeyword = new Set(['body', 'url', 'headers', 'config', 'formData'])
 
 /**
  * @description 检查变量是不是使用了js 内置的关键字 ESMA2015

@@ -109,18 +109,29 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
 
     const paramList: string[] = []
     const hasBody = typeItems.some(i => i.paramType === 'body')
-    const bodyStr = hasBody ? ',body' : ''
+    let bodyStr = hasBody ? ',body' : ''
+    let formDataStr = ''
     if (hasBody) {
       const { contentType } = requestBodyType!.getRealBody() as RequestBodies
       if (contentType && FormDataKey.has(contentType)) {
+        // body 是 formdata
+        bodyStr = ',formData'
+        // const formType = contentType === 'multipart/form-data' ? 'formData' : 'form'
+
+        formDataStr = `;const contentType = '${contentType}'`
         const bodyItem = paramsContents.find(i => i.type === 'body')
-        if (bodyItem) bodyItem.content = `this.formData(${bodyItem.content})`
+        if (bodyItem) {
+          bodyItem.type = 'formData' as any
+          bodyItem.content = `this.formData(${bodyItem.content}, contentType)`
+        } else {
+          formDataStr += `;const formData = this.formData(body, contentType)`
+        }
 
         const headersItem = paramsContents.find(i => i.type === 'headers')
         if (headersItem) {
-          headersItem.content.replace(/\}/, `, ...this.formDataType}`)
+          headersItem.content.replace(/\}/, `, 'Content-Type': contentType}`)
         } else {
-          headersStr = ',headers: {...this.formDataType}'
+          headersStr = `,headers: {'Content-Type': contentType}`
         }
       }
     }
@@ -169,7 +180,7 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
     const paramStr = ` (${paramName}${paramTypeStr}) `
     content += `\n ${desc} ${firstToLower(name)} ${arrowFunc ? '=' : ''}${paramStr}${arrowFuncStr}{
       ${deconstruct}
-      ${paramsContents.map(({ type, content }) => `const ${type} = ${content}`).join('\r\n')}${urlStr}    
+      ${paramsContents.map(({ type, content }) => `const ${type} = ${content}`).join('\r\n')}${urlStr}${formDataStr}
       const config: DocReqConfig = ${configStr}
       return this.${isFile ? 'download' : 'request'}${returnType}(config)
     }\n`

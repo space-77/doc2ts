@@ -1,10 +1,10 @@
 import qs from 'qs'
-import {ImportBaseCalssName} from '{BaseClassPath}'
+import { ImportBaseCalssName } from '{BaseClassPath}'
 
 /**
  * @description 基础工具类
  */
-export default class BaseClass extends {BaseCalssName} {
+export default class BaseClass extends ({ BaseCalssName }) {
   protected formDataType = { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' }
 
   /**
@@ -18,12 +18,22 @@ export default class BaseClass extends {BaseCalssName} {
   /**
    * @description 创建 formdata
    */
-  protected formData(formData: Record<string, any>) {
+  protected formData(formData: Record<string, any>, type: string) {
     if (!(formData instanceof Object) || Array.isArray(formData)) return
-    const fd = new URLSearchParams()
-    Object.entries(formData).forEach(([k, v]) => {
-      fd.set(k, v)
-    })
-    return fd
+    const dataList = Object.entries(formData)
+
+    if (type.startsWith('multipart/form-data')) {
+      const fd = new FormData()
+      dataList.forEach(([k, v]) => {
+        fd.append(k, v)
+      })
+      return fd
+    } else if (type.startsWith('application/x-www-form-urlencoded')) {
+      const fd = new URLSearchParams()
+      dataList.forEach(([k, v]) => {
+        fd.set(k, v)
+      })
+      return fd
+    }
   }
 }

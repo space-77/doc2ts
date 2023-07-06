@@ -59,5 +59,5 @@ export interface DocReqConfig {
   /**
    * @description FormData 参数，根据文档接口入参定义
    */
-  formData?: URLSearchParams
+  formData?: URLSearchParams | FormData
 }
