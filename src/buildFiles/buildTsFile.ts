@@ -5,9 +5,10 @@ import { Config } from '../common/config'
 import { fileList } from '../generators/fileList'
 import { DocListItem } from '../types/newType'
 import { customInfoList } from './buildType'
-import { DocApi, PathInfo, RequestBodies, Custom } from 'doc-pre-data'
+import { DocApi, PathInfo, RequestBodies, Custom, dotsUtils } from 'doc-pre-data'
 import { createParams, createReturnType, getOutputDir, TypeBase } from './common'
 import { checkJsLang, findDiffPath, firstToLower, firstToUpper, getDesc, resolveOutPath } from '../utils'
+const keyword = require('is-es2016-keyword')
 
 export const FileContentType = new Set(['application/octet-stream'])
 export const FormDataKey = new Set(['multipart/form-data', 'application/x-www-form-urlencoded'])
@@ -203,9 +204,12 @@ export function buildApiFile(doc: DocListItem, config: Config) {
 
   for (const moduleInfo of funcGroupList) {
     const { moduleName: fileName } = moduleInfo
-    const className = firstToUpper(fileName)
-    const filePath = path.join(outputDir, `${firstToLower(fileName)}.ts`)
-    const _fileName = firstToLower(fileName)
+
+    let _fileName = dotsUtils.checkTsTypeKeyword(firstToLower(fileName))
+    _fileName = keyword(_fileName) ? `module${firstToUpper(_fileName)}` : _fileName
+
+    const className = firstToUpper(_fileName)
+    const filePath = path.join(outputDir, `${firstToLower(_fileName)}.ts`)
 
     let { content, typesStr } = createClass(moduleInfo, className, docApi, config)
     content = `import type * as types from './types'\n${content}`

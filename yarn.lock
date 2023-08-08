@@ -711,10 +711,10 @@ do-swagger2openapi@^7.0.14:
     yaml "^1.10.0"
     yargs "^17.0.1"
 
-doc-pre-data@^1.1.14:
-  version "1.1.14"
-  resolved "https://mirrors.cloud.tencent.com/npm/doc-pre-data/-/doc-pre-data-1.1.14.tgz#68516b12d4ccef9d095c079720ca94ed30679a88"
-  integrity sha512-Y9TjaCi+GaGsmE28wauy/QWoW7/bGuf3VRKlXFxQsXNW9d2yLk2jFZHeDnWQ9nYBrkjbagBvLwSMISRTatcapg==
+doc-pre-data@^1.1.16:
+  version "1.1.16"
+  resolved "https://registry.npmjs.org/doc-pre-data/-/doc-pre-data-1.1.16.tgz#89192cdfeadbe15a97c6ff66ce679668fb77b000"
+  integrity sha512-SvrNYJRz5VDnCt/M/TfQNk39K9kVO2cF1+vaBmZdfkPAHLOdmkBtwOIFrYx2WtZAU1DotKMpclKIWOVuyaXOhQ==
   dependencies:
     axios "*"
     deep-for-each "^3.0.0"
