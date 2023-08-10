@@ -693,10 +693,10 @@ do-oas-kit-common@^1.0.10:
     is-chinese "^2.0.0"
     is-word-character "^1.0.4"
 
-do-swagger2openapi@^7.0.14:
-  version "7.0.14"
-  resolved "https://mirrors.cloud.tencent.com/npm/do-swagger2openapi/-/do-swagger2openapi-7.0.14.tgz#2bc70cecb91fb0400a2bc5d814864236132e1159"
-  integrity sha512-LrnaeSECw0WfX2tE1KinpluMjoEN9utuwOC6NqZee7a0+VxzEDILalmwBb2etaOupLvj0uXWfP6ot/t2bwvAJA==
+do-swagger2openapi@^7.0.16:
+  version "7.0.16"
+  resolved "https://registry.npmjs.org/do-swagger2openapi/-/do-swagger2openapi-7.0.16.tgz#2cfe8f33d88e7f9c3d56b6b60233e2f3523c9ee1"
+  integrity sha512-Hm8vZ18G6WWmRyEqJWYp9rZtaLQ9Rh/AZbGhTflb8kOxw5eSmKOxNNci8KQ1nV+TL8Moe/G8g8BTAonRpZc8Zg==
   dependencies:
     call-me-maybe "^1.0.1"
     deep-for-each "^3.0.0"
@@ -711,14 +711,14 @@ do-swagger2openapi@^7.0.14:
     yaml "^1.10.0"
     yargs "^17.0.1"
 
-doc-pre-data@^1.1.16:
-  version "1.1.16"
-  resolved "https://registry.npmjs.org/doc-pre-data/-/doc-pre-data-1.1.16.tgz#89192cdfeadbe15a97c6ff66ce679668fb77b000"
-  integrity sha512-SvrNYJRz5VDnCt/M/TfQNk39K9kVO2cF1+vaBmZdfkPAHLOdmkBtwOIFrYx2WtZAU1DotKMpclKIWOVuyaXOhQ==
+doc-pre-data@^1.1.17:
+  version "1.1.17"
+  resolved "https://registry.npmjs.org/doc-pre-data/-/doc-pre-data-1.1.17.tgz#6431efc6acd7d8588ba149a37aa48233987fa292"
+  integrity sha512-CzqNuEdLkY5DONDvKlg9GEbG1NNhOlaG8FVhl2SPkfyzO1B03Tb7Cq58T24b6vhhOiA4d0iLolOiZlnZbwu5sw==
   dependencies:
     axios "*"
     deep-for-each "^3.0.0"
-    do-swagger2openapi "^7.0.14"
+    do-swagger2openapi "^7.0.16"
     is-chinese "^2.0.0"
     is-es2016-keyword "^1.0.0"
     is-word-character "^1.0.4"

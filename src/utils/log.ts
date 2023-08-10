@@ -18,8 +18,12 @@ class Log {
     console.log(this.errColor('[doc2ts] '), text)
   }
 
-  warning(text: string) {
+  warnColor(text: string) {
     return chalk.yellow(text)
+  }
+
+  warning(text: string) {
+    console.log(this.warnColor('[doc2ts] '), text)
   }
 
   log(text: string) {

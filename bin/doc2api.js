@@ -33,9 +33,10 @@ async function generator(useGit = false) {
     new Manage()
   } else {
     const doc2ts = new Doc2Ts()
-    await doc2ts.init()
-    log.clear()
-    log.success(log.done(' ALL DONE '))
+    await doc2ts.build()
+    doc2ts.buildLog()
+    // log.clear()
+    // log.success(log.done(' ALL DONE '))
   }
 }
 

@@ -58,7 +58,7 @@ export default class Manage {
 
       // 生成接口信息
       const doc2ts = new Doc2Ts()
-      await doc2ts.init()
+      await doc2ts.build()
 
       // add
       await this.addFile()
@@ -74,15 +74,12 @@ export default class Manage {
 
       // 合并 doc 分支代码
       if (changedFileCount > 0) {
-        await this.mergeCode()
-      }
-      log.clear()
-      if (changedFileCount > 0) {
-        log.info(`本次操作共计 ${changedFileCount} 个文件更新`)
+        await this.mergeCode(doc2ts, changedFileCount)
       } else {
-        log.info(`本次操作没有文件更新`)
+        doc2ts.buildLog(() => {
+          log.info(`本次操作没有文件更新`)
+        })
       }
-      log.success(log.done(' ALL DONE '))
     } catch (error) {
       console.error(error)
       // const { originalBranchname } = this
@@ -200,23 +197,30 @@ export default class Manage {
     return Object.values(summary).reduce((res, item) => res + item, 0)
   }
 
-  async mergeCode() {
-    log.clear()
+  async mergeCode(doc2ts: Doc2Ts, changedFileCount: number) {
     try {
       await gitMerge(this.docBranchname)
+      doc2ts.buildLog(() => {
+        log.info(`本次操作共计 ${changedFileCount} 个文件更新`)
+      })
     } catch (error: any) {
       const { merges = [] } = error?.git ?? {}
+      let logFunc: Function | undefined
       if (Array.isArray(merges) && merges.length > 0) {
-        merges.forEach(file => {
-          log.log(log.warning(file))
-        })
-        log.log(log.warning('=== 合并冲突，请手动处理 ==='))
-        log.log(log.warning('=== 合并冲突，请手动处理 ==='))
-        log.log(log.warning('=== 合并冲突，请手动处理 ==='))
+        logFunc = function () {
+          merges.forEach(file => {
+            log.log(log.warnColor(file))
+          })
+          log.log(log.warnColor('=== 合并冲突，请手动处理 ==='))
+          log.log(log.warnColor('=== 合并冲突，请手动处理 ==='))
+          log.log(log.warnColor('=== 合并冲突，请手动处理 ==='))
+        }
       }
-      process.exit(0)
+      doc2ts.buildLog(() => {
+        if (typeof logFunc === 'function') logFunc()
+        log.info(`本次操作共计 ${changedFileCount} 个文件更新`)
+      })
     }
-    log.success(log.done(' ALL DONE '))
   }
 
   // async checkBranch() {

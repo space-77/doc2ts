@@ -6,23 +6,40 @@ import { Config, CONFIG_PATH } from '../common/config'
 import { ts2Js, getConfig, checkJsLang, resolveOutPath, loadPrettierConfig, createFile, getApiJson } from '../utils'
 
 // ------------------------------------
-import docInit from 'doc-pre-data'
+import docInit, { LogInfo } from 'doc-pre-data'
 import { checkName } from 'doc-pre-data/lib/common/utils'
 import { DictList, TranslateCode } from 'doc-pre-data/lib/common/translate'
-import { buidTsTypeFile } from '../buildFiles/buildType'
+import { buidTsTypeFile } from './buildType'
 import type { DocListItem } from '../types/newType'
-import { buildApiFile, exportList, importList } from '../buildFiles/buildTsFile'
+import { buildApiFile, exportList, importList } from './buildTsFile'
 
 export default class Doc2Ts {
   config!: Config
+  warnList: LogInfo[] = []
+  errorList: LogInfo[] = []
 
   docList: DocListItem[] = []
 
-  async init() {
+  async build() {
     await this.getConfig()
     await this.initRemoteDataSource()
     this.createFiles()
     await this.transform2js()
+
+    // const { warnList, errorList } = this
+    // return { warnList, errorList }
+  }
+
+  buildLog(logFunc?: Function) {
+    const { warnList, errorList } = this
+    log.clear()
+    warnList.forEach(warn => {
+      log.warning(warn.msg)
+    })
+    errorList.forEach(warn => {
+      log.error(warn.msg)
+    })
+    log.success(log.done(' ALL DONE '))
   }
 
   async getConfig() {
@@ -61,13 +78,6 @@ export default class Doc2Ts {
         i.en = i.en?.trim() ?? null
         return !!i.en
       })
-      // const desc = [
-      //   '----- 这是一个翻译缓存文件 -----',
-      //   '----- 这是一个翻译缓存文件 -----',
-      //   '----- 这是一个翻译缓存文件 -----',
-      //   '如果您对翻译不满意可以在这里修改，在下次生成新的代码有效',
-      //   '注意：修改翻译后生成的代码或文件名，都随之变化，引用的地方也需要做对应的修改'
-      // ]
 
       let json: string | object = i.url
       if (typeof fetchSwaggerDataMethod === 'function') {
@@ -79,7 +89,9 @@ export default class Doc2Ts {
 
       // dictList
       try {
-        const { docApi, dictList } = await docInit(json, dict, { translateType })
+        const { docApi, dictList, warnList, errorList } = await docInit(json, dict, { translateType })
+        this.warnList = [...warnList]
+        this.errorList = [...errorList]
         this.saveDict(dictList, dictPath)
         // fs.createFileSync(dictPath)
         // fs.writeFileSync(dictPath, JSON.stringify({ desc, dict: this.docList }, null, 2))
