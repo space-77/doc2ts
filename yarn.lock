@@ -711,10 +711,10 @@ do-swagger2openapi@^7.0.16:
     yaml "^1.10.0"
     yargs "^17.0.1"
 
-doc-pre-data@^1.1.17:
-  version "1.1.17"
-  resolved "https://registry.npmjs.org/doc-pre-data/-/doc-pre-data-1.1.17.tgz#6431efc6acd7d8588ba149a37aa48233987fa292"
-  integrity sha512-CzqNuEdLkY5DONDvKlg9GEbG1NNhOlaG8FVhl2SPkfyzO1B03Tb7Cq58T24b6vhhOiA4d0iLolOiZlnZbwu5sw==
+doc-pre-data@^1.1.18-beta.1:
+  version "1.1.18-beta.1"
+  resolved "https://registry.npmjs.org/doc-pre-data/-/doc-pre-data-1.1.18-beta.1.tgz#6e8405d0c697e1e8f2c10983d3630dacb7a7fbff"
+  integrity sha512-EZN3eaCBpwu+l5EDpqhlaI+GbcyvyJkWUl0LByoFrNP4Gjqrj+sQiE34IdEW/UDWWC+7AuiOMPRdjwGqWlSACQ==
   dependencies:
     axios "*"
     deep-for-each "^3.0.0"

@@ -15,7 +15,6 @@ function createTypes(typeInfoList: TypeInfoItem[], config: Config) {
   let content = ''
   const { generateTypeRender } = config
   for (let { typeName, typeInfo } of typeInfoList) {
-
     if (typeof generateTypeRender === 'function') {
       typeInfo = generateTypeRender(typeName, typeInfo)
     }

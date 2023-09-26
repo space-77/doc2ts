@@ -112,8 +112,8 @@ function createClass(moduleInfo: PathInfo, className: string, docApi: DocApi, co
     const hasBody = typeItems.some(i => i.paramType === 'body')
     let bodyStr = hasBody ? ',body' : ''
     let formDataStr = ''
-    if (hasBody) {
-      const { contentType } = requestBodyType!.getRealBody() as RequestBodies
+    if (hasBody && requestBodyType) {
+      const { contentType } = requestBodyType.getRealBody() as RequestBodies
       if (contentType && FormDataKey.has(contentType)) {
         // body 是 formdata
         bodyStr = ',formData'
