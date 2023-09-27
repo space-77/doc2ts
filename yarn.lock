@@ -693,10 +693,10 @@ do-oas-kit-common@^1.0.10:
     is-chinese "^2.0.0"
     is-word-character "^1.0.4"
 
-do-swagger2openapi@^7.0.16:
-  version "7.0.16"
-  resolved "https://registry.npmjs.org/do-swagger2openapi/-/do-swagger2openapi-7.0.16.tgz#2cfe8f33d88e7f9c3d56b6b60233e2f3523c9ee1"
-  integrity sha512-Hm8vZ18G6WWmRyEqJWYp9rZtaLQ9Rh/AZbGhTflb8kOxw5eSmKOxNNci8KQ1nV+TL8Moe/G8g8BTAonRpZc8Zg==
+do-swagger2openapi@^7.0.17:
+  version "7.0.17"
+  resolved "https://registry.npmjs.org/do-swagger2openapi/-/do-swagger2openapi-7.0.17.tgz#bc86a3b5c6d85342dec18ea49882aea7438753d0"
+  integrity sha512-+wKV7+AHUj3RnbmgcRqTMqDepiqJGYKMuHKWeoAdouaWuGI9gchqnbIIp9NDr2G7P1UFMnlaOkOZZTC8/lMC0g==
   dependencies:
     call-me-maybe "^1.0.1"
     deep-for-each "^3.0.0"
@@ -711,14 +711,14 @@ do-swagger2openapi@^7.0.16:
     yaml "^1.10.0"
     yargs "^17.0.1"
 
-doc-pre-data@^1.1.18-beta.1:
-  version "1.1.18-beta.1"
-  resolved "https://registry.npmjs.org/doc-pre-data/-/doc-pre-data-1.1.18-beta.1.tgz#6e8405d0c697e1e8f2c10983d3630dacb7a7fbff"
-  integrity sha512-EZN3eaCBpwu+l5EDpqhlaI+GbcyvyJkWUl0LByoFrNP4Gjqrj+sQiE34IdEW/UDWWC+7AuiOMPRdjwGqWlSACQ==
+doc-pre-data@^1.1.18-beta.2:
+  version "1.1.18-beta.2"
+  resolved "https://registry.npmjs.org/doc-pre-data/-/doc-pre-data-1.1.18-beta.2.tgz#82f24c7891f835390c8df9d8fab4d330b2722678"
+  integrity sha512-AYUNzF4lHACpl3PBGeels7Dp6p2Fq6+rECrBJZZc4Dl4gMexJuw1xmNwpbYDCir7yURhApcohi3Oi7P8SKUBrQ==
   dependencies:
     axios "*"
     deep-for-each "^3.0.0"
-    do-swagger2openapi "^7.0.16"
+    do-swagger2openapi "^7.0.17"
     is-chinese "^2.0.0"
     is-es2016-keyword "^1.0.0"
     is-word-character "^1.0.4"
