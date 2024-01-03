@@ -6,12 +6,12 @@ import { Config, CONFIG_PATH } from '../common/config'
 import { ts2Js, getConfig, checkJsLang, resolveOutPath, loadPrettierConfig, createFile, getApiJson } from '../utils'
 
 // ------------------------------------
-import docInit, { LogInfo } from 'doc-pre-data'
+import docInit, { Dict, LogInfo } from 'doc-pre-data'
 import { checkName } from 'doc-pre-data/lib/common/utils'
 import { DictList, TranslateCode } from 'doc-pre-data/lib/common/translate'
 import { buidTsTypeFile } from './buildType'
 import type { DocListItem } from '../types/newType'
-import { buildApiFile, exportList, importList } from './buildTsFile'
+import TsFileBuilder, { importList } from './tsFileBuilder'
 
 export default class Doc2Ts {
   config!: Config
@@ -23,8 +23,8 @@ export default class Doc2Ts {
   async build() {
     await this.getConfig()
     await this.initRemoteDataSource()
-    this.createFiles()
-    await this.transform2js()
+    // this.createFiles()
+    // await this.transform2js()
 
     // const { warnList, errorList } = this
     // return { warnList, errorList }
@@ -48,7 +48,7 @@ export default class Doc2Ts {
     this.config = new Config(config)
   }
 
-  saveDict(dictList: DictList[], dictPath: string) {
+  saveDict(dictList: DictList[], dictPath: string, cache?: Dict['cache']) {
     const desc = [
       '----- 这是一个翻译缓存文件 -----',
       '----- 这是一个翻译缓存文件 -----',
@@ -57,7 +57,7 @@ export default class Doc2Ts {
       '注意：修改翻译后生成的代码或文件名，都随之变化，引用的地方也需要做对应的修改'
     ]
     fs.createFileSync(dictPath)
-    fs.writeFileSync(dictPath, JSON.stringify({ desc, dict: dictList }, null, 2))
+    fs.writeFileSync(dictPath, JSON.stringify({ desc, dict: dictList, cache }, null, 2))
   }
 
   async initRemoteDataSource() {
@@ -68,13 +68,15 @@ export default class Doc2Ts {
 
     const reqs = origins.map(async i => {
       const dictPath = path.join(outputDir, `dicts/${i.name ?? 'dict'}.json`)
-      let dict: DictList[] = []
+      let cache: Dict = { dict: [], cache: { ids: {}, returnTypeNames: {}, requestTypeNames: {} }, desc: [] }
 
       try {
-        const dictListJson: { dict: DictList[]; desc: string[] } = fs.existsSync(dictPath) ? require(dictPath) : {}
-        dict = dictListJson.dict ?? []
+        cache = fs.existsSync(dictPath) ? require(dictPath) : {}
+        // if (!cache.cache) cache.cache = {}
+        if (!Array.isArray(cache.dict)) cache.dict = []
       } catch (error) {}
-      dict = dict.filter(i => {
+
+      cache.dict = cache.dict.filter(i => {
         i.en = i.en?.trim() ?? null
         return !!i.en
       })
@@ -89,10 +91,10 @@ export default class Doc2Ts {
 
       // dictList
       try {
-        const { docApi, dictList, warnList, errorList } = await docInit(json, dict, { translateType })
+        const { docApi, dictList, warnList, errorList, cache: newCache } = await docInit(json, cache, { translateType })
         this.warnList = [...warnList]
         this.errorList = [...errorList]
-        this.saveDict(dictList, dictPath)
+        this.saveDict(dictList, dictPath, newCache)
         // fs.createFileSync(dictPath)
         // fs.writeFileSync(dictPath, JSON.stringify({ desc, dict: this.docList }, null, 2))
 
@@ -124,7 +126,8 @@ export default class Doc2Ts {
       this.docList = await Promise.all(reqs)
 
       this.docList.forEach(i => {
-        buildApiFile(i, this.config)
+        const tsBuilder = new TsFileBuilder(i, this.config)
+        tsBuilder.build()
         buidTsTypeFile(i, this.config)
       })
     } catch (error) {

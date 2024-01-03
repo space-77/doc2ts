@@ -1,5 +1,5 @@
 import fs from 'fs-extra'
-import Doc2Ts from '../doc2TsCore/index'
+import Doc2Ts from '../builder/index'
 import { CONFIG_PATH } from '../common/config'
 import { Doc2TsConfig } from '../types/types'
 import { GIT_BRANCHNAME } from './config'

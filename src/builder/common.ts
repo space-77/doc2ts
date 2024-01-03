@@ -3,7 +3,7 @@ import path from 'path'
 import { Config } from '../common/config'
 import { TypeDataKey } from '../common/reg'
 import { typeStringList } from './buildType'
-import { FileContentType } from './buildTsFile'
+import { FileContentType } from './tsFileBuilder'
 import { DocApi, TypeItem, TypeInfoBase } from 'doc-pre-data'
 import { firstToUpper, isKeyword, resolveOutPath } from '../utils'
 
