@@ -19,6 +19,10 @@ export function getTypeName(type: TypeItem['type']) {
   return type?.typeName ?? 'unknown'
 }
 
+export function checkName(name: string) {
+  return isKeyword(name) ? `_${name}` : name
+}
+
 type ParamType = Required<TypeItem['paramType']>
 type ConstType = 'query' | 'headers' | 'path' | 'body'
 export type ParamsInfo = ReturnType<typeof createParams>
@@ -68,7 +72,7 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
     paramsInfo.paramTypeDesc = isDefType
       ? `* @param { ${firstToUpper(oneTypeValue)} } ${name} ${description || ''}`
       : undefined
-    paramsInfo.paramName = isKeyword(name) ? `_${name}` : name
+    paramsInfo.paramName = checkName(name)
     paramsInfo.paramTypes = [paramType]
   } else if (typeItems.length > 1) {
     paramsInfo.kind = paramTypeLen
@@ -80,7 +84,7 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
       // 所有参数都是同一种类型，这里是多个参数一起，需要解构
       const paramName = typeGroupList[0][0]
       if (paramName === 'path') {
-        const params = typeItems.map(({ name }) => `${isKeyword(name) ? `_${name}` : name}`)
+        const params = typeItems.map(({ name }) => checkName(name))
         paramsInfo.paramName = `{${params.join(',')}}`
       } else {
         paramsInfo.paramName = paramName
@@ -89,12 +93,12 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
       // 存在不同类型的参数，需要分开
       paramsInfo.paramName = 'params'
 
-      let lastType = typeGroupList[paramTypeLen - 1][0]
+      let [lastType] = typeGroupList[paramTypeLen - 1]
       if (lastType === 'header') lastType = 'headers'
       const overType = typeGroupList.slice(0, paramTypeLen - 1).map(([, type]) => type)
 
-      // 参数结构
-      const params = _.flatten(overType).map(({ name }) => `${isKeyword(name) ? `_${name}` : name}`)
+      // 参数解构
+      const params = _.flatten(overType).map(({ name }) => checkName(name))
       paramsInfo.deconstruct = `const {${params.join(',')}, ...${lastType}} = params`
     }
   }

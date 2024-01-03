@@ -9,7 +9,7 @@ import { ts2Js, getConfig, checkJsLang, resolveOutPath, loadPrettierConfig, crea
 import docInit, { Dict, LogInfo } from 'doc-pre-data'
 import { checkName } from 'doc-pre-data/lib/common/utils'
 import { DictList, TranslateCode } from 'doc-pre-data/lib/common/translate'
-import { buidTsTypeFile } from './buildType'
+import BuildTypeFile from './buildType'
 import type { DocListItem } from '../types/newType'
 import TsFileBuilder, { importList } from './tsFileBuilder'
 
@@ -23,11 +23,11 @@ export default class Doc2Ts {
   async build() {
     await this.getConfig()
     await this.initRemoteDataSource()
-    // this.createFiles()
-    // await this.transform2js()
+    this.createFiles()
+    await this.transform2js()
 
-    // const { warnList, errorList } = this
-    // return { warnList, errorList }
+    const { warnList, errorList } = this
+    return { warnList, errorList }
   }
 
   buildLog(logFunc?: Function) {
@@ -128,7 +128,8 @@ export default class Doc2Ts {
       this.docList.forEach(i => {
         const tsBuilder = new TsFileBuilder(i, this.config)
         tsBuilder.build()
-        buidTsTypeFile(i, this.config)
+        const typeFile = new BuildTypeFile(i, this.config)
+        typeFile.build()
       })
     } catch (error) {
       // throw new Error(error?.toString());
