@@ -23,24 +23,24 @@ export function checkName(name: string) {
   return isKeyword(name) ? `_${name}` : name
 }
 
-type ParamType = Required<TypeItem['paramType']>
 type ConstType = 'query' | 'headers' | 'path' | 'body'
 export type ParamsInfo = ReturnType<typeof createParams>
 
 // 按照这个顺序排序
-const constTypeSort = ['path', 'header', 'query', 'body']
+const typeIndexMap = { path: 0, header: 1, query: 2, body: 3 } as Record<string, number>
 
 export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) {
   const paramsInfo = {
     // 参数种类
-    kind: 0,
-    resType: '',
     paramType: '',
     paramName: '',
+
+    /**
+     * @description 解构信息
+     */
+    deconstruct: '',
     paramTypeDesc: undefined as string | undefined,
-    // typeItems: [] as TypeItem[],
-    deconstruct: '', // 参数解构
-    paramTypes: [] as ParamType[],
+
     typeGroupList: [] as [string, TypeItem[]][],
 
     // 以下是需要 在 params 解构参数 再 重构参数成对应的参数类型
@@ -48,12 +48,8 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
   }
 
   const typeGroup = _.groupBy(typeItems, 'paramType')
-  const typeGroupList = Object.entries(typeGroup).sort(
-    (a, b) => constTypeSort.indexOf(a[0]) - constTypeSort.indexOf(b[0])
-  )
+  const typeGroupList = Object.entries(typeGroup).sort(([a], [b]) => typeIndexMap[a] - typeIndexMap[b])
 
-  // paramsInfo.typeItems = typeItems
-  // paramsInfo.typeLength = typeItems.length
   paramsInfo.typeGroupList = typeGroupList
   const paramTypeLen = typeGroupList.length
 
@@ -61,7 +57,6 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
     // 只有一个参数，直接取出来
     const [firstItem] = typeItems
     const { name, paramType, type, ref, required, deprecated, description } = firstItem
-    paramsInfo.kind = 1
 
     const isDefType = typeof type === 'string' && !ref
     const oneTypeValue = firstItem.getKeyValue()
@@ -73,11 +68,7 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
       ? `* @param { ${firstToUpper(oneTypeValue)} } ${name} ${description || ''}`
       : undefined
     paramsInfo.paramName = checkName(name)
-    paramsInfo.paramTypes = [paramType]
   } else if (typeItems.length > 1) {
-    paramsInfo.kind = paramTypeLen
-    paramsInfo.paramTypes = typeGroupList.map(([paramType]) => paramType) as TypeItem['paramType'][]
-
     paramsInfo.paramType = paramsTypeInfo.map(i => `:types.${i.typeName}`).join('&')
 
     if (paramTypeLen === 1) {
@@ -93,25 +84,57 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
       // 存在不同类型的参数，需要分开
       paramsInfo.paramName = 'params'
 
-      let [lastType] = typeGroupList[paramTypeLen - 1]
+      let [lastType, paramItems] = typeGroupList[paramTypeLen - 1]
       if (lastType === 'header') lastType = 'headers'
-      const overType = typeGroupList.slice(0, paramTypeLen - 1).map(([, type]) => type)
+      const overType = typeGroupList.slice(0, paramTypeLen - 1).map(([, typeList]) => typeList)
 
       // 参数解构
-      const params = _.flatten(overType).map(({ name }) => checkName(name))
-      paramsInfo.deconstruct = `const {${params.join(',')}, ...${lastType}} = params`
+      let some = false
+      let every = true
+      const sameList: string[] = []
+      const params = _.flatten(overType).map(({ name }) => {
+        const newName = checkName(name)
+
+        const has = paramItems.some(j => j.name === name)
+        if (!has) every = false
+        if (has) {
+          some = true
+          sameList.push(newName)
+        }
+        return newName
+      })
+
+      // 解构出来的参数也存在最后的剩余参数里，需要重新整理剩余参数
+      let textCode = ''
+      if (some) {
+        const preType = lastType
+
+        if (every) {
+          // 完全相同
+          lastType = '' // 不需要接收剩余类型了
+          textCode = `const ${preType} = ${paramsInfo.paramName}`
+        } else {
+          // 部分相同
+          lastType = `, ..._${lastType}`
+          textCode = `const ${preType} = {${sameList.join(',')}${lastType}}`
+        }
+      } else {
+        lastType = `, ...${lastType}`
+      }
+
+      paramsInfo.deconstruct = `const {${params.join(',')} ${lastType}} = ${paramsInfo.paramName}\n${textCode}`
     }
   }
 
   // 参数只有个一 或 参数多于一个并且参数类型大于一个时，生成参数类型重组代码。【参数类型只有一个时，形参就是对应类型名字】
   if (typeItems.length === 1 || (typeItems.length > 1 && paramTypeLen > 1)) {
-    let index = -1
-
-    for (const [paramType, typeitems] of typeGroupList) {
-      index++
+    for (let i = 0; i < typeGroupList.length; i++) {
+      const [paramType, typeitems] = typeGroupList[i]
       let key = paramType as any
-      if (key === 'path' || (paramTypeLen > 1 && index === paramTypeLen - 1)) continue
+      // 参数类型是 path  或者 多个类型的最后一个不用处理【上面已经做了解构处理】
+      if (key === 'path' || (paramTypeLen > 1 && i === paramTypeLen - 1)) continue
       if (key === 'header') key = 'headers'
+
       const content = typeitems.map(({ name }) => (isKeyword(name) ? `${name}:_${name}` : name)).join(',')
       paramsInfo.paramsContents.push({ type: key, content: `{ ${content} }` })
     }

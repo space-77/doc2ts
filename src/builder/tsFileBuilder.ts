@@ -33,7 +33,7 @@ export default class TsFileBuilder extends Base {
 
     let paramsTypeInfo = [parameterType, requestBodyType].map(i => i?.getRealBody()).filter(Boolean) as TypeBase[]
 
-    let typeItems = _.uniqBy(_.flatten(paramsTypeInfo.map(i => i.getTypeItems())), 'name')
+    let typeItems = _.flatten(paramsTypeInfo.map(i => i.getTypeItems()))
 
     // TODO 文档： 过滤 cookie 类型参数
     // TODO 文档： 过滤 header 类型参数，header 参数一般是用于设置token，token信息一般都是在拦截器为所有接口配置，不需要每个参数都显式传入
@@ -103,17 +103,17 @@ export default class TsFileBuilder extends Base {
     const urlSemicolon = hasPath || hasQuery ? '`' : "'"
 
     const hasHeader = typeItems.some(i => i.paramType === 'header')
-    let headersStr = hasHeader ? ',headers' : ''
+    let headersStr = hasHeader ? 'headers' : ''
 
     const paramList: string[] = []
     const hasBody = typeItems.some(i => i.paramType === 'body')
-    let bodyStr = hasBody ? ',body' : ''
+    let bodyName = hasBody ? 'body' : ''
     let formDataStr = ''
     if (hasBody && requestBodyType) {
       const { contentType } = requestBodyType.getRealBody() as RequestBodies
       if (contentType && FormDataKey.has(contentType)) {
         // body 是 formdata
-        bodyStr = ',formData'
+        bodyName = 'formData'
         // const formType = contentType === 'multipart/form-data' ? 'formData' : 'form'
 
         formDataStr = `;const contentType = '${contentType}'`
@@ -125,7 +125,7 @@ export default class TsFileBuilder extends Base {
 
         const headersItem = paramsContents.find(i => i.type === 'headers')
         if (headersItem) headersItem.content.replace(/\}/, `, 'Content-Type': contentType}`)
-        else headersStr = `,headers: {'Content-Type': contentType}`
+        else headersStr = `headers: {'Content-Type': contentType}`
       }
     }
 
@@ -161,20 +161,23 @@ export default class TsFileBuilder extends Base {
     // 接口数据返回的是不是 文件流，如果是文件流则调用 下载方法
     const isFile = resConentType && FileContentType.has(resConentType)
 
-    let configStr = `{ url ${bodyStr} ${headersStr}, method: '${method}' }`
+    let configParams = [bodyName, headersStr].filter(Boolean).join(',')
+    configParams = configParams ? `,${configParams},` : ','
+    let configStr = `{ url ${configParams} method: '${method}' }`
     let urlStr = `\nconst url = ${urlSemicolon}${apiPath.replace(/\{/g, '${')}${query}${urlSemicolon}`
     if (configStr.length + urlStr.length < 60) {
       urlStr = ''
       const url = apiPath.replace(/\{/g, '${')
-      configStr = `{ url: ${urlSemicolon}${url}${query}${urlSemicolon}  ${bodyStr} ${headersStr}, method: '${method}' }`
+      configStr = `{ url: ${urlSemicolon}${url}${query}${urlSemicolon}  ${configParams} method: '${method}' }`
     }
 
     // 生成接口请求方法
     const arrowFuncStr = arrowFunc ? '=>' : ''
     const paramStr = ` (${paramName}${paramTypeStr}) `
     content += `\n ${desc} ${firstToLower(name)} ${arrowFunc ? '=' : ''}${paramStr}${arrowFuncStr}{
-        ${deconstruct}
-        ${paramsContents.map(({ type, content }) => `const ${type} = ${content}`).join('\r\n')}${urlStr}${formDataStr}
+      ${deconstruct}${paramsContents
+      .map(({ type, content }) => `const ${type} = ${content}`)
+      .join('\r\n')}${urlStr}${formDataStr}
         const config: DocReqConfig = ${configStr}
         return this.${isFile ? 'download' : 'request'}${returnType}(config)
       }\n`
