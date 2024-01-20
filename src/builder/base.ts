@@ -23,9 +23,4 @@ export default class Base {
     const tempClassDir = path.join(...tempClassDirList.slice(0, tempClassDirList.length - 1))
     return findDiffPath(tempClassDir, resolveOutPath(baseClassPath))
   }
-
-  // getBaseFileName() {
-  //   const { baseClassName } = this.config
-  //   return baseClassName.replace(/^\{(.+)\}$/, (_, $1) => $1)
-  // }
 }

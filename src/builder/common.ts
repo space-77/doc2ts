@@ -155,7 +155,7 @@ export function createReturnType(config: Config, docApi: DocApi, funcName: strin
   }
 
   // 这是文件类型返回
-  if (resConentType && FileContentType.has(resConentType)) return 'Blob'
+  if (resConentType && FileContentType.has(resConentType)) return '<Blob>'
 
   if (render) {
     let typeValue = ''
