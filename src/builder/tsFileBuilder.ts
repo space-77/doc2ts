@@ -2,12 +2,11 @@
 import _ from 'lodash'
 import path from 'path'
 import Base from './base'
-import { Config } from '../common/config'
 import { fileList } from '../generators/fileList'
-import { DocListItem } from '../types/newType'
+import { authorStr } from '../common/config'
 import { customInfoList } from './buildType'
-import { DocApi, PathInfo, RequestBodies, Custom, dotsUtils, PathItem } from 'doc-pre-data'
-import { createParams, createReturnType, getOutputDir, TypeBase } from './common'
+import { createParams, createReturnType, TypeBase } from './common'
+import { PathInfo, RequestBodies, Custom, dotsUtils, PathItem } from 'doc-pre-data'
 import { checkJsLang, findDiffPath, firstToLower, firstToUpper, getDesc, resolveOutPath } from '../utils'
 const keyword = require('is-es2016-keyword')
 
@@ -79,9 +78,9 @@ export default class TsFileBuilder extends Base {
     const { paramName = '', paramsContents, deconstruct, paramType, typeGroupList, paramTypeDesc } = paramsInfo
     let paramTypeStr = ''
     if (typeItems.length > 0) {
-      let { typeName } = typeInfo ?? {}
-      typeName = typeName ? `:types.${typeName}` : undefined
-      paramTypeStr = typeName || paramType
+      let { spaceName } = typeInfo ?? {}
+      spaceName = spaceName ? `:types.${spaceName}` : undefined
+      paramTypeStr = spaceName || paramType
     }
 
     // 整理 query 参数
@@ -129,7 +128,8 @@ export default class TsFileBuilder extends Base {
       }
     }
 
-    const returnType = createReturnType(config, docApi, name, responseType?.getRealBody())
+    const { groupName } = funcItem.responseType ?? {}
+    const returnType = createReturnType(config, docApi, name, groupName, responseType?.getRealBody())
 
     // 生成 js文件，并且 不保留 .d.ts 类型文件时，生成方法类型注释
     let returnTypeStrName: string | undefined
@@ -138,12 +138,16 @@ export default class TsFileBuilder extends Base {
       const [, _paramTypeStr] = paramTypeStr.match(/:types\.(.*)/) ?? []
 
       if (_paramTypeStr) {
-        paramList.push(`* @param { ${_paramTypeStr} } ${paramName}`)
-        typesList.push(` * @typedef { import("./types").${_paramTypeStr} } ${_paramTypeStr}`)
+        const [first, second] = _paramTypeStr.split('.')
+        const type = second ?? first
+        paramList.push(`* @param { ${type} } ${paramName}`)
+        typesList.push(` * @typedef { import("./types").${_paramTypeStr} } ${type}`)
       }
       if (returnTypeStr) {
-        returnTypeStrName = `* @return { ${returnTypeStr} }`
-        typesList.push(` * @typedef { import("./types").${returnTypeStr} } ${returnTypeStr}`)
+        const [first, second] = returnTypeStr.split('.')
+        const type = second ?? first
+        returnTypeStrName = `* @return { ${type} }`
+        typesList.push(` * @typedef { import("./types").${returnTypeStr} } ${type}`)
       }
     }
 
@@ -240,6 +244,7 @@ export default class TsFileBuilder extends Base {
       }
 
       if (typeof render === 'function') content = render(content, filePath)
+      content = `${authorStr}\n\n${content}`
 
       fileList.push({ filePath, content })
 

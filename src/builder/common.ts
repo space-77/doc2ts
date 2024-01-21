@@ -61,7 +61,7 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
     const isDefType = typeof type === 'string' && !ref
     const oneTypeValue = firstItem.getKeyValue()
     const reqStr = required ? '' : '?'
-    const typeInfo = isDefType ? `${reqStr}:${oneTypeValue}` : `:types.${paramsTypeInfo[0].typeName}['${name}']`
+    const typeInfo = isDefType ? `${reqStr}:${oneTypeValue}` : `:types.${paramsTypeInfo[0].spaceName}['${name}']`
 
     paramsInfo.paramType = typeInfo
     paramsInfo.paramTypeDesc = isDefType
@@ -69,7 +69,7 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
       : undefined
     paramsInfo.paramName = checkName(name)
   } else if (typeItems.length > 1) {
-    paramsInfo.paramType = paramsTypeInfo.map(i => `:types.${i.typeName}`).join('&')
+    paramsInfo.paramType = paramsTypeInfo.map(i => `:types.${i.spaceName}`).join('&')
 
     if (paramTypeLen === 1) {
       // 所有参数都是同一种类型，这里是多个参数一起，需要解构
@@ -143,19 +143,19 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
   return paramsInfo
 }
 
-export function createReturnType(config: Config, docApi: DocApi, funcName: string, responseType?: TypeInfoBase) {
+export function createReturnType(config: Config, docApi: DocApi, funcName: string, groupName?: string, responseType?: TypeInfoBase) {
   const { resultTypeRender: render } = config
   const { resConentType } = responseType ?? {}
 
   function createNewType(typeValue: string) {
-    const typeInfo = docApi.typeGroup.addCustomType(firstToUpper(`${funcName}Res`), [])
-    typeInfo.attrs.hide = true // 只占名字不生成类型，在 customInfoList 里生成对应类型
-    typeStringList.push({ typeName: typeInfo.typeName, typeValue })
+    const typeInfo = docApi.typeGroup.addCustomType(firstToUpper(`${funcName}Res`), [], groupName)
+    typeInfo.attrs.typeValue = typeValue
+    typeInfo.attrs.defineType = true
     return typeInfo.typeName
   }
 
   // 这是文件类型返回
-  if (resConentType && FileContentType.has(resConentType)) return '<Blob>'
+  if (resConentType && FileContentType.has(resConentType)) return ''
 
   if (render) {
     let typeValue = ''
@@ -180,7 +180,7 @@ export function createReturnType(config: Config, docApi: DocApi, funcName: strin
         }
       }
 
-      typeValue = typeValue.replace(/\{typeName\}/g, typeInfo?.typeName ?? 'unknown')
+      typeValue = typeValue.replace(/\{typeName\}/g, typeInfo?.spaceName ?? 'unknown')
     } else if (typeof render === 'function') {
       typeValue = render(funcName, responseType?.getRealBody())
     }

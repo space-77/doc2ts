@@ -75,3 +75,14 @@ export const tsObjType = new Set(['Array', '[]', 'object', '{}', 'Date', 'number
 
 // 泛型代表字母
 export const tempNameList = ['T', 'E', 'K', 'V', 'U', 'A', 'B', 'C', 'F', 'G', 'H', 'I', 'J']
+
+export const authorStr = `/*
+ * ---------------------------------------------------------------
+ * ## THIS FILE WAS GENERATED VIA DOC2TS                        ##
+ * ##                                                           ##
+ * ## AUTHOR: space-77                                          ##
+ * ## SOURCE: https://github.com/space-77/doc2ts                ##
+ * ---------------------------------------------------------------
+ */`
+
+export const enumName = 'EnumLists'

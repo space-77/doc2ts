@@ -3,50 +3,78 @@ import path from 'path'
 import Base from './base'
 import { getDesc } from '../utils'
 import { fileList } from '../generators/fileList'
+import { authorStr, enumName } from '../common/config'
 import { getOutputDir, TypeBase } from './common'
 
 // 数据整合产生的类型，使用 type 定义类型
 export const customInfoList: TypeBase[] = []
-export const typeStringList: { typeName: string; typeValue: string }[] = []
+export const typeStringList: { typeName: string; typeValue: string; groupName?: string }[] = []
 
 export default class BuildTypeFile extends Base {
+  private createEnum() {
+    const { enumList } = this.doc.docApi.typeGroup
+    const enumStrs = enumList.map(({ name, values }) => {
+      return `export enum ${name} {
+          ${values.map(value => `${value} = ${typeof value === 'number' ? value : `'${value}'`}`).join(',\n')}
+        }`
+    })
+
+    return `export namespace ${enumName} {
+      ${enumStrs.join('\n')}
+    }\n\n`
+  }
+
   private createTypes() {
     const { config, doc } = this
     const { typeInfoList } = doc.docApi.typeGroup
+    const { generateTypeRender } = config
 
     let content = ''
-    const { generateTypeRender } = config
-    for (let { typeName, typeInfo } of typeInfoList) {
-      if (typeof generateTypeRender === 'function') typeInfo = generateTypeRender(typeName, typeInfo)
+    const typeList = Object.entries(_.groupBy(typeInfoList, 'groupName'))
 
-      const { typeItems, description, refs, isEmpty, deprecated, attrs, externalDocs, title } = typeInfo
+    for (const [fileName, infoList] of typeList) {
+      content += `export namespace ${fileName} {`
+      for (let typeInfo of infoList) {
+        const { typeName } = typeInfo
+        if (typeof generateTypeRender === 'function') typeInfo = generateTypeRender(typeName, typeInfo)
 
-      if (attrs.hide) continue
-      const desc = getDesc({ description, deprecated, externalDocs, title })
+        const { typeItems, description, refs, isEmpty, deprecated, attrs, externalDocs, title } = typeInfo
+        const { hide, typeValue, defineType = false } = attrs
 
-      let extendsStr = ''
+        if (hide) continue
 
-      if (refs.length > 0) {
-        extendsStr = ' extends '
-        const ff = refs.map(({ typeInfo, genericsItem }) => {
-          let t = ''
+        if (defineType) {
+          // 自定类型，只做类型定义
+          content += `export type ${typeName} = ${typeValue}\n`
+        } else {
+          const desc = getDesc({ description, deprecated, externalDocs, title })
 
-          if (typeof genericsItem === 'string') t = genericsItem
-          else if (genericsItem) t = genericsItem.typeName
+          let extendsStr = ''
 
-          return typeInfo.typeName + (t ? `<${t}>` : '')
-        })
-        extendsStr += ff.join(',')
+          if (refs.length > 0) {
+            extendsStr = ' extends '
+            const ff = refs.map(({ typeInfo, genericsItem }) => {
+              let t = ''
+
+              if (typeof genericsItem === 'string') t = genericsItem
+              else if (genericsItem) t = genericsItem.spaceName
+
+              return typeInfo.spaceName + (t ? `<${t}>` : '')
+            })
+            extendsStr += ff.join(',')
+          }
+
+          content += `${desc}export interface ${typeName} ${extendsStr} {\n`
+          for (const typeItem of typeItems) {
+            if (typeItem.disable) continue
+            content += typeItem.getTypeValue(`${enumName}.`)
+          }
+          content += '}\n\n'
+        }
       }
-
-      content += `${desc}export interface ${typeName} ${extendsStr} {\n`
-      // typeItems.sort((a, b) => a.name.length - b.name.length)
-      for (const typeItem of typeItems) {
-        if (typeItem.disable) continue
-        content += typeItem.getTypeValue() // getTypeKeyValue(typeItem)
-      }
-      content += '}\r\n\r\n'
+      content += '}\n\n'
     }
+
     return content
   }
 
@@ -95,13 +123,18 @@ export default class BuildTypeFile extends Base {
     const { typeFileRender } = config
     const outputDir = getOutputDir(moduleName, config)
 
-    let content = this.createTypes()
-    content += this.createCustomType()
-    content += this.createStringType()
+    let content = this.createEnum() // 枚举数据
+    content += this.createTypes() // 类型
+    content += this.createCustomType() // 自定义类型
+    content += this.createStringType() // 接口返回类型
 
     const filePath = path.join(outputDir, 'types.ts')
 
     if (typeof typeFileRender === 'function') content = typeFileRender(content, filePath)
+
+    const disableLints = ['/* eslint-disable */', '/* tslint:disable */']
+    content = `${disableLints.join('\n')}\n${authorStr}\n\n${content}`
+
     fileList.push({ filePath, content })
   }
 }
