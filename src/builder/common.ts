@@ -159,7 +159,7 @@ export function createReturnType(
     const typeInfo = docApi.typeGroup.addCustomType(`R${firstToUpper(`${funcName}`)}`, [], groupName)
     typeInfo.attrs.typeValue = typeValue
     typeInfo.attrs.defineType = true
-    return typeInfo.typeName
+    return typeInfo.spaceName
   }
 
   // 这是文件类型返回
@@ -168,7 +168,6 @@ export function createReturnType(
   if (render) {
     let typeValue = ''
     if (typeof render === 'string') {
-      // typeValue = render(funcName, responseType)
       const typeInfo = responseType?.getRealBody()
 
       typeValue = render
@@ -177,14 +176,12 @@ export function createReturnType(
         if (typeInfo) {
           keyName = keyName.replace(/['"]/g, '')
           const dataKeyItemType = typeInfo.typeItems.find(i => i.name === keyName)
-          const { groupName } = typeInfo
-
           const required = dataKeyItemType?.required ?? false
-          const typeName = dataKeyItemType?.getKeyValue() ?? ''
+          const { spaceName } = dataKeyItemType?.typeRef ?? {}
+          const typeName = spaceName ?? dataKeyItemType?.getKeyValue() ?? ''
+          const requiredStr = !required && typeName !== 'null' ? ' | undefined' : ''
+          const typeValueStr = typeName ? `${typeName}${requiredStr}` : 'unknown'
 
-          const typeValueStr = typeName
-            ? `${typeName}${!required && typeName !== 'null' ? ' | undefined' : ''}`
-            : 'unknown'
           typeValue = typeValue.replace(TypeDataKey, typeValueStr)
         } else {
           typeValue = typeValue.replace(TypeDataKey, 'unknown')
