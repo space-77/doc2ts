@@ -5,6 +5,7 @@ import log from './log'
 import path from 'path'
 import axios from 'axios'
 import prettier from 'prettier'
+import cliProgress from 'cli-progress'
 import { jsonrepair } from 'jsonrepair'
 import { keyWordsListSet, PrettierConfig } from '../common/config'
 import { Doc2TsConfig, ModelList } from '../types/types'
@@ -119,6 +120,11 @@ export async function getConfig(configPath: string): Promise<Doc2TsConfig> {
 //   }
 //   return name
 // }
+
+function logProgress() {
+  const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
+
+}
 
 /**
  * @param preDirPath

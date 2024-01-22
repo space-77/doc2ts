@@ -33,6 +33,10 @@ export class Config {
   readonly declaration?: boolean
   readonly prettierPath?: string
   readonly baseClassPath!: string
+
+  /**
+   * @description 是否使用箭头函数
+   */
   readonly arrowFunc: Doc2TsConfig['arrowFunc'] = false
   readonly translateType: TranslateType = TranslateType.english
   readonly languageType?: Doc2TsConfig['languageType']

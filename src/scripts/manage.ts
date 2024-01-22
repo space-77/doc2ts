@@ -192,7 +192,7 @@ export default class Manage {
   }
 
   async commitFile() {
-    const message = '"feat: update api files (doc2ts auto commmit)."'
+    const message = '"feat: update api files (doc2ts auto commit)."'
     const { summary } = await gitCommit(message, this.noVerify ? '-n' : '')
     return Object.values(summary).reduce((res, item) => res + item, 0)
   }
