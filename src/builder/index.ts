@@ -68,7 +68,7 @@ export default class Doc2Ts {
 
     const reqs = origins.map(async i => {
       const dictPath = path.join(outputDir, `dicts/${i.name ?? 'dict'}.json`)
-      let cache: Dict = { dict: [], cache: { ids: {}, returnTypeNames: {}, requestTypeNames: {} }, desc: [] }
+      let cache: Dict = { dict: [], cache: { idNames: {}, returnTypeNames: {}, requestTypeNames: {} }, desc: [] }
 
       try {
         cache = fs.existsSync(dictPath) ? require(dictPath) : {}

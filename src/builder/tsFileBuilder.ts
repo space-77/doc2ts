@@ -6,8 +6,8 @@ import { Config } from '../common/config'
 import { fileList } from '../generators/fileList'
 import { DocListItem } from '../types/newType'
 import { customInfoList } from './buildType'
-import { DocApi, PathInfo, RequestBodies, Custom, dotsUtils, PathItem } from 'doc-pre-data'
-import { createParams, createReturnType, getOutputDir, TypeBase } from './common'
+import { DocApi, PathInfo, RequestBodies, Custom, dotsUtils, PathItem, httpMethodsReg } from 'doc-pre-data'
+import { createParams, createReturnType, getOutputDir, ParamsContents, TypeBase } from './common'
 import { checkJsLang, findDiffPath, firstToLower, firstToUpper, getDesc, resolveOutPath } from '../utils'
 const keyword = require('is-es2016-keyword')
 
@@ -62,6 +62,22 @@ export default class TsFileBuilder extends Base {
 
     const paramsInfo = createParams(paramsTypeInfo, typeItems)
     return { paramsInfo, typeItems, typeInfo }
+  }
+
+  private formatParamsContents(paramsContents: ParamsContents[]) {
+    return paramsContents.map(({ type, content }) => `const ${type} = ${content}`)
+  }
+
+  private getFuncName(name: string) {
+    return httpMethodsReg.test(name) ? name.toLocaleLowerCase() : firstToLower(name)
+  }
+
+  private getFuncHead(funcInfo: PathItem, param: string) {
+    const { arrowFunc } = this.config
+    const { name } = funcInfo
+    const funcName = this.getFuncName(name)
+    const arrowFuncStr = arrowFunc ? '=>' : ''
+    return `${funcName} ${arrowFunc ? '=' : ''}${param}${arrowFuncStr}`
   }
 
   private generatorApiMethod(funcItem: PathItem, typesList: string[]) {
@@ -164,7 +180,7 @@ export default class TsFileBuilder extends Base {
     let configParams = [bodyName, headersStr].filter(Boolean).join(',')
     configParams = configParams ? `,${configParams},` : ','
     let configStr = `{ url ${configParams} method: '${method}' }`
-    let urlStr = `\nconst url = ${urlSemicolon}${apiPath.replace(/\{/g, '${')}${query}${urlSemicolon}`
+    let urlStr = `const url = ${urlSemicolon}${apiPath.replace(/\{/g, '${')}${query}${urlSemicolon}`
     if (configStr.length + urlStr.length < 60) {
       urlStr = ''
       const url = apiPath.replace(/\{/g, '${')
@@ -172,15 +188,22 @@ export default class TsFileBuilder extends Base {
     }
 
     // 生成接口请求方法
-    const arrowFuncStr = arrowFunc ? '=>' : ''
+    // const arrowFuncStr = arrowFunc ? '=>' : ''
     const paramStr = ` (${paramName}${paramTypeStr}) `
-    content += `\n ${desc} ${firstToLower(name)} ${arrowFunc ? '=' : ''}${paramStr}${arrowFuncStr}{
-      ${deconstruct}${paramsContents
-      .map(({ type, content }) => `const ${type} = ${content}`)
-      .join('\r\n')}${urlStr}${formDataStr}
-        const config: DocReqConfig = ${configStr}
-        return this.${isFile ? 'download' : 'request'}${returnType}(config)
-      }\n`
+
+    // 方法头信息
+    const funcHead = this.getFuncHead(funcItem, paramStr)
+    
+    // 方法体内容
+    const funcBody = []
+    funcBody.push(deconstruct) // 结构信息
+    funcBody.push(...this.formatParamsContents(paramsContents)) // 参数信息
+    funcBody.push(urlStr) // url 信息
+    funcBody.push(formDataStr) // formData 信息
+    funcBody.push(`const config: DocReqConfig = ${configStr}`) // 请求的 config
+    funcBody.push(`return this.${isFile ? 'download' : 'request'}${returnType}(config)`) // return 方法
+
+    content += `${desc} ${funcHead} {${funcBody.filter(Boolean).join('\n')}}\n\n`
     return content
   }
 

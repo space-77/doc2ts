@@ -9,6 +9,8 @@ import { firstToUpper, isKeyword, resolveOutPath } from '../utils'
 
 export type TypeBase = TypeInfoBase
 
+export type ParamsContents = { type: ConstType; content: string }
+
 export function getOutputDir(moduleName: string, { outDir }: Config) {
   // FIXME 存在 模块重名，方法重名 问题。
   return path.join(resolveOutPath(outDir), `${moduleName}${moduleName ? 'M' : 'm'}odule`)
@@ -44,7 +46,7 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
     typeGroupList: [] as [string, TypeItem[]][],
 
     // 以下是需要 在 params 解构参数 再 重构参数成对应的参数类型
-    paramsContents: [] as { type: ConstType; content: string }[]
+    paramsContents: [] as ParamsContents[]
   }
 
   const typeGroup = _.groupBy(typeItems, 'paramType')
@@ -112,17 +114,17 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
         if (every) {
           // 完全相同
           lastType = '' // 不需要接收剩余类型了
-          textCode = `const ${preType} = ${paramsInfo.paramName}`
+          textCode = `\nconst ${preType} = ${paramsInfo.paramName}`
         } else {
           // 部分相同
           lastType = `, ..._${lastType}`
-          textCode = `const ${preType} = {${sameList.join(',')}${lastType}}`
+          textCode = `\nconst ${preType} = {${sameList.join(',')}${lastType}}`
         }
       } else {
         lastType = `, ...${lastType}`
       }
 
-      paramsInfo.deconstruct = `const {${params.join(',')} ${lastType}} = ${paramsInfo.paramName}\n${textCode}`
+      paramsInfo.deconstruct = `const {${params.join(',')} ${lastType}} = ${paramsInfo.paramName}${textCode}`
     }
   }
 
