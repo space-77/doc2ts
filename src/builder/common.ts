@@ -63,7 +63,7 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
     const isDefType = typeof type === 'string' && !ref
     const oneTypeValue = firstItem.getKeyValue()
     const reqStr = required ? '' : '?'
-    const typeInfo = isDefType ? `${reqStr}:${oneTypeValue}` : `:types.${paramsTypeInfo[0].spaceName}['${name}']`
+    const typeInfo = isDefType ? `${reqStr}:${oneTypeValue}` : `:types.${paramsTypeInfo[0].spaceName()}['${name}']`
 
     paramsInfo.paramType = typeInfo
     paramsInfo.paramTypeDesc = isDefType
@@ -71,7 +71,7 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
       : undefined
     paramsInfo.paramName = checkName(name)
   } else if (typeItems.length > 1) {
-    paramsInfo.paramType = paramsTypeInfo.map(i => `:types.${i.spaceName}`).join('&')
+    paramsInfo.paramType = paramsTypeInfo.map(i => `:types.${i.spaceName()}`).join('&')
 
     if (paramTypeLen === 1) {
       // 所有参数都是同一种类型，这里是多个参数一起，需要解构
@@ -159,7 +159,7 @@ export function createReturnType(
     const typeInfo = docApi.typeGroup.addCustomType(`R${firstToUpper(`${funcName}`)}`, [], groupName)
     typeInfo.attrs.typeValue = typeValue
     typeInfo.attrs.defineType = true
-    return typeInfo.spaceName
+    return typeInfo.spaceName()
   }
 
   // 这是文件类型返回
@@ -188,11 +188,11 @@ export function createReturnType(
         }
       }
 
-      typeValue = typeValue.replace(/\{typeName\}/g, typeInfo?.spaceName ?? 'unknown')
+      typeValue = typeValue.replace(/\{typeName\}/g, typeInfo?.spaceName() ?? 'unknown')
     } else if (typeof render === 'function') {
       typeValue = render(funcName, responseType?.getRealBody())
     }
     return `<types.${createNewType(typeValue)}>`
   }
-  return responseType ? `<types.${responseType.getRealBody().spaceName}>` : '<unknown>'
+  return responseType ? `<types.${responseType.getRealBody().spaceName()}>` : '<unknown>'
 }

@@ -57,9 +57,9 @@ export default class BuildTypeFile extends Base {
               let t = ''
 
               if (typeof genericsItem === 'string') t = genericsItem
-              else if (genericsItem) t = genericsItem.spaceName
+              else if (genericsItem) t = genericsItem.spaceName()
 
-              return typeInfo.spaceName + (t ? `<${t}>` : '')
+              return typeInfo.spaceName() + (t ? `<${t}>` : '')
             })
             extendsStr += ff.join(',')
           }
@@ -124,7 +124,7 @@ export default class BuildTypeFile extends Base {
     const outputDir = getOutputDir(moduleName, config)
 
     let content = this.createEnum() // 枚举数据
-    content += this.createTypes() // 类型
+    content += this.createTypes() // 类型 
     content += this.createCustomType() // 自定义类型
     content += this.createStringType() // 接口返回类型
 

@@ -6,7 +6,7 @@ import { fileList } from '../generators/fileList'
 import { authorStr } from '../common/config'
 import { customInfoList } from './buildType'
 import { createParams, createReturnType, ParamsContents, TypeBase } from './common'
-import { PathInfo, RequestBodies, Custom, dotsUtils, PathItem, httpMethodsReg } from 'doc-pre-data'
+import { PathInfo, RequestBodies, Custom, dotsUtils, PathItem, httpMethodsReg, commonTypeKey } from 'doc-pre-data'
 import { checkJsLang, findDiffPath, firstToLower, firstToUpper, getDesc, resolveOutPath } from '../utils'
 const keyword = require('is-es2016-keyword')
 
@@ -79,7 +79,7 @@ export default class TsFileBuilder extends Base {
     return `${funcName} ${arrowFunc ? '=' : ''}${param}${arrowFuncStr}`
   }
 
-  private generatorApiMethod(funcItem: PathItem, typesList: string[]) {
+  private generatorApiMethod(funcItem: PathItem, typesList: string[], className: string) {
     const { doc, config } = this
     const { docApi } = doc
 
@@ -94,8 +94,15 @@ export default class TsFileBuilder extends Base {
     const { paramName = '', paramsContents, deconstruct, paramType, typeGroupList, paramTypeDesc } = paramsInfo
     let paramTypeStr = ''
     if (typeItems.length > 0) {
-      let { spaceName } = typeInfo ?? {}
-      spaceName = spaceName ? `:types.${spaceName}` : undefined
+      let spaceName = typeInfo?.spaceName()
+       spaceName = spaceName ? `:types.${spaceName}` : undefined
+
+      // if (spaceName) {
+      //   if (spaceName.startsWith(commonTypeKey)) {
+          
+      //   }
+      // }
+
       paramTypeStr = spaceName || paramType
     }
 
@@ -224,7 +231,7 @@ export default class TsFileBuilder extends Base {
     let content = `${desc} export default class ${className} extends ${baseClassName} {`
 
     // 生成类里的请求方法
-    for (const funcItem of pathItems) content += this.generatorApiMethod(funcItem, typesList)
+    for (const funcItem of pathItems) content += this.generatorApiMethod(funcItem, typesList , className)
 
     content += '}'
 
@@ -255,7 +262,7 @@ export default class TsFileBuilder extends Base {
       const filePath = path.join(outputDir, `${firstToLower(_fileName)}.ts`)
 
       let { content, typesStr } = this.createClass(moduleInfo, className)
-      content = `import type * as types from './types'\n${content}`
+      content = `import type {${className} as types, ${commonTypeKey}} from './types'\n${content}`
       content = `import ${baseName} from '${this.getClientPath(filePath)}'\n${content}`
       content = `import type { DocReqConfig } from "doc2ts";\n${content}`
       content = `${content}\nexport const ${_fileName} = new ${className}()`
