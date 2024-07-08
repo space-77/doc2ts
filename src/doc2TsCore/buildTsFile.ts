@@ -20,7 +20,7 @@ export const exportList: string[] = []
 function getClientPath(config: Config, filePath: string) {
   const { baseClassPath } = config
   const tempClassDirList = filePath.split(path.sep)
-  const tempClassDir = path.join(...tempClassDirList.slice(0, tempClassDirList.length - 1))
+  const tempClassDir = tempClassDirList.slice(0, tempClassDirList.length - 1).join(path.sep)
   return findDiffPath(tempClassDir, resolveOutPath(baseClassPath))
 }
 
