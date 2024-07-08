@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "bin": {
-    "dots": "bin/doc2api.js",
+    "dots": "bin/dots.js",
     "doc2ts": "bin/doc2api.js"
   },
   "scripts": {
@@ -61,9 +61,11 @@
     "@types/fs-extra": "^9.0.13",
     "@types/inquirer": "^8.2.1",
     "@types/lodash": "^4.14.189",
+    "@types/md5": "^2.3.5",
     "@types/prettier": "^2.6.0",
     "@types/qs": "*",
     "fs-extra": "^10.1.0",
+    "md5": "^2.3.0",
     "nodemon": "^2.0.15"
   },
   "nodemonConfig": {
@@ -76,7 +78,7 @@
   "prettier": {
     "semi": false,
     "tabWidth": 2,
-    "endOfLine": "crlf",
+    "endOfLine": "lf",
     "printWidth": 120,
     "singleQuote": true,
     "arrowParens": "avoid",
