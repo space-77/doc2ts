@@ -53,7 +53,7 @@ export default class Manage {
       // 切换到 doc 分支
       await this.checkout2Doc()
 
-      // // 更新远程分支信息，确保当前分支是最新代码
+      // 更新远程分支信息，确保当前分支是最新代码
       // await this.checkBranch()
 
       // 生成接口信息
@@ -116,7 +116,7 @@ export default class Manage {
 
   async checkout2Doc() {
     if (this.originalBranchname === this.docBranchname) {
-      log.error(log.errColor(`${log.errTag(' error ')}当前分支为doc2ts的git自动管理分支，请把分支切回开发分支再操作。`))
+      log.error(log.errColor(`${log.errTag(' error ')}当前分支为${this.docBranchname}的git自动管理分支，请把分支切回开发分支再操作。`))
       process.exit(0)
     }
 
@@ -143,6 +143,7 @@ export default class Manage {
     this.remotesBranch = remotesBranch
     // remotes/origin/pont
 
+    // FIXME 远程有，本地没有时会报错
     if (hasBranch || remotesBranch) {
       // 本地存在doc分支
       await checkout(this.docBranchname)

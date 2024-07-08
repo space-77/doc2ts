@@ -20,7 +20,7 @@ export default class Base {
   getClientPath(filePath: string) {
     const { baseClassPath } = this.config
     const tempClassDirList = filePath.split(path.sep)
-    const tempClassDir = path.join(...tempClassDirList.slice(0, tempClassDirList.length - 1))
+    const tempClassDir = tempClassDirList.slice(0, tempClassDirList.length - 1).join(path.sep)
     return findDiffPath(tempClassDir, resolveOutPath(baseClassPath))
   }
 }
