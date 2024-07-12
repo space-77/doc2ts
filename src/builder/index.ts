@@ -152,7 +152,7 @@ export default class Doc2Ts {
   }
 
   async transform2js() {
-    const { outDir, languageType, declaration = true, emitTs = false } = this.config
+    const { outDir, languageType, declaration = false, emitTs = false } = this.config
     const isJs = checkJsLang(languageType)
     if (!isJs) return
     try {

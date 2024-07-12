@@ -297,7 +297,7 @@ export default {
 - 参数：`declaration`
 - 必传：`否`
 - 类型： `Boolean`
-- 默认：`true`
+- 默认：`false`
 - 说明：
   1.  该配置在 `languageType`   为 js 模式下生效
   1.  是否输出 `.d.ts`类型文件，与 `tsconfig.json`的 `declaration`配置一致

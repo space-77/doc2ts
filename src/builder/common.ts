@@ -4,8 +4,8 @@ import { Config } from '../common/config'
 import { TypeDataKey } from '../common/reg'
 import { typeStringList } from './buildType'
 import { FileContentType } from './tsFileBuilder'
-import { DocApi, TypeItem, TypeInfoBase } from 'doc-pre-data'
-import { firstToUpper, isKeyword, resolveOutPath } from '../utils'
+import { DocApi, TypeItem, TypeInfoBase, commonTypeKey } from 'doc-pre-data'
+import { checkJsLang, firstToUpper, isKeyword, resolveOutPath } from '../utils'
 
 export type TypeBase = TypeInfoBase
 
@@ -63,7 +63,7 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
     const isDefType = typeof type === 'string' && !ref
     const oneTypeValue = firstItem.getKeyValue()
     const reqStr = required ? '' : '?'
-    const typeInfo = isDefType ? `${reqStr}:${oneTypeValue}` : `:types.${paramsTypeInfo[0].spaceName()}['${name}']`
+    const typeInfo = isDefType ? `${reqStr}:${oneTypeValue}` : `:types.${paramsTypeInfo[0].getSpaceName()}['${name}']`
 
     paramsInfo.paramType = typeInfo
     paramsInfo.paramTypeDesc = isDefType
@@ -71,7 +71,7 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
       : undefined
     paramsInfo.paramName = checkName(name)
   } else if (typeItems.length > 1) {
-    paramsInfo.paramType = paramsTypeInfo.map(i => `:types.${i.spaceName()}`).join('&')
+    paramsInfo.paramType = paramsTypeInfo.map(i => `:types.${i.getSpaceName()}`).join('&')
 
     if (paramTypeLen === 1) {
       // 所有参数都是同一种类型，这里是多个参数一起，需要解构
@@ -145,6 +145,17 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
   return paramsInfo
 }
 
+export function formatType(type: string, isJs: boolean) {
+  const [first, second, ...types] = type.split('.')
+
+  if (second === commonTypeKey) {
+    return `${/^:/.test(type) ? ':' : ''}${[second, ...types].join('.')}`
+  }
+
+  if (isJs) return type
+  return [first, ...types].join('.')
+}
+
 export function createReturnType(
   config: Config,
   docApi: DocApi,
@@ -152,14 +163,15 @@ export function createReturnType(
   groupName?: string,
   responseType?: TypeInfoBase
 ) {
-  const { resultTypeRender: render } = config
+  const { resultTypeRender: render, languageType } = config
+  const isJs = checkJsLang(languageType)
   const { resConentType } = responseType ?? {}
 
   function createNewType(typeValue: string) {
     const typeInfo = docApi.typeGroup.addCustomType(`R${firstToUpper(`${funcName}`)}`, [], groupName)
     typeInfo.attrs.typeValue = typeValue
     typeInfo.attrs.defineType = true
-    return typeInfo.spaceName()
+    return typeInfo.getSpaceName()
   }
 
   // 这是文件类型返回
@@ -188,11 +200,11 @@ export function createReturnType(
         }
       }
 
-      typeValue = typeValue.replace(/\{typeName\}/g, typeInfo?.spaceName() ?? 'unknown')
+      typeValue = typeValue.replace(/\{typeName\}/g, typeInfo?.getSpaceName() ?? 'unknown')
     } else if (typeof render === 'function') {
       typeValue = render(funcName, responseType?.getRealBody())
     }
-    return `<types.${createNewType(typeValue)}>`
+    return `<${formatType(`types.${createNewType(typeValue)}`, isJs)}>`
   }
-  return responseType ? `<types.${responseType.getRealBody().spaceName()}>` : '<unknown>'
+  return responseType ? `<${formatType(`types.${responseType.getRealBody().getSpaceName()}`, isJs)}>` : '<unknown>'
 }

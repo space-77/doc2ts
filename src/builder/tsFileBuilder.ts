@@ -5,7 +5,7 @@ import Base from './base'
 import { fileList } from '../generators/fileList'
 import { authorStr } from '../common/config'
 import { customInfoList } from './buildType'
-import { createParams, createReturnType, ParamsContents, TypeBase } from './common'
+import { createParams, createReturnType, formatType, ParamsContents, TypeBase } from './common'
 import { PathInfo, RequestBodies, Custom, dotsUtils, PathItem, httpMethodsReg, commonTypeKey } from 'doc-pre-data'
 import { checkJsLang, findDiffPath, firstToLower, firstToUpper, getDesc, resolveOutPath } from '../utils'
 const keyword = require('is-es2016-keyword')
@@ -18,7 +18,7 @@ export const importList: string[] = []
 export const exportList: string[] = []
 
 export default class TsFileBuilder extends Base {
-  private get isJs(): Boolean {
+  private get isJs(): boolean {
     return checkJsLang(this.config.languageType)
   }
 
@@ -28,7 +28,7 @@ export default class TsFileBuilder extends Base {
   private getParamsInfo(funcItem: PathItem) {
     const { docApi } = this.doc
     const { disableParams } = this.config
-    const { parameterType, requestBodyType, name } = funcItem
+    const { parameterType, requestBodyType, moduleName, name } = funcItem
 
     let paramsTypeInfo = [parameterType, requestBodyType].map(i => i?.getRealBody()).filter(Boolean) as TypeBase[]
 
@@ -37,6 +37,7 @@ export default class TsFileBuilder extends Base {
     // TODO 文档： 过滤 cookie 类型参数
     // TODO 文档： 过滤 header 类型参数，header 参数一般是用于设置token，token信息一般都是在拦截器为所有接口配置，不需要每个参数都显式传入
 
+    // Report
     typeItems = typeItems
       .filter(i => {
         i.disable =
@@ -52,10 +53,11 @@ export default class TsFileBuilder extends Base {
     let typeInfo: Custom | undefined = undefined
     if (paramsTypeInfo.length === 2) {
       // 需要做类型合并
-      typeInfo = docApi.typeGroup.addCustomType(firstToUpper(`${name}Params`), [])
+      typeInfo = docApi.typeGroup.addCustomType(firstToUpper(`${name}Params`), [], moduleName)
       typeInfo.init()
       typeInfo.refs.push(...paramsTypeInfo.map(i => ({ typeInfo: i })))
-      typeInfo.attrs.hide = true // 只占名字不生成类型，在 customInfoList 里生成对应类型
+      typeInfo.attrs.compose = true // 只占名字不生成类型，在 customInfoList 里生成对应类型
+      typeInfo.attrs.fileName = moduleName
       customInfoList.push(typeInfo)
     }
 
@@ -94,14 +96,8 @@ export default class TsFileBuilder extends Base {
     const { paramName = '', paramsContents, deconstruct, paramType, typeGroupList, paramTypeDesc } = paramsInfo
     let paramTypeStr = ''
     if (typeItems.length > 0) {
-      let spaceName = typeInfo?.spaceName()
+      let spaceName = typeInfo?.getSpaceName()
        spaceName = spaceName ? `:types.${spaceName}` : undefined
-
-      // if (spaceName) {
-      //   if (spaceName.startsWith(commonTypeKey)) {
-          
-      //   }
-      // }
 
       paramTypeStr = spaceName || paramType
     }
@@ -151,24 +147,22 @@ export default class TsFileBuilder extends Base {
       }
     }
 
-    const { groupName } = funcItem.responseType ?? {}
+    const groupName = funcItem.responseType?.getSpaceName()
     const returnType = createReturnType(config, docApi, name, groupName, responseType?.getRealBody())
 
     // 生成 js文件，并且 不保留 .d.ts 类型文件时，生成方法类型注释
     let returnTypeStrName: string | undefined
-    if (declaration === false && this.isJs) {
+    if (!declaration && this.isJs) {
       const [, returnTypeStr] = returnType.match(/\<types\.(.*)\>/) ?? []
       const [, _paramTypeStr] = paramTypeStr.match(/:types\.(.*)/) ?? []
 
       if (_paramTypeStr) {
-        const [first, second] = _paramTypeStr.split('.')
-        const type = second ?? first
+        const type = _.last(_paramTypeStr.split('.'))
         paramList.push(`* @param { ${type} } ${paramName}`)
         typesList.push(` * @typedef { import("./types").${_paramTypeStr} } ${type}`)
       }
       if (returnTypeStr) {
-        const [first, second] = returnTypeStr.split('.')
-        const type = second ?? first
+        const type = _.last(returnTypeStr.split('.'))
         returnTypeStrName = `* @return { ${type} }`
         typesList.push(` * @typedef { import("./types").${returnTypeStr} } ${type}`)
       }
@@ -200,7 +194,7 @@ export default class TsFileBuilder extends Base {
 
     // 生成接口请求方法
     // const arrowFuncStr = arrowFunc ? '=>' : ''
-    const paramStr = ` (${paramName}${paramTypeStr}) `
+    const paramStr = ` (${paramName}${formatType(paramTypeStr, this.isJs)}) `
 
     // 方法头信息
     const funcHead = this.getFuncHead(funcItem, paramStr)
@@ -208,9 +202,9 @@ export default class TsFileBuilder extends Base {
     // 方法体内容
     const funcBody = []
     funcBody.push(deconstruct) // 结构信息
+    funcBody.push(formDataStr) // formData 信息
     funcBody.push(...this.formatParamsContents(paramsContents)) // 参数信息
     funcBody.push(urlStr) // url 信息
-    funcBody.push(formDataStr) // formData 信息
     funcBody.push(`const config: DocReqConfig = ${configStr}`) // 请求的 config
     funcBody.push(`return this.${isFile ? 'download' : 'request'}${returnType}(config)`) // return 方法
 
@@ -268,7 +262,7 @@ export default class TsFileBuilder extends Base {
       content = `${content}\nexport const ${_fileName} = new ${className}()`
 
       // 不保留 .d.ts 文件，在 .js 文件添引入 types.d.ts 类型
-      if (declaration === false && this.isJs && !!typesStr) {
+      if (!declaration && this.isJs && !!typesStr) {
         const descriptionStr = '* @description 以下是js模式下的类型引入，有助于类型提示'
         content += `\n/**\r\n${descriptionStr}\r\n${typesStr}\n */`
       }

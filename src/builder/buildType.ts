@@ -30,20 +30,21 @@ export default class BuildTypeFile extends Base {
     const { generateTypeRender } = config
 
     let content = ''
-    const typeList = Object.entries(_.groupBy(typeInfoList, 'groupName'))
-
-    for (const [fileName, infoList] of typeList) {
-      content += `export namespace ${fileName} {`
-      for (let typeInfo of infoList) {
+    typeInfoList.forEach(({ spaceName, list }) => {
+      content += `export namespace ${spaceName} {`
+      for (let typeInfo of list) {
         const { typeName } = typeInfo
         if (typeof generateTypeRender === 'function') typeInfo = generateTypeRender(typeName, typeInfo)
 
         const { typeItems, description, refs, isEmpty, deprecated, attrs, externalDocs, title } = typeInfo
-        const { hide, typeValue, defineType = false } = attrs
+        const { hide, compose, typeValue, defineType = false } = attrs
 
         if (hide) continue
 
-        if (defineType) {
+        if (compose) {
+          // 组合类型
+          content += this.buildCustomType(typeInfo)
+        } else if (defineType) {
           // 自定类型，只做类型定义
           content += `export type ${typeName} = ${typeValue}\n`
         } else {
@@ -57,9 +58,9 @@ export default class BuildTypeFile extends Base {
               let t = ''
 
               if (typeof genericsItem === 'string') t = genericsItem
-              else if (genericsItem) t = genericsItem.spaceName()
+              else if (genericsItem) t = genericsItem.getSpaceName(spaceName)
 
-              return typeInfo.spaceName() + (t ? `<${t}>` : '')
+              return typeInfo.getSpaceName(spaceName) + (t ? `<${t}>` : '')
             })
             extendsStr += ff.join(',')
           }
@@ -73,42 +74,36 @@ export default class BuildTypeFile extends Base {
         }
       }
       content += '}\n\n'
-    }
+    })
 
     return content
   }
 
-  private createCustomType() {
+  private buildCustomType(typeInfo: TypeBase) {
     const { generateTypeRender } = this.config
+    if (typeof generateTypeRender === 'function') typeInfo = generateTypeRender(typeInfo.typeName, typeInfo)
+    const { typeName, typeItems, deprecated, description, refs, externalDocs, title } = typeInfo
 
-    let content = ''
-    customInfoList.sort((a, b) => a.typeName.length - b.typeName.length)
-    customInfoList.forEach(i => {
-      if (typeof generateTypeRender === 'function') i = generateTypeRender(i.typeName, i)
-      const { typeName, typeItems, deprecated, description, refs, externalDocs, title } = i
-
-      let typeStr = ''
-      if (typeItems.length > 0) {
-        typeStr += '{'
-        for (const typeItem of typeItems) {
-          if (typeItem.disable) continue
-          typeStr += typeItem.getTypeValue() // getTypeKeyValue(typeItem)
-        }
-        typeStr += '}'
+    let typeStr = ''
+    if (typeItems.length > 0) {
+      typeStr += '{'
+      for (const typeItem of typeItems) {
+        if (typeItem.disable) continue
+        typeStr += typeItem.getTypeValue() // getTypeKeyValue(typeItem)
       }
-      const extendList = refs
-        .filter(i => i && !i.typeInfo.isEmpty)
-        .map(i => i.typeInfo.typeName)
-        .join('&')
+      typeStr += '}'
+    }
+    const extendList = refs
+      .filter(i => i && !i.typeInfo.isEmpty)
+      .map(i => i.typeInfo.getSpaceName(typeInfo.spaceName))
+      .join('&')
 
-      if (extendList || typeStr) {
-        const desc = getDesc({ description, deprecated, externalDocs, title })
-        const extendStr = extendList ? `${typeStr ? '&' : ''}${extendList}` : ''
-        content += `${desc}export type ${typeName} = ${typeStr} ${extendStr}\n\n`
-      }
-    })
-
-    return content
+    if (extendList || typeStr) {
+      const desc = getDesc({ description, deprecated, externalDocs, title })
+      const extendStr = extendList ? `${typeStr ? '&' : ''}${extendList}` : ''
+      return `${desc}export type ${typeName} = ${typeStr} ${extendStr}\n\n`
+    }
+    return ''
   }
 
   private createStringType() {
@@ -124,8 +119,7 @@ export default class BuildTypeFile extends Base {
     const outputDir = getOutputDir(moduleName, config)
 
     let content = this.createEnum() // 枚举数据
-    content += this.createTypes() // 类型 
-    content += this.createCustomType() // 自定义类型
+    content += this.createTypes() // 类型
     content += this.createStringType() // 接口返回类型
 
     const filePath = path.join(outputDir, 'types.ts')
