@@ -30,7 +30,7 @@ export class Config {
   readonly filterModule?: Doc2TsConfig['filterModule']
   readonly baseClassName: string = 'ApiClient'
   readonly emitTs?: boolean
-  readonly declaration?: boolean
+  readonly declaration = false
   readonly prettierPath?: string
   readonly baseClassPath!: string
 
@@ -38,7 +38,7 @@ export class Config {
    * @description 是否使用箭头函数
    */
   readonly arrowFunc: Doc2TsConfig['arrowFunc'] = false
-  readonly translateType: TranslateType = TranslateType.english
+  readonly translateType: TranslateType = TranslateType.none
   readonly languageType?: Doc2TsConfig['languageType']
   readonly render: Doc2TsConfig['render']
   readonly typeFileRender: Doc2TsConfig['typeFileRender']
