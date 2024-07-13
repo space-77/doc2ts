@@ -16,10 +16,23 @@ export async function getBranchname() {
   return current
 }
 
+/**
+ * @description 拉取远程分支
+ */
+export async function pullBranchname(branchname: string, featureBranch: string) {
+  return await git.checkout(['-b', branchname, featureBranch])
+}
+
+/**
+ * @description 创建新分支
+ */
 export async function createBranchname(branchname: string, commitId?: string) {
   return await git.checkout(['-b', branchname, commitId ?? ''])
 }
 
+/**
+ * @description 切换分支
+ */
 export async function checkout(branchname: string) {
   return await git.checkout(branchname)
 }
@@ -28,8 +41,8 @@ export async function status() {
   return await git.status()
 }
 
-export async function gitUpdate() {
-  return await git.remote(['update', 'origin', '--p'])
+export async function gitUpdate(remote: string) {
+  return await git.remote(['update', remote, '--p'])
 }
 export async function checkGit() {
   const { files } = await status()
@@ -75,22 +88,9 @@ export async function getrRemote() {
 }
 
 export async function gitPull(remote: string, branch: string) {
-  // if (!fs.existsSync(getRootFilePath(fileName))) return
   return await git.pull(remote, branch)
-  // try {
-  // } catch (error) {
-  //   return Promise.reject((error as GitResponseError<PullFailedResult>).message)
-  // }
-  // const { hash } = latest ?? {}
-  // if (!hash) return
-  // const [, id] = hash.match(/(\S+)/) ?? []
-  // return id
 }
 
 export async function gitPush(remote: string, branch: string, options?: TaskOptions) {
   return await git.push(remote, branch, options)
 }
-
-// export async function gitPush(remote: string, branch: string) {
-//   return await git.push(remote, `${branch}:${branch}`)
-// }
