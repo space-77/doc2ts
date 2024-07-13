@@ -123,7 +123,6 @@ export async function getConfig(configPath: string): Promise<Doc2TsConfig> {
 
 function logProgress() {
   const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
-
 }
 
 /**
@@ -137,7 +136,7 @@ export function resolveOutPath(...paths: string[]) {
 /**
  * @description 创建文件
  */
-export function createFile(filePath: string, content: string, nolog = false) {
+export async function createFile(filePath: string, content: string, nolog = false) {
   try {
     filePath = path.join(filePath)
     const dirList = filePath.split(path.sep)
@@ -147,7 +146,8 @@ export function createFile(filePath: string, content: string, nolog = false) {
     if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true })
     !nolog && log.info(`正在创建：${fileName} 文件`)
     const isTsFile = /\.ts/.test(filePath)
-    fs.writeFileSync(filePath, format(content, PrettierConfig.config, isTsFile))
+    content = await format(content, PrettierConfig.config, isTsFile)
+    fs.writeFileSync(filePath, content)
   } catch (error) {
     log.error('创建失败')
     console.error(error)
