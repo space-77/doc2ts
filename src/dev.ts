@@ -8,9 +8,14 @@
 // ✨ ⭐ ✅
 
 import Doc2Ts from './builder/index'
+// import keyword from 'is-ecma-keyword'
+// import Manage from  './scripts/manage'
 
 async function main() {
   try {
+    // console.log(keyword);
+    // console.log(keyword('new'));
+    // new Manage()
     const doc2ts = new Doc2Ts()
     await doc2ts.build()
 

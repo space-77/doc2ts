@@ -3,7 +3,17 @@ import log from '../utils/log'
 import path from 'path'
 import { fileList } from '../generators/fileList'
 import { Config, CONFIG_PATH } from '../common/config'
-import { ts2Js, getConfig, checkJsLang, resolveOutPath, loadPrettierConfig, createFile, getApiJson } from '../utils'
+import {
+  ts2Js,
+  getConfig,
+  checkJsLang,
+  resolveOutPath,
+  loadPrettierConfig,
+  createFile,
+  getApiJson,
+  logProgress,
+  sleep
+} from '../utils'
 
 // ------------------------------------
 import docInit, { Dict, LogInfo } from 'doc-pre-data'
@@ -12,6 +22,8 @@ import { DictList, TranslateCode } from 'doc-pre-data/lib/common/translate'
 import BuildTypeFile from './buildType'
 import type { DocListItem } from '../types/newType'
 import TsFileBuilder, { importList } from './tsFileBuilder'
+import _ from 'lodash'
+import ora from 'ora'
 
 export default class Doc2Ts {
   config!: Config
@@ -23,7 +35,7 @@ export default class Doc2Ts {
   async build() {
     await this.getConfig()
     await this.initRemoteDataSource()
-    this.createFiles()
+    await this.createFiles()
     await this.transform2js()
 
     const { warnList, errorList } = this
@@ -137,7 +149,7 @@ export default class Doc2Ts {
     }
   }
 
-  createFiles() {
+  async createFiles() {
     if (fileList.length === 0) return
 
     // 创建 index.ts 文件
@@ -146,9 +158,22 @@ export default class Doc2Ts {
     const filePath = path.join(resolveOutPath(outDir), 'index.ts')
     fileList.push({ filePath, content })
 
-    fileList.forEach(({ filePath, content }) => {
-      createFile(filePath, content)
-    })
+    log.clear()
+    log.info(`正在创建文件`)
+
+    const bar = logProgress()
+    bar.start(fileList.length, 0)
+    let index = 1
+    for await (const { filePath, content } of fileList) {
+      await createFile(filePath, content, true)
+      const dirList = filePath.split(path.sep)
+      bar.update(index, { filename: _.last(dirList) })
+      index++
+    }
+
+    await sleep(200)
+
+    bar.stop()
   }
 
   async transform2js() {
@@ -158,12 +183,13 @@ export default class Doc2Ts {
     try {
       const outDirPath = resolveOutPath(outDir)
       log.clear()
-      log.info('正在转换 ts 文件为 js')
+      const spinner = ora('正在转换 ts 文件为 js').start();
 
       const indexFilePath = path.join(outDirPath, 'index.ts')
       const indexFileJsPath = indexFilePath.replace(/\.ts$/, '.js')
 
       ts2Js([indexFilePath], declaration, (fileName, content) => {
+        spinner.text = `正在转换 ${fileName} 文件`
         content = content.replace(/(\/\*\*)/g, '\n$1')
         content = content.replace(/(export\s+const)/g, '\n$1')
         content = content.replace(/(export\s+declare)/g, '\n$1')
@@ -190,7 +216,9 @@ export default class Doc2Ts {
         filesInfo.forEach(filePath => fs.existsSync(filePath) && fs.unlinkSync(filePath))
       }
 
-      log.success('转换成功')
+      spinner.succeed('转换成功')
+      await sleep(200)
+      // log.success('转换成功')
     } catch (error: any) {
       log.error('转换失败')
       return Promise.reject(error)

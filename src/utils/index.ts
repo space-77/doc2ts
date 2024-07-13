@@ -1,15 +1,17 @@
 import fs from 'fs'
+import chalk from 'chalk'
 import ts, { ModuleKind, ScriptTarget } from 'typescript'
 import Api from './api'
 import log from './log'
 import path from 'path'
 import axios from 'axios'
+import keyword from 'is-ecma-keyword'
 import prettier from 'prettier'
-import cliProgress from 'cli-progress'
+import cliProgress, { SingleBar } from 'cli-progress'
 import { jsonrepair } from 'jsonrepair'
 import { keyWordsListSet, PrettierConfig } from '../common/config'
 import { Doc2TsConfig, ModelList } from '../types/types'
-const keyword = require('is-es2016-keyword')
+import _ from 'lodash'
 
 /**
  * @param str
@@ -121,8 +123,13 @@ export async function getConfig(configPath: string): Promise<Doc2TsConfig> {
 //   return name
 // }
 
-function logProgress() {
-  const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
+export function logProgress() {
+  return new cliProgress.SingleBar({
+    format: chalk.cyan('{bar}') + '| {percentage}% | {value}/{total} | {filename}',
+    barCompleteChar: '\u2588',
+    barIncompleteChar: '\u2591',
+    hideCursor: true
+  })
 }
 
 /**
@@ -140,11 +147,13 @@ export async function createFile(filePath: string, content: string, nolog = fals
   try {
     filePath = path.join(filePath)
     const dirList = filePath.split(path.sep)
-    const fileName = dirList[dirList.length - 1]
     const dirPath = dirList.slice(0, dirList.length - 1).join(path.sep)
 
     if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true })
-    !nolog && log.info(`正在创建：${fileName} 文件`)
+    if (!nolog) {
+      const fileName = _.last(dirList)
+      log.info(`正在创建：${fileName} 文件`)
+    }
     const isTsFile = /\.ts/.test(filePath)
     content = await format(content, PrettierConfig.config, isTsFile)
     fs.writeFileSync(filePath, content)
@@ -346,4 +355,8 @@ export async function getApiJson(url: string, headers?: Record<string, any>): Pr
     log.error('获取文档数据异常，请检查网络是否正常。')
     throw new Error('')
   }
+}
+
+export function sleep(time: number) {
+  return new Promise(resolve => setTimeout(resolve, time))
 }
