@@ -69,14 +69,10 @@ export default class TsFileBuilder extends Base {
     return paramsContents.map(({ type, content }) => `const ${type} = ${content}`)
   }
 
-  private getFuncName(name: string) {
-    return httpMethodsReg.test(name) ? name.toLocaleLowerCase() : firstToLower(name)
-  }
-
   private getFuncHead(funcInfo: PathItem, param: string) {
     const { arrowFunc } = this.config
     const { name } = funcInfo
-    const funcName = this.getFuncName(name)
+    const funcName = firstToLower(name)
     const arrowFuncStr = arrowFunc ? '=>' : ''
     return `${funcName} ${arrowFunc ? '=' : ''}${param}${arrowFuncStr}`
   }
