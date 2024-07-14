@@ -1,17 +1,17 @@
 import fs from 'fs'
-import chalk from 'chalk'
+import _ from 'lodash'
 import ts, { ModuleKind, ScriptTarget } from 'typescript'
 import Api from './api'
 import log from './log'
 import path from 'path'
+import chalk from 'chalk'
 import axios from 'axios'
 import keyword from 'is-ecma-keyword'
 import prettier from 'prettier'
-import cliProgress, { SingleBar } from 'cli-progress'
+import cliProgress from 'cli-progress'
 import { jsonrepair } from 'jsonrepair'
 import { keyWordsListSet, PrettierConfig } from '../common/config'
 import { Doc2TsConfig, ModelList } from '../types/types'
-import _ from 'lodash'
 
 /**
  * @param str
@@ -255,8 +255,6 @@ export function getTsFiles(dirPath: string) {
     callback(info) {
       const { filePath, name } = info
       if (tsFileReg.test(name)) {
-        // const md5 = crypto.createHash('md5')
-        // md5.update(filePath).digest('hex')
         filesInfo.push(filePath)
       }
     }

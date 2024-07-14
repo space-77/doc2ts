@@ -2,7 +2,6 @@
 mock/
 examples/
 node_modules/
-scripts/
 services/
 src
 .eslintignore

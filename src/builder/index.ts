@@ -183,7 +183,7 @@ export default class Doc2Ts {
     try {
       const outDirPath = resolveOutPath(outDir)
       log.clear()
-      const spinner = ora('正在转换 ts 文件为 js').start();
+      const spinner = ora('正在转换 ts 文件为 js').start()
 
       const indexFilePath = path.join(outDirPath, 'index.ts')
       const indexFileJsPath = indexFilePath.replace(/\.ts$/, '.js')
