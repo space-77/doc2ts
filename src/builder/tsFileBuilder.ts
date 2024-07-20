@@ -93,7 +93,7 @@ export default class TsFileBuilder extends Base {
     let paramTypeStr = ''
     if (typeItems.length > 0) {
       let spaceName = typeInfo?.getSpaceName()
-       spaceName = spaceName ? `:types.${spaceName}` : undefined
+      spaceName = spaceName ? `:types.${spaceName}` : undefined
 
       paramTypeStr = spaceName || paramType
     }
@@ -202,7 +202,9 @@ export default class TsFileBuilder extends Base {
     funcBody.push(...this.formatParamsContents(paramsContents)) // 参数信息
     funcBody.push(urlStr) // url 信息
     funcBody.push(`const config: DocReqConfig = ${configStr}`) // 请求的 config
-    funcBody.push(`return this.${isFile ? 'download' : 'request'}${returnType}(config)`) // return 方法
+
+    const { downloadName = 'download', requestName = 'request' } = this.origin
+    funcBody.push(`return this.${isFile ? downloadName : requestName}${returnType}(config)`) // return 方法
 
     content += `${desc} ${funcHead} {${funcBody.filter(Boolean).join('\n')}}\n\n`
     return content
@@ -221,7 +223,7 @@ export default class TsFileBuilder extends Base {
     let content = `${desc} export default class ${className} extends ${baseClassName} {`
 
     // 生成类里的请求方法
-    for (const funcItem of pathItems) content += this.generatorApiMethod(funcItem, typesList , className)
+    for (const funcItem of pathItems) content += this.generatorApiMethod(funcItem, typesList, className)
 
     content += '}'
 

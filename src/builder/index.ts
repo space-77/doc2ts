@@ -12,7 +12,8 @@ import {
   createFile,
   getApiJson,
   logProgress,
-  sleep
+  sleep,
+  getRootFilePath
 } from '../utils'
 
 // ------------------------------------
@@ -78,8 +79,17 @@ export default class Doc2Ts {
     const outputDir = resolveOutPath(outDir)
     await loadPrettierConfig(prettierPath)
 
-    const reqs = origins.map(async i => {
-      const dictPath = path.join(outputDir, `dicts/${i.name ?? 'dict'}.json`)
+    const noNameOrigin = origins.filter(i => !i.name)
+    if (noNameOrigin.length > 1) {
+      const filePath = getRootFilePath(CONFIG_PATH)
+      log.error(
+        `${log.errTag(' error ')} ${log.errColor('origins 不能同时存在多个匿名模块')} ${log.link(`${filePath}`)}`
+      )
+      process.exit(0)
+    }
+
+    const reqs = origins.map(async origin => {
+      const dictPath = path.join(outputDir, `dicts/${origin.name ?? 'dict'}.json`)
       let cache: Dict = { dict: [], cache: { idNames: {}, returnTypeNames: {}, requestTypeNames: {} }, desc: [] }
 
       try {
@@ -93,12 +103,12 @@ export default class Doc2Ts {
         return !!i.en
       })
 
-      let json: string | object = i.url
+      let json: string | object = origin.url
       if (typeof fetchSwaggerDataMethod === 'function') {
-        const swagger = await fetchSwaggerDataMethod(i.url)
+        const swagger = await fetchSwaggerDataMethod(origin.url)
         json = JSON.parse(swagger)
       } else {
-        json = await getApiJson(i.url, swaggerHeaders)
+        json = await getApiJson(origin.url, swaggerHeaders)
       }
 
       // dictList
@@ -119,7 +129,7 @@ export default class Doc2Ts {
           // types 是保留文件，防止和模块文件重名
           mod.moduleName = checkName(mod.moduleName, n => names.includes(n) || /^types$/i.test(n))
         })
-        return { docApi, moduleName: i.name }
+        return { docApi, moduleName: origin.name, origin }
       } catch (error) {
         if ((error as any)?.code === TranslateCode.TRANSLATE_ERR) {
           const dictList = (error as any).dictList as DictList[]
@@ -138,9 +148,9 @@ export default class Doc2Ts {
       this.docList = await Promise.all(reqs)
 
       this.docList.forEach(i => {
-        const tsBuilder = new TsFileBuilder(i, this.config)
+        const tsBuilder = new TsFileBuilder(i, this.config, i.origin)
         tsBuilder.build()
-        const typeFile = new BuildTypeFile(i, this.config)
+        const typeFile = new BuildTypeFile(i, this.config, i.origin)
         typeFile.build()
       })
     } catch (error) {

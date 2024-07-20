@@ -27,7 +27,10 @@ export async function pullBranchname(branchname: string, featureBranch: string) 
  * @description 创建新分支
  */
 export async function createBranchname(branchname: string, commitId?: string) {
-  return await git.checkout(['-b', branchname, commitId ?? ''])
+  if (commitId) {
+    return await git.checkout(['-b', branchname, commitId])
+  }
+  return await git.checkout(['-b', branchname])
 }
 
 /**

@@ -53,7 +53,6 @@ export default class Manage {
 
       // 切换到 doc 分支
       await this.checkout2Doc()
-      return
 
       // 更新远程分支信息，确保当前分支是最新代码
       // await this.checkBranch()
@@ -184,9 +183,15 @@ export default class Manage {
   }
 
   async initBranchname() {
-    const { outDir } = this.config
+    const { baseClassPath, outDir } = this.config
 
-    let commitId = await getFirstCommitId(`${outDir}/index.ts`)
+    let commitId = await getFirstCommitId(baseClassPath)
+    if (!commitId) {
+      commitId = await getFirstCommitId(baseClassPath.replace(/\.ts$/, '.js'))
+    }
+    if (!commitId) {
+      commitId = await getFirstCommitId(`${outDir}/index.ts`)
+    }
     if (!commitId) {
       commitId = await getFirstCommitId(`${outDir}/index.js`)
     }

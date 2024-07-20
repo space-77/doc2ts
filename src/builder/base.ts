@@ -1,10 +1,11 @@
 import path from 'path'
 import { Config } from '../common/config'
+import { ModelList } from '../types/types'
 import { DocListItem } from '../types/newType'
 import { findDiffPath, resolveOutPath } from '../utils'
 
 export default class Base {
-  constructor(protected doc: DocListItem, protected config: Config) {}
+  constructor(protected doc: DocListItem, protected config: Config, public origin: ModelList) {}
 
   get getBaseFileName(): string {
     const { baseClassName } = this.config

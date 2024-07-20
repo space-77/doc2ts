@@ -3,6 +3,18 @@ import type { TypeInfoBase, TypeItem, TranslateType, PathInfo } from 'doc-pre-da
 export interface ModelList {
   url: string
   name?: string
+
+  /**
+   * @default request
+   * @description 请求方法名 
+   */
+  requestName?: string
+
+  /**
+   * @default download
+   * @description 下载方法名 
+   */
+  downloadName?: string
 }
 
 export type MethodConfig = {

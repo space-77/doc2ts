@@ -14,18 +14,28 @@
 ### 安装
 
 ```shell
-npm i -g doc2ts
+npm i -D doc2ts
+npm i qs
 ```
 
-同时需要安装 qs 处理请求参数。
+### 配置项目命令
+在 package.json 添加以下脚本命令
 
+```json
+{
+  "scripts": {
+    // ...
+    "api": "doc2ts start",
+    "api-git": "doc2ts start --git",
+  }
+}
+```
 ### 初始化配置
 
 ```shell
 # 根据提示选择你的配置
-doc2ts init
+npx doc2ts init    
 ```
-
 - 输入命令后全按回车键，会生成一份示例配置。
 - 如果选项 `生成基类文件` 后会在对应的位置生成一个 `.ts`文件，该文件必须导出一个 基类，该基类必须实现 `IApiClient` 接口。
 - 执行完该命令后，会在项目根目录上生成一个  `doc2ts-config.ts` 文件，该文件必须导出一个 `Doc2TsConfig` 类型的对象， 详细配置信息请查看 [Doc2TsConfig 配置说明](#Doc2TsConfig 配置说明)。
@@ -33,7 +43,7 @@ doc2ts init
 ### 生成文件
 
 ```shell
-doc2ts start
+npm run api
 ```
 
 ### 使用 git 管理生成的代码
@@ -45,9 +55,7 @@ doc2ts start
 复制当前分支的配置文件（doc2ts-config.ts） -> 切换到 doc2ts 分支 -> 更新 doc2ts 分支代码 -> 生成代码 -> commit -> 提交 doc2ts 分支代码 -> 切回到原分支 -> merge doc2ts 分支。
 
 ```shell
-doc2ts start --git
-# or
-doc2ts start -g
+npm run api-git
 ```
 
 ## 基类文件说明
@@ -88,6 +96,8 @@ Origin 类型说明如下表：
 | url     | String | 是   | swagger 的接口信息地址，返回数据与[示例地址](https://petstore.swagger.io/v2/swagger.json) 一致，也可以是 js 文件地址【有些 swagger 是通过 js 方式写入文档数据】 |
 | version | String | 否   | swagger 版本                                                                                                                                                    |
 | name    | String | 否   | 模块名                                                                                                                                                          |
+| requestName    | String | 否   | 接口请求方法（默认： request）                                                                                                                                                          |
+| downloadName    | String | 否   | 文件下载方法（默认： download）                                                                                                                                                   |
 
 ```typescript
 export default {
