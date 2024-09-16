@@ -168,7 +168,9 @@ export function createReturnType(
   const { resConentType } = responseType ?? {}
 
   function createNewType(typeValue: string) {
-    const typeInfo = docApi.typeGroup.addCustomType(`R${firstToUpper(`${funcName}`)}`, [], groupName)
+    const [gName] = groupName?.split('.') ?? []
+
+    const typeInfo = docApi.typeGroup.addCustomType(`R${firstToUpper(`${funcName}`)}`, [], gName)
     typeInfo.attrs.typeValue = typeValue
     typeInfo.attrs.defineType = true
     return typeInfo.getSpaceName()
