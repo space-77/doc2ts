@@ -40,6 +40,7 @@ export class Config {
   readonly arrowFunc: Doc2TsConfig['arrowFunc'] = false
   readonly translateType: TranslateType = TranslateType.none
   readonly languageType?: Doc2TsConfig['languageType']
+  readonly useOperationId: boolean = true
   readonly render: Doc2TsConfig['render']
   readonly typeFileRender: Doc2TsConfig['typeFileRender']
   readonly generateTypeRender?: Doc2TsConfig['generateTypeRender']

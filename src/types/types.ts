@@ -95,6 +95,12 @@ export type Doc2TsConfig = {
   gitConfig?: GitConfig
 
   /**
+   * @description 默认使用 operationId 作为方法名，如果设置为`false`则使用请求路径作为方法名，【注意：修改该参数会导致所有的方法名都会有变化，建议在初始化时确定好】
+   * @default true
+   */
+  useOperationId?: boolean
+
+  /**
    * @description 文件输出位置
    */
   outDir: string

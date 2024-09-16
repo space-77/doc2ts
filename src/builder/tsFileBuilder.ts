@@ -7,7 +7,7 @@ import { fileList } from '../generators/fileList'
 import { authorStr } from '../common/config'
 import { customInfoList } from './buildType'
 import { createParams, createReturnType, formatType, ParamsContents, TypeBase } from './common'
-import { PathInfo, RequestBodies, Custom, dotsUtils, PathItem, httpMethodsReg, commonTypeKey } from 'doc-pre-data'
+import { PathInfo, RequestBodies, Custom, dotsUtils, PathItem, commonTypeKey } from 'doc-pre-data'
 import { checkJsLang, findDiffPath, firstToLower, firstToUpper, getDesc, resolveOutPath } from '../utils'
 
 export const FileContentType = new Set(['application/octet-stream'])

@@ -74,9 +74,10 @@ export default class Doc2Ts {
   }
 
   async initRemoteDataSource() {
-    const { prettierPath, origins, outDir, fetchSwaggerDataMethod, filterModule, translateType, swaggerHeaders } =
-      this.config
+    const { fetchSwaggerDataMethod, filterModule } = this.config
+    const { prettierPath, origins, outDir, translateType, swaggerHeaders, useOperationId } = this.config
     const outputDir = resolveOutPath(outDir)
+
     await loadPrettierConfig(prettierPath)
 
     const noNameOrigin = origins.filter(i => !i.name)
@@ -111,9 +112,9 @@ export default class Doc2Ts {
         json = await getApiJson(origin.url, swaggerHeaders)
       }
 
-      // dictList
       try {
-        const { docApi, dictList, warnList, errorList, cache: newCache } = await docInit(json, cache, { translateType })
+        const docInfo = await docInit(json, cache, { translateType, useOperationId })
+        const { docApi, dictList, warnList, errorList, cache: newCache } = docInfo
         this.warnList = [...warnList]
         this.errorList = [...errorList]
         this.saveDict(dictList, dictPath, newCache)
