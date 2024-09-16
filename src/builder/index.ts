@@ -176,9 +176,10 @@ export default class Doc2Ts {
     bar.start(fileList.length, 0)
     let index = 1
     for await (const { filePath, content } of fileList) {
-      await createFile(filePath, content, true)
       const dirList = filePath.split(path.sep)
       bar.update(index, { filename: _.last(dirList) })
+      await sleep(60)
+      await createFile(filePath, content, true)
       index++
     }
 

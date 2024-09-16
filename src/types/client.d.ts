@@ -44,7 +44,7 @@ export interface DocReqConfig {
   /**
    * @description 自定义配置信息
    */
-  config?: object
+  config?: Record<string, any>
 
   /**
    * @description 请求方法
