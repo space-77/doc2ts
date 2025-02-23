@@ -12,6 +12,8 @@ import { DictList, TranslateCode } from 'doc-pre-data/lib/common/translate'
 import BuildTypeFile from './buildType'
 import type { DocListItem } from '../types/newType'
 import TsFileBuilder, { importList } from './tsFileBuilder'
+import Apifox, { type ApifoxConfig } from '../apifox/index'
+import type { ModelList } from '../types/types'
 
 export default class Doc2Ts {
   config!: Config
@@ -81,12 +83,22 @@ export default class Doc2Ts {
         return !!i.en
       })
 
-      let json: string | object = i.url
-      if (typeof fetchSwaggerDataMethod === 'function') {
-        const swagger = await fetchSwaggerDataMethod(i.url)
+      let json: object
+
+      const { url } = i as ModelList
+      const { sharedId, cookie } = i as ApifoxConfig
+
+      if (sharedId) {
+        const apifox = new Apifox(sharedId, cookie)
+
+        await apifox.init()
+        json = await apifox.getApifox()
+
+      } else if (typeof fetchSwaggerDataMethod === 'function') {
+        const swagger = await fetchSwaggerDataMethod(url)
         json = JSON.parse(swagger)
       } else {
-        json = await getApiJson(i.url, swaggerHeaders)
+        json = await getApiJson(url, swaggerHeaders)
       }
 
       // dictList
@@ -197,3 +209,4 @@ export default class Doc2Ts {
     }
   }
 }
+
