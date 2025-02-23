@@ -1,4 +1,5 @@
 import type { TypeInfoBase, TypeItem, TranslateType, PathInfo } from 'doc-pre-data'
+import type { ApifoxConfig } from '../apifox/index'
 
 export interface ModelList {
   url: string
@@ -75,7 +76,7 @@ export type Doc2TsConfig = {
   /**
    * @description swagger 文档请求地址 eg: http://localhost:7001
    */
-  origins: Origin[]
+  origins: (Origin | ApifoxConfig)[]
 
   /**
    * @description 定义鉴权信息

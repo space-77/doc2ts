@@ -25,6 +25,8 @@ import type { DocListItem } from '../types/newType'
 import TsFileBuilder, { importList } from './tsFileBuilder'
 import _ from 'lodash'
 import ora from 'ora'
+import Apifox, { type ApifoxConfig } from '../apifox/index'
+import type { ModelList } from '../types/types'
 
 export default class Doc2Ts {
   config!: Config
@@ -104,12 +106,20 @@ export default class Doc2Ts {
         return !!i.en
       })
 
-      let json: string | object = origin.url
-      if (typeof fetchSwaggerDataMethod === 'function') {
-        const swagger = await fetchSwaggerDataMethod(origin.url)
+      let json: string | object // = origin.url
+      const { url } = origin as ModelList
+      const { sharedId, cookie } = origin as ApifoxConfig
+
+      if (sharedId) {
+        const apifox = new Apifox(sharedId, cookie)
+
+        await apifox.init()
+        json = await apifox.getApifox()
+      } else if (typeof fetchSwaggerDataMethod === 'function') {
+        const swagger = await fetchSwaggerDataMethod(url)
         json = JSON.parse(swagger)
       } else {
-        json = await getApiJson(origin.url, swaggerHeaders)
+        json = await getApiJson(url, swaggerHeaders)
       }
 
       try {
