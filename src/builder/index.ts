@@ -25,8 +25,8 @@ import type { DocListItem } from '../types/newType'
 import TsFileBuilder, { importList } from './tsFileBuilder'
 import _ from 'lodash'
 import ora from 'ora'
-import Apifox, { type ApifoxConfig } from '../apifox/index'
-import type { ModelList } from '../types/types'
+import Apifox from '../apifox/index'
+import type { ModelList, ApifoxConfig } from '../types/types'
 
 export default class Doc2Ts {
   config!: Config

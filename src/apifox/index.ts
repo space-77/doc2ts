@@ -1,13 +1,7 @@
-import qs from 'qs'
-import axios from 'axios'
 import iBrowser from '../utils/IBrowser'
 import { EvaluateFn, Protocol } from 'puppeteer-core'
 
-export type ApifoxConfig = {
-  name?: string
-  cookie?: string
-  sharedId: string
-}
+
 
 const headers = {
   // [':authority:']: 'apifox.com',
@@ -134,4 +128,3 @@ export default class Apifox {
     new Error('get apifox failed')
   }
 }
-

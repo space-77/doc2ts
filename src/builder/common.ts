@@ -75,7 +75,8 @@ export function createParams(paramsTypeInfo: TypeBase[], typeItems: TypeItem[]) 
 
     if (paramTypeLen === 1) {
       // 所有参数都是同一种类型，这里是多个参数一起，需要解构
-      const paramName = typeGroupList[0][0]
+      let paramName = typeGroupList[0][0]
+      if (paramName === 'header') paramName = 'headers'
       if (paramName === 'path') {
         const params = typeItems.map(({ name }) => checkName(name))
         paramsInfo.paramName = `{${params.join(',')}}`

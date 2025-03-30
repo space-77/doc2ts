@@ -83,6 +83,7 @@ export default class TsFileBuilder extends Base {
 
     let content = ''
 
+    let hasCommonType = false
     const { arrowFunc, declaration } = config
     const { item, name, method, apiPath } = funcItem
     const { responseType, requestBodyType } = funcItem
@@ -146,6 +147,8 @@ export default class TsFileBuilder extends Base {
     const groupName = funcItem.responseType?.getSpaceName()
     const returnType = createReturnType(config, docApi, name, groupName, responseType?.getRealBody())
 
+    if (returnType.indexOf(commonTypeKey) > -1) hasCommonType = true
+
     // 生成 js文件，并且 不保留 .d.ts 类型文件时，生成方法类型注释
     let returnTypeStrName: string | undefined
     if (!declaration && this.isJs) {
@@ -190,7 +193,9 @@ export default class TsFileBuilder extends Base {
 
     // 生成接口请求方法
     // const arrowFuncStr = arrowFunc ? '=>' : ''
-    const paramStr = ` (${paramName}${formatType(paramTypeStr, this.isJs)}) `
+    const paramsType = formatType(paramTypeStr, this.isJs)
+    if (paramsType.indexOf(commonTypeKey) > -1) hasCommonType = true
+    const paramStr = ` (${paramName}${paramsType}) `
 
     // 方法头信息
     const funcHead = this.getFuncHead(funcItem, paramStr)
@@ -207,7 +212,7 @@ export default class TsFileBuilder extends Base {
     funcBody.push(`return this.${isFile ? downloadName : requestName}${returnType}(config)`) // return 方法
 
     content += `${desc} ${funcHead} {${funcBody.filter(Boolean).join('\n')}}\n\n`
-    return content
+    return { content, hasCommonType }
   }
 
   private createClass(moduleInfo: PathInfo, className: string) {
@@ -217,13 +222,18 @@ export default class TsFileBuilder extends Base {
     pathItems.sort((a, b) => a.name.length - b.name.length)
 
     const baseClassName = this.getBaseFileName
+    let hasCommonType = false
 
     const desc = getDesc({ description, name })
     let typesList: string[] = []
     let content = `${desc} export default class ${className} extends ${baseClassName} {`
 
     // 生成类里的请求方法
-    for (const funcItem of pathItems) content += this.generatorApiMethod(funcItem, typesList, className)
+    for (const funcItem of pathItems) {
+      const { content: _content, hasCommonType: hasType } = this.generatorApiMethod(funcItem, typesList, className)
+      content += _content
+      if (hasType) hasCommonType = true
+    }
 
     content += '}'
 
@@ -231,7 +241,7 @@ export default class TsFileBuilder extends Base {
       .sort((a, b) => a.length - b.length)
       .join('\n')
 
-    return { content, typesStr }
+    return { content, typesStr, hasCommonType }
   }
 
   public build() {
@@ -253,8 +263,8 @@ export default class TsFileBuilder extends Base {
       const className = firstToUpper(_fileName)
       const filePath = path.join(outputDir, `${firstToLower(_fileName)}.ts`)
 
-      let { content, typesStr } = this.createClass(moduleInfo, className)
-      content = `import type {${className} as types, ${commonTypeKey}} from './types'\n${content}`
+      let { content, typesStr, hasCommonType } = this.createClass(moduleInfo, className)
+      content = `import type {${className} as types ${hasCommonType ? `, ${commonTypeKey}` : '' }} from './types'\n${content}`
       content = `import ${baseName} from '${this.getClientPath(filePath)}'\n${content}`
       content = `import type { DocReqConfig } from "doc2ts";\n${content}`
       content = `${content}\nexport const ${_fileName} = new ${className}()`

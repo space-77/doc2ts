@@ -1,11 +1,11 @@
 import path from 'path'
 import { Config } from '../common/config'
-import { ModelList } from '../types/types'
+import { ModelList, ApifoxConfig } from '../types/types'
 import { DocListItem } from '../types/newType'
 import { findDiffPath, resolveOutPath } from '../utils'
 
 export default class Base {
-  constructor(protected doc: DocListItem, protected config: Config, public origin: ModelList) {}
+  constructor(protected doc: DocListItem, protected config: Config, public origin: ModelList | ApifoxConfig) {}
 
   get getBaseFileName(): string {
     const { baseClassName } = this.config
@@ -15,7 +15,7 @@ export default class Base {
   getOutputDir(moduleName: string) {
     const { outDir } = this.config
     // FIXME 存在 模块重名，方法重名 问题。
-    return path.join(resolveOutPath(outDir), `${moduleName}${moduleName ? 'M' : 'm'}odule`)
+    return path.join(resolveOutPath(outDir), moduleName ?? 'module')
   }
 
   getClientPath(filePath: string) {

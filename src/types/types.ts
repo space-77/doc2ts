@@ -1,21 +1,28 @@
 import type { TypeInfoBase, TypeItem, TranslateType, PathInfo } from 'doc-pre-data'
-import type { ApifoxConfig } from '../apifox/index'
 
-export interface ModelList {
-  url: string
-  name?: string
-
+type DefaultFun = {
   /**
    * @default request
-   * @description 请求方法名 
+   * @description 请求方法名
    */
   requestName?: string
 
   /**
    * @default download
-   * @description 下载方法名 
+   * @description 下载方法名
    */
   downloadName?: string
+}
+
+export interface ApifoxConfig extends DefaultFun {
+  name?: string
+  cookie?: string
+  sharedId: string
+}
+
+export interface ModelList extends DefaultFun {
+  url: string
+  name?: string
 }
 
 export type MethodConfig = {
