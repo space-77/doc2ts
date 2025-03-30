@@ -636,10 +636,10 @@ do-swagger2openapi@^7.0.20:
     yaml "^1.10.0"
     yargs "^17.0.1"
 
-doc-pre-data@^1.1.20:
-  version "1.1.20"
-  resolved "https://mirrors.tencent.com/npm/doc-pre-data/-/doc-pre-data-1.1.20.tgz#58a7c1352041c48935035090c05c3c8fa64c3d20"
-  integrity sha512-HC/VHHNXnIrQKUkSGf373s/qu495bN3pnyfY81q+WBScQ1BVapTbApplPI77hAQEMKBvY+DSmHQvJyVj3vQhNA==
+doc-pre-data@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/doc-pre-data/-/doc-pre-data-1.2.1.tgz#c1eb4903f41c3a67680fbb86d815e3a252ba384a"
+  integrity sha512-qHBw0jkEoOELI4VSTARsmj1uwNITZnX5wNnyMKiFJomINsqPq/xPcmZ7WlNYxC/LVo++D/8GG5qJVbagzVkpWQ==
   dependencies:
     axios "*"
     do-swagger2openapi "^7.0.20"
@@ -650,7 +650,7 @@ doc-pre-data@^1.1.20:
     node-translates "^1.4.1"
     openapi-types "^12.0.2"
     pinyin-pro "^3.13.1"
-    traverse "^0.6.9"
+    traverse "^0.6.11"
 
 dom-serializer@^2.0.0:
   version "2.0.0"
@@ -2181,9 +2181,9 @@ tr46@~0.0.3:
   resolved "https://mirrors.tencent.com/npm/tr46/-/tr46-0.0.3.tgz#8184fd347dac9cdc185992f3a6622e14b9d9ab6a"
   integrity sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==
 
-traverse@^0.6.9:
+traverse@^0.6.11:
   version "0.6.11"
-  resolved "https://mirrors.tencent.com/npm/traverse/-/traverse-0.6.11.tgz#e8daa071b101ae66767fffa6f177aa6f7110068e"
+  resolved "https://registry.yarnpkg.com/traverse/-/traverse-0.6.11.tgz#e8daa071b101ae66767fffa6f177aa6f7110068e"
   integrity sha512-vxXDZg8/+p3gblxB6BhhG5yWVn1kGRlaL8O78UDXc3wRnPizB5g83dcvWV1jpDMIPnjZjOFuxlMmE82XJ4407w==
   dependencies:
     gopd "^1.2.0"

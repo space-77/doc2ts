@@ -11,10 +11,10 @@ export type TypeBase = TypeInfoBase
 
 export type ParamsContents = { type: ConstType; content: string }
 
-export function getOutputDir(moduleName: string, { outDir }: Config) {
-  // FIXME 存在 模块重名，方法重名 问题。
-  return path.join(resolveOutPath(outDir), `${moduleName}${moduleName ? 'M' : 'm'}odule`)
-}
+// export function getOutputDir(moduleName: string, { outDir }: Config) {
+//   // FIXME 存在 模块重名，方法重名 问题。
+//   return path.join(resolveOutPath(outDir), `${moduleName}${moduleName ? 'M' : 'm'}odule`)
+// }
 
 export function getTypeName(type: TypeItem['type']) {
   if (typeof type === 'string') return type

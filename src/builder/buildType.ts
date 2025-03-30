@@ -4,7 +4,7 @@ import Base from './base'
 import { getDesc } from '../utils'
 import { fileList } from '../generators/fileList'
 import { authorStr, enumName } from '../common/config'
-import { getOutputDir, TypeBase } from './common'
+import { TypeBase } from './common'
 
 // 数据整合产生的类型，使用 type 定义类型
 export const customInfoList: TypeBase[] = []
@@ -119,7 +119,7 @@ export default class BuildTypeFile extends Base {
     const { moduleName = '' } = doc
 
     const { typeFileRender } = config
-    const outputDir = getOutputDir(moduleName, config)
+    const outputDir = this.getOutputDir(moduleName)
 
     let content = this.createEnum() // 枚举数据
     content += this.createTypes() // 类型
