@@ -6,10 +6,10 @@
 
 > **[📖 中文文档](./README_CN.md)** | English Documentation
 
-😉 Generate request tools from Swagger documentation (TypeScript or JavaScript)
-😉 Achieve interface definitions, parameter descriptions, parameter organization, and return data type definitions with just one command - freeing your hands and increasing productivity
-😉 Flexible configuration without interfering with the request process
-😉 Use git to manage generated code without fear of modifications
+😉 Generate request tools from Swagger documentation (TypeScript or JavaScript)  
+😉 Achieve interface definitions, parameter descriptions, parameter organization, and return data type definitions with just one command - freeing your hands and increasing productivity  
+😉 Flexible configuration without interfering with the request process  
+😉 Use git to manage generated code without fear of modifications  
 
 ## Quick Start
 
