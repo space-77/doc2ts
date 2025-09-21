@@ -14,14 +14,41 @@ type DefaultFun = {
   downloadName?: string
 }
 
+/**
+ * @description apifox 配置, 通过 apifox 的 sharedId 自动获取接口文档信息
+ */
 export interface ApifoxConfig extends DefaultFun {
+  /**
+   * @example project
+   * @description 项目名称
+   */
   name?: string
+  /**
+   * @example apifox cookie
+   * @description apifox 项目的 cookie
+   */
   cookie?: string
+  /**
+   * @example xxxxx-xxx-xxxx-xxx-xxxxxxxxx
+   * @description apifox 项目的 sharedId
+   */
   sharedId: string
 }
 
+/**
+ * @description 接口文档信息
+ */
 export interface ModelList extends DefaultFun {
+  /**
+   * @example http://localhost:8084/swagger/doc.json
+   * @description 接口文档地址
+   */
   url: string
+
+  /**
+   * @example project
+   * @description 项目名称
+   */
   name?: string
 }
 
@@ -81,7 +108,7 @@ export type DisableParams = { paramType: Required<TypeItem>['paramType']; keys: 
 
 export type Doc2TsConfig = {
   /**
-   * @description swagger 文档请求地址 eg: http://localhost:7001
+   * @description 接口文档地址，支持 swagger 文档和 apifox 文档
    */
   origins: (Origin | ApifoxConfig)[]
 
