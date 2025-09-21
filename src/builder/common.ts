@@ -192,13 +192,13 @@ export function createReturnType(
           keyName = keyName.replace(/['"]/g, '')
           const dataKeyItemType = typeInfo.typeItems.find(i => i.name === keyName)
           const required = dataKeyItemType?.required ?? false
-          const { spaceName } = dataKeyItemType?.typeRef ?? {}
+          const spaceName = dataKeyItemType?.typeRef?.getSpaceName()
           const typeName = spaceName ?? dataKeyItemType?.getKeyValue() ?? ''
           const requiredStr = !required && typeName !== 'null' ? ' | undefined' : ''
           const typeValueStr = typeName ? `${typeName}${requiredStr}` : 'unknown'
 
           typeValue = typeValue.replace(TypeDataKey, typeValueStr)
-        } else {
+        } else { 
           typeValue = typeValue.replace(TypeDataKey, 'unknown')
         }
       }
