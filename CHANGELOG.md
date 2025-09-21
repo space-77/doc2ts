@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.3.1](https://github.com/space-77/doc2ts/compare/v1.3.0...v1.3.1) (2025-09-21)
+
+
+### Bug Fixes
+
+* **builder:** 修复类型引用空间名获取方式 ([1caef46](https://github.com/space-77/doc2ts/commit/1caef4647194c8e3a6ee5311a3cfa5d85025b37d))
+
 ## 1.3.0 (2025-09-21)
 
 
