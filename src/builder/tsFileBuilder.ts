@@ -125,7 +125,7 @@ export default class TsFileBuilder extends Base {
     let bodyName = hasBody ? 'body' : ''
     let formDataStr = ''
     if (hasBody && requestBodyType) {
-      const { contentType } = requestBodyType.getRealBody() as RequestBodies
+      const { contentType } = requestBodyType as RequestBodies // .getRealBody() as RequestBodies
       if (contentType && FormDataKey.has(contentType)) {
         // body 是 formdata
         bodyName = 'formData'
