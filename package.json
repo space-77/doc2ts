@@ -1,6 +1,6 @@
 {
   "name": "doc2ts",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "根据接口文档生成ts接口文件",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

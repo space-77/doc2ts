@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.3.3](https://github.com/space-77/doc2ts/compare/v1.3.1...v1.3.3) (2025-10-15)
+
+
+### Bug Fixes
+
+* 修复请求体类型直接使用而非调用getRealBody的问题 ([6f2d79b](https://github.com/space-77/doc2ts/commit/6f2d79bf3b9c35f548aa84630bfeafd373b9ae28))
+
 ### [1.3.1](https://github.com/space-77/doc2ts/compare/v1.3.0...v1.3.1) (2025-09-21)
 
 
