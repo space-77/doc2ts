@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/space-77/doc2ts/compare/v1.4.0...v1.5.0) (2025-10-16)
+
+
+### Features
+
+* **builder:** 添加 postRender 脚本执行日志输出 ([1415a2c](https://github.com/space-77/doc2ts/commit/1415a2c6ac3da7b99eea6085bc90ca5a03e3e7be))
+
 ## [1.4.0](https://github.com/space-77/doc2ts/compare/v1.3.3...v1.4.0) (2025-10-16)
 
 
