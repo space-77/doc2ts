@@ -254,10 +254,11 @@ export default class Doc2Ts {
     const { postRender } = this.config
     if (!postRender) return
     try {
-      execSync(postRender)
+      log.info(`正在执行 postRender 脚本: ${postRender}`)
+      const res = execSync(postRender)
+      log.info(`postRender 脚本执行结果: ${res.toString().trim()}`)
     } catch (error: any) {
-      log.error('执行 postRender 脚本失败')
-      return Promise.reject(error)
+      // log.error('执行 postRender 脚本失败')
     }
   }
 }
