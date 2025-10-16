@@ -425,3 +425,17 @@ export default {
   }
 } as Doc2TsConfig
 ```
+
+### Post-Generation Script (postRender)
+
+- Parameter: `postRender`
+- Required: `No`
+- Type: `string`
+- Default: `-`
+- Description: Script to execute after code generation, useful for formatting code or other post-processing tasks
+
+```typescript
+export default {
+  postRender: 'npm run format && npm run lint'
+} as Doc2TsConfig
+```

@@ -41,6 +41,7 @@ export class Config {
   readonly translateType: TranslateType = TranslateType.none
   readonly languageType?: Doc2TsConfig['languageType']
   readonly useOperationId: boolean = true
+  readonly postRender?: Doc2TsConfig['postRender']
   readonly render: Doc2TsConfig['render']
   readonly typeFileRender: Doc2TsConfig['typeFileRender']
   readonly generateTypeRender?: Doc2TsConfig['generateTypeRender']

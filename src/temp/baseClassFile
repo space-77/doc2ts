@@ -34,13 +34,23 @@ export default class {baseClassName} implements IApiClient {
     if (type.startsWith('multipart/form-data')) {
       const fd = new FormData()
       dataList.forEach(([k, v]) => {
-        fd.append(k, v)
+        if (v === undefined) return
+        if (Array.isArray(v)) {
+          v.forEach((item: any) => fd.append(k, item))
+        } else {
+          fd.append(k, v)
+        }
       })
       return fd
     } else if (type.startsWith('application/x-www-form-urlencoded')) {
       const fd = new URLSearchParams()
       dataList.forEach(([k, v]) => {
-        fd.set(k, v)
+        if (v === undefined) return
+        if (Array.isArray(v)) {
+          v.forEach((item: any) => fd.set(k, item))
+        } else {
+          fd.set(k, v)
+        }
       })
       return fd
     }

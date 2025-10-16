@@ -27,6 +27,7 @@ import _ from 'lodash'
 import ora from 'ora'
 import Apifox from '../apifox/index'
 import type { ModelList, ApifoxConfig } from '../types/types'
+import { execSync } from 'child_process'
 
 export default class Doc2Ts {
   config!: Config
@@ -40,6 +41,7 @@ export default class Doc2Ts {
     await this.initRemoteDataSource()
     await this.createFiles()
     await this.transform2js()
+    await this.postRender()
 
     const { warnList, errorList } = this
     return { warnList, errorList }
@@ -243,6 +245,18 @@ export default class Doc2Ts {
       // log.success('转换成功')
     } catch (error: any) {
       log.error('转换失败')
+      return Promise.reject(error)
+    }
+  }
+
+  // 执行 postRender 脚本
+  async postRender() {
+    const { postRender } = this.config
+    if (!postRender) return
+    try {
+      execSync(postRender)
+    } catch (error: any) {
+      log.error('执行 postRender 脚本失败')
       return Promise.reject(error)
     }
   }

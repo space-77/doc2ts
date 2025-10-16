@@ -70,7 +70,8 @@ export default class BuildTypeFile extends Base {
 
           content += `${desc}export interface ${typeName} ${extendsStr} {\n`
           for (const typeItem of _.uniqBy(typeItems, 'name')) {
-            if (typeItem.disable) continue
+            const { disable } = typeItem
+            if (disable) continue
             content += typeItem.getTypeValue(`${enumName}.`)
           }
           content += '}\n\n'

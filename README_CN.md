@@ -422,6 +422,20 @@ export default {
 } as Doc2TsConfig
 ```
 
+### 生成代码后执行脚本 (postRender)
+
+- 参数：`postRender`
+- 必传：`否`
+- 类型：`string`
+- 默认：`-`
+- 说明：生成代码后执行脚本，用于格式化代码等后处理任务
+
+```typescript
+export default {
+  postRender: 'npm run format && npm run lint'
+} as Doc2TsConfig
+```
+
 ### 使用 operationId 作为方法名
 
 - 参数：`useOperationId`

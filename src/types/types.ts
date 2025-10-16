@@ -200,6 +200,11 @@ export type Doc2TsConfig = {
   resultTypeRender?: string | ((funcName: string, typeInfo?: TypeInfoBase) => string)
 
   /**
+   * @description 生成代码后执行脚本，用于格式化代码等
+   */
+  postRender?: string
+
+  /**
    * @param content 即将生成文件的内容
    * @param moduleName 文件对应的模块名称
    * @param config  配置文件
