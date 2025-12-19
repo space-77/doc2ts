@@ -18,8 +18,8 @@ import {
 
 // ------------------------------------
 import docInit, { Dict, LogInfo } from 'doc-pre-data'
-import { checkName } from 'doc-pre-data/lib/common/utils'
-import { DictList, TranslateCode } from 'doc-pre-data/lib/common/translate'
+import { checkName } from 'doc-pre-data'
+import { DictList, TranslateCode } from 'doc-pre-data'
 import BuildTypeFile from './buildType'
 import type { DocListItem } from '../types/newType'
 import TsFileBuilder, { importList } from './tsFileBuilder'
@@ -123,6 +123,8 @@ export default class Doc2Ts {
       } else {
         json = await getApiJson(url, swaggerHeaders)
       }
+
+      fs.writeFileSync(path.join(__dirname, `../../mock/test123456.json`), JSON.stringify(json, null, 2))
 
       try {
         const docInfo = await docInit(json, cache, { translateType, useOperationId })
