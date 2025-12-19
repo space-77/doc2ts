@@ -185,17 +185,15 @@ export function createReturnType(
     if (typeof render === 'string') {
       const typeInfo = responseType?.getRealBody()
 
+      const spaceName = typeInfo?.getSpaceName() ?? ''
+      
       typeValue = render
       let [_, keyName] = render.match(TypeDataKey) || []
       if (keyName) {
         if (typeInfo) {
           keyName = keyName.replace(/['"]/g, '')
-          const dataKeyItemType = typeInfo.typeItems.find(i => i.name === keyName)
-          const required = dataKeyItemType?.required ?? false
-          const spaceName = dataKeyItemType?.typeRef?.getSpaceName()
-          const typeName = spaceName ?? dataKeyItemType?.getKeyValue() ?? ''
-          const requiredStr = !required && typeName !== 'null' ? ' | undefined' : ''
-          const typeValueStr = typeName ? `${typeName}${requiredStr}` : 'unknown'
+          const hasKey = typeInfo.typeItems.find(i => i.name === keyName)
+          const typeValueStr = hasKey ? `${spaceName}['${keyName}']` : 'unknown'
 
           typeValue = typeValue.replace(TypeDataKey, typeValueStr)
         } else { 
@@ -203,7 +201,7 @@ export function createReturnType(
         }
       }
 
-      typeValue = typeValue.replace(/\{typeName\}/g, typeInfo?.getSpaceName() ?? 'unknown')
+      typeValue = typeValue.replace(/\{typeName\}/g, spaceName ?? 'unknown')
     } else if (typeof render === 'function') {
       typeValue = render(funcName, responseType?.getRealBody())
     }
