@@ -124,8 +124,6 @@ export default class Doc2Ts {
         json = await getApiJson(url, swaggerHeaders)
       }
 
-      fs.writeFileSync(path.join(__dirname, `../../mock/test123456.json`), JSON.stringify(json, null, 2))
-
       try {
         const docInfo = await docInit(json, cache, { translateType, useOperationId })
         const { docApi, dictList, warnList, errorList, cache: newCache } = docInfo

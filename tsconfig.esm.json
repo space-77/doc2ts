@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "outDir": "lib/esm",
+    "declaration": true,
+    "declarationDir": "lib/esm",
+    "declarationMap": true,
+    "target": "ES2020",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true
+  },
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "lib",
+    "src/services",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
+}

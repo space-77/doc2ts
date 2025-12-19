@@ -20,6 +20,15 @@ npm i -D doc2ts
 npm i qs
 ```
 
+### Module Support
+
+doc2ts supports both CommonJS and ES Modules:
+
+- **CommonJS** (default): `const { Doc2Ts } = require('doc2ts')`
+- **ES Modules**: `import { Doc2Ts } from 'doc2ts'`
+
+The package automatically detects the module system and provides the appropriate format.
+
 ### Configure Project Scripts
 
 Add the following script commands to package.json:

@@ -1,15 +1,28 @@
 {
   "name": "doc2ts",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "根据接口文档生成ts接口文件",
   "main": "lib/index.js",
+  "module": "lib/esm/index.js",
   "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./lib/esm/index.js",
+      "require": "./lib/index.js",
+      "types": "./lib/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "type": "commonjs",
   "bin": {
     "dots": "bin/dots.js",
     "doc2ts": "bin/doc2api.js"
   },
   "scripts": {
-    "build": "ts-node ./scripts/build.ts && tsc",
+    "build": "npm run clean && npm run build:cjs && npm run build:esm",
+    "build:cjs": "ts-node ./scripts/build.ts && tsc -p tsconfig.json",
+    "build:esm": "ts-node ./scripts/create-esm-pkg.ts && tsc -p tsconfig.esm.json",
+    "clean": "rimraf lib",
     "test": "node ./bin/doc2api.js",
     "init-doc": "ts-node ./src/dev-init.ts",
     "dev-manage": "ts-node src/scripts/manage-dev.ts",
@@ -70,6 +83,7 @@
     "@types/qs": "*",
     "fs-extra": "^10.1.0",
     "nodemon": "^2.0.15",
+    "rimraf": "^3.0.2",
     "standard-version": "^9.5.0",
     "ts-node": "^10.9.2"
   },
