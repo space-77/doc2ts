@@ -7,7 +7,7 @@ import Parameters from './docApi/components/parameters'
 import RequestBodies from './docApi/components/requestBodies'
 import TypeInfoBase, { RefItem } from './docApi/components/base'
 import DocApi, { PathInfo, PathItem, FuncGroup, FuncGroupItem, FuncGroupList } from './docApi/index'
-import Translate, { DictList, TranslateCode, TranslateType } from './common/translate'
+import Translate, { DictList, TranslateCode, TranslateType, AIConfig } from './common/translate'
 import { checkName } from './common/utils'
 export type { LogInfo } from './store/index'
 export type { Dict } from './types/index'
@@ -34,6 +34,7 @@ export {
   Translate,
   TranslateCode,
   TranslateType,
+  AIConfig,
   Custom,
   Schemas,
   RefItem,

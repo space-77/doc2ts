@@ -63,6 +63,19 @@ Configuration in package.json:
 - Generate declarations: `declaration: true`
 - Source maps: disabled (`sourceMap: false`)
 
+### Path Mapping (Monorepo)
+
+The `doc-pre-data` package uses TypeScript paths for development:
+
+```json
+"paths": {
+  "doc-pre-data": ["./packages/doc-pre-data/src/index.ts"]
+}
+```
+
+- **Development**: Uses source from `packages/doc-pre-data/src/`
+- **Production**: Uses built package from `node_modules/doc-pre-data/lib/`
+
 ### Imports
 
 - Use single quotes

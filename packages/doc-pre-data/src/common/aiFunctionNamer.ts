@@ -23,10 +23,7 @@ export default class AIFunctionNamer {
   private cache: Map<string, string> = new Map()
   private moduleName: string = ''
 
-  constructor(
-    private aiConfig: AIConfig,
-    private dict?: Dict
-  ) {
+  constructor(private aiConfig: AIConfig, private dict?: Dict) {
     this.loadCache()
   }
 
@@ -36,9 +33,7 @@ export default class AIFunctionNamer {
   private loadCache() {
     if (!this.dict?.cache?.funcNameCache) return
 
-    const moduleCache = this.dict.cache.funcNameCache.find(
-      m => m.moduleName === this.moduleName
-    )
+    const moduleCache = this.dict.cache.funcNameCache.find(m => m.moduleName === this.moduleName)
 
     if (moduleCache?.funcName) {
       Object.entries(moduleCache.funcName).forEach(([key, value]) => {
@@ -66,9 +61,7 @@ export default class AIFunctionNamer {
       this.dict.cache.funcNameCache = []
     }
 
-    const moduleCache = this.dict.cache.funcNameCache.find(
-      m => m.moduleName === this.moduleName
-    )
+    const moduleCache = this.dict.cache.funcNameCache.find(m => m.moduleName === this.moduleName)
 
     const funcNameMap: Record<string, string> = {}
     this.cache.forEach((value, key) => {
@@ -122,7 +115,9 @@ export default class AIFunctionNamer {
 
     // 如果有未缓存的方法，调用 AI 批量处理
     if (uncachedFuncs.length > 0) {
-      console.log(`AI 优化方法名: ${this.moduleName} 模块共 ${funcs.length} 个方法，${uncachedFuncs.length} 个需要 AI 处理`)
+      console.log(
+        `AI 优化方法名: ${this.moduleName} 模块共 ${funcs.length} 个方法，${uncachedFuncs.length} 个需要 AI 处理`
+      )
 
       try {
         const aiResults = await this.callAIForFuncNames(uncachedFuncs)
@@ -211,7 +206,7 @@ export default class AIFunctionNamer {
 任务：为 OpenAPI/Swagger 接口生成简洁、见名知意的 JavaScript/TypeScript 方法名。
 
 命名要求：
-1. 使用 camelCase 格式（小驼峰命名）
+1. **使用 camelCase 格式（小驼峰命名）取消下划线“_”, 确保是标准的小驼峰命名**
 2. 名字长度控制在 3-5 个单词以内
 3. 过长名字需要合理缩减，保留核心语义
 4. 优先使用标准动词（get, post, create, update, delete, query, list等）
@@ -231,14 +226,18 @@ export default class AIFunctionNamer {
 
     const userPrompt = `请为以下接口生成优化的方法名：
 
-${funcs.map((f, i) => `
+${funcs
+  .map(
+    (f, i) => `
 ${i + 1}. 方法标识: ${f.cacheKey}
    HTTP方法: ${f.method}
    接口路径: ${f.apiPath}
    OperationId: ${f.operationId || '无'}
    Summary: ${f.summary || '无'}
    Description: ${f.description || '无'}
-`).join('\n')}
+`
+  )
+  .join('\n')}
 
 请严格按照 JSON 格式返回，key 使用 "序号_方法标识" 格式。`
 
@@ -261,16 +260,12 @@ ${i + 1}. 方法标识: ${f.cacheKey}
         requestBody.thinking = { type: 'enabled' }
       }
 
-      const response = await axios.post(
-        `${baseURL}/chat/completions`,
-        requestBody,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-          }
+      const response = await axios.post(`${baseURL}/chat/completions`, requestBody, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`
         }
-      )
+      })
 
       const content = response.data.choices[0]?.message?.content
 
@@ -278,7 +273,14 @@ ${i + 1}. 方法标识: ${f.cacheKey}
         throw new Error('OpenAI 返回内容为空')
       }
 
-      const parsed = JSON.parse(content)
+      let parsed: Record<string, string> = {}
+      try {
+        parsed = JSON.parse(content)
+      } catch (error) {
+        console.log(content)
+        console.error('JSON 解析失败:', error)
+        throw error
+      }
 
       // 解析返回结果
       const results: FuncNameResult[] = []
@@ -342,3 +344,4 @@ ${i + 1}. 方法标识: ${f.cacheKey}
 }
 
 export { FuncNameInfo }
+

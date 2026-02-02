@@ -89,7 +89,8 @@ import traverse from 'traverse'
       model: 'deepseek-ai/DeepSeek-V3.2',
       maxTokens: 2000,
       temperature: 0.3,
-      enableThinking: true
+      enableThinking: true,
+      enableFuncNameOptimize: true
     } })
     fs.writeFileSync(dictPath, JSON.stringify(res.dictList, null, 2))
     fs.writeFileSync(path.join(__dirname, '../mock/ai翻译.json'), JSON.stringify(res.docApi.json, null, 2))

@@ -17,7 +17,7 @@ import {
 } from '../utils'
 
 // ------------------------------------
-import docInit, { Dict, LogInfo } from 'doc-pre-data'
+import docInit, { Dict, LogInfo, AIConfig } from 'doc-pre-data'
 import { checkName } from 'doc-pre-data'
 import { DictList, TranslateCode } from 'doc-pre-data'
 import BuildTypeFile from './buildType'
@@ -95,11 +95,14 @@ export default class Doc2Ts {
 
     const reqs = origins.map(async origin => {
       const dictPath = path.join(outputDir, `dicts/${origin.name ?? 'dict'}.json`)
-      let cache: Dict = { dict: [], cache: { idNames: {}, returnTypeNames: {}, requestTypeNames: {} }, desc: [] }
+      let cache: Dict = {
+        dict: [],
+        cache: { idNames: {}, returnTypeNames: {}, requestTypeNames: {}, funcNameCache: [] },
+        desc: []
+      }
 
       try {
         cache = fs.existsSync(dictPath) ? require(dictPath) : {}
-        // if (!cache.cache) cache.cache = {}
         if (!Array.isArray(cache.dict)) cache.dict = []
       } catch (error) {}
 
@@ -124,8 +127,9 @@ export default class Doc2Ts {
         json = await getApiJson(url, swaggerHeaders)
       }
 
+      const { aiConfig } = this.config
       try {
-        const docInfo = await docInit(json, cache, { translateType, useOperationId })
+        const docInfo = await docInit(json, cache, { translateType, useOperationId, aiConfig })
         const { docApi, dictList, warnList, errorList, cache: newCache } = docInfo
         this.warnList = [...warnList]
         this.errorList = [...errorList]

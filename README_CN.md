@@ -19,6 +19,7 @@ npm i qs
 ```
 
 ### 配置项目命令
+
 在 package.json 添加以下脚本命令
 
 ```json
@@ -26,16 +27,18 @@ npm i qs
   "scripts": {
     // ...
     "api": "doc2ts start",
-    "api-git": "doc2ts start --git",
+    "api-git": "doc2ts start --git"
   }
 }
 ```
+
 ### 初始化配置
 
 ```shell
 # 根据提示选择你的配置
-npx doc2ts init    
+npx doc2ts init
 ```
+
 - 输入命令后全按回车键，会生成一份示例配置。
 - 如果选项 `生成基类文件` 后会在对应的位置生成一个 `.ts`文件，该文件必须导出一个 基类，该基类必须实现 `IApiClient` 接口。
 - 执行完该命令后，会在项目根目录上生成一个  `doc2ts-config.ts` 文件，该文件必须导出一个 `Doc2TsConfig` 类型的对象， 详细配置信息请查看 [Doc2TsConfig 配置说明](#Doc2TsConfig 配置说明)。
@@ -91,22 +94,22 @@ request 方法接收一个 [DocReqConfig ](./src/types/client.d.ts#L39)类型的
 
 **Origin 类型说明：**
 
-| 键值 | 类型 | 必传 | 说明 |
-| ----- | ----- | ----- | ----- |
-| url | String | 是 | swagger 的接口信息地址，返回数据与[示例地址](https://petstore.swagger.io/v2/swagger.json) 一致，也可以是 js 文件地址 |
-| version | String | 否 | swagger 版本 |
-| name | String | 否 | 模块名 |
-| requestName | String | 否 | 接口请求方法（默认：request） |
-| downloadName | String | 否 | 文件下载方法（默认：download） |
+| 键值         | 类型   | 必传 | 说明                                                                                                                 |
+| ------------ | ------ | ---- | -------------------------------------------------------------------------------------------------------------------- |
+| url          | String | 是   | swagger 的接口信息地址，返回数据与[示例地址](https://petstore.swagger.io/v2/swagger.json) 一致，也可以是 js 文件地址 |
+| version      | String | 否   | swagger 版本                                                                                                         |
+| name         | String | 否   | 模块名                                                                                                               |
+| requestName  | String | 否   | 接口请求方法（默认：request）                                                                                        |
+| downloadName | String | 否   | 文件下载方法（默认：download）                                                                                       |
 
 **ApifoxConfig 类型说明：**
 
-| 键值 | 类型 | 必传 | 说明 |
-| ----- | ----- | ----- | ----- |
-| sharedId | String | 是 | Apifox 共享 ID |
-| name | String | 否 | 模块名 |
-| requestName | String | 否 | 接口请求方法（默认：request） |
-| downloadName | String | 否 | 文件下载方法（默认：download） |
+| 键值         | 类型   | 必传 | 说明                           |
+| ------------ | ------ | ---- | ------------------------------ |
+| sharedId     | String | 是   | Apifox 共享 ID                 |
+| name         | String | 否   | 模块名                         |
+| requestName  | String | 否   | 接口请求方法（默认：request）  |
+| downloadName | String | 否   | 文件下载方法（默认：download） |
 
 ```typescript
 export default {
@@ -197,7 +200,7 @@ export default {
 
 ```typescript
 export default {
-  useOperationId: false  // 使用请求路径作为方法名
+  useOperationId: false // 使用请求路径作为方法名
 } as Doc2TsConfig
 ```
 
@@ -225,7 +228,7 @@ export default {
 
 ```typescript
 export default {
-  baseClassName: 'MyApiClient'  // 或 {MyApiClient} 如果使用 export 导出
+  baseClassName: 'MyApiClient' // 或 {MyApiClient} 如果使用 export 导出
 } as Doc2TsConfig
 ```
 
@@ -239,7 +242,7 @@ export default {
 
 ```typescript
 export default {
-  languageType: 'typeScript'  // 或 'js', 'javascript' 等
+  languageType: 'typeScript' // 或 'js', 'javascript' 等
 } as Doc2TsConfig
 ```
 
@@ -257,6 +260,28 @@ export default {
 } as Doc2TsConfig
 ```
 
+### AI 配置 (aiConfig)
+
+- 参数：`aiConfig`
+- 必传：`否`
+- 类型：`AIConfig`
+- 默认：`-`
+- 说明：AI 翻译配置，用于 AI 翻译（当 translateType 为 TranslateType.ai 时）和 AI 优化方法名
+
+```typescript
+export default {
+  aiConfig: {
+    apiKey: 'your-api-key',
+    baseURL: 'https://api.openai.com/v1',
+    model: 'gpt-4',
+    maxTokens: 2000,
+    temperature: 0.3,
+    enableThinking: true,
+    enableFuncNameOptimize: true
+  }
+} as Doc2TsConfig
+```
+
 ### 箭头函数模式 (arrowFunc)
 
 - 参数：`arrowFunc`
@@ -267,7 +292,7 @@ export default {
 
 ```typescript
 export default {
-  arrowFunc: true  // 使用箭头函数：method = () => {}
+  arrowFunc: true // 使用箭头函数：method = () => {}
 } as Doc2TsConfig
 ```
 
@@ -281,7 +306,7 @@ export default {
 
 ```typescript
 export default {
-  emitTs: true  // 只在 languageType 为 'js' 时有效
+  emitTs: true // 只在 languageType 为 'js' 时有效
 } as Doc2TsConfig
 ```
 
@@ -295,7 +320,7 @@ export default {
 
 ```typescript
 export default {
-  declaration: true  // 生成对应的 .d.ts 文件
+  declaration: true // 生成对应的 .d.ts 文件
 } as Doc2TsConfig
 ```
 
@@ -337,9 +362,7 @@ export default {
 
 ```typescript
 export default {
-  disableParams: [
-    { paramType: 'header', keys: ['token', 'Authorization'] }
-  ]
+  disableParams: [{ paramType: 'header', keys: ['token', 'Authorization'] }]
 } as Doc2TsConfig
 ```
 
@@ -446,7 +469,7 @@ export default {
 
 ```typescript
 export default {
-  useOperationId: false  // 使用请求路径作为方法名
+  useOperationId: false // 使用请求路径作为方法名
 } as Doc2TsConfig
 ```
 

@@ -9,7 +9,7 @@
 😉 Generate request tools from Swagger documentation (TypeScript or JavaScript)  
 😉 Achieve interface definitions, parameter descriptions, parameter organization, and return data type definitions with just one command - freeing your hands and increasing productivity  
 😉 Flexible configuration without interfering with the request process  
-😉 Use git to manage generated code without fear of modifications  
+😉 Use git to manage generated code without fear of modifications
 
 ## Quick Start
 
@@ -38,7 +38,7 @@ Add the following script commands to package.json:
   "scripts": {
     // ...
     "api": "doc2ts start",
-    "api-git": "doc2ts start --git",
+    "api-git": "doc2ts start --git"
   }
 }
 ```
@@ -49,6 +49,7 @@ Add the following script commands to package.json:
 # Follow the prompts to select your configuration
 npx doc2ts init
 ```
+
 - After entering the command, press Enter for all prompts to generate a sample configuration.
 - If you select `Generate base class file`, a `.ts` file will be generated at the corresponding location. This file must export a base class that implements the `IApiClient` interface.
 - After completing this command, a `doc2ts-config.ts` file will be generated in the project root directory. This file must export a `Doc2TsConfig` type object. For detailed configuration information, please see [Doc2TsConfig Configuration](#doc2tsconfig-configuration).
@@ -79,13 +80,13 @@ npm run api-git
 
 The request method receives a [DocReqConfig](./src/types/client.d.ts#L39) type object. Detailed description is as follows:
 
-| Key      | Type                                  | Required | Description                                                                                                                                        |
-| -------- | ------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| url      | String                                | Yes      | Interface request address (without BaseURL)                                                                                                                |
-| method   | [Method](./src/types/client.d.ts#L16) | Yes      | Request method                                                                                                                                    |
-| body     | Object                                | No       | Request body, defined according to interface input parameters                                                                                                               |
-| formData | FormData                              | No       | Packaged FormData request parameters, defined according to interface input parameters                                                                                            |
-| headers  | Object                                | No       | Headers request parameters, defined according to interface input parameters                                                                                                      |
+| Key      | Type                                  | Required | Description                                                                                                                          |
+| -------- | ------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| url      | String                                | Yes      | Interface request address (without BaseURL)                                                                                          |
+| method   | [Method](./src/types/client.d.ts#L16) | Yes      | Request method                                                                                                                       |
+| body     | Object                                | No       | Request body, defined according to interface input parameters                                                                        |
+| formData | FormData                              | No       | Packaged FormData request parameters, defined according to interface input parameters                                                |
+| headers  | Object                                | No       | Headers request parameters, defined according to interface input parameters                                                          |
 | config   | Object                                | No       | Custom interface parameters, see [Custom Interface Configuration Parameters](#custom-interface-configuration-parameters) for details |
 
 ## Doc2TsConfig Configuration
@@ -104,22 +105,22 @@ By modifying the configuration information in `doc2ts-config.ts`, you can contro
 
 **Origin Type Description:**
 
-| Key | Type | Required | Description |
-| ----- | ----- | ----- | ----- |
-| url | String | Yes | Swagger interface information address, consistent with [example address](https://petstore.swagger.io/v2/swagger.json), can also be JS file address |
-| version | String | No | Swagger version |
-| name | String | No | Module name |
-| requestName | String | No | Interface request method (default: request) |
-| downloadName | String | No | File download method (default: download) |
+| Key          | Type   | Required | Description                                                                                                                                        |
+| ------------ | ------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| url          | String | Yes      | Swagger interface information address, consistent with [example address](https://petstore.swagger.io/v2/swagger.json), can also be JS file address |
+| version      | String | No       | Swagger version                                                                                                                                    |
+| name         | String | No       | Module name                                                                                                                                        |
+| requestName  | String | No       | Interface request method (default: request)                                                                                                        |
+| downloadName | String | No       | File download method (default: download)                                                                                                           |
 
 **ApifoxConfig Type Description:**
 
-| Key | Type | Required | Description |
-| ----- | ----- | ----- | ----- |
-| sharedId | String | Yes | Apifox shared ID |
-| name | String | No | Module name |
-| requestName | String | No | Interface request method (default: request) |
-| downloadName | String | No | File download method (default: download) |
+| Key          | Type   | Required | Description                                 |
+| ------------ | ------ | -------- | ------------------------------------------- |
+| sharedId     | String | Yes      | Apifox shared ID                            |
+| name         | String | No       | Module name                                 |
+| requestName  | String | No       | Interface request method (default: request) |
+| downloadName | String | No       | File download method (default: download)    |
 
 ```typescript
 export default {
@@ -210,7 +211,7 @@ export default {
 
 ```typescript
 export default {
-  useOperationId: false  // Use request path as method name
+  useOperationId: false // Use request path as method name
 } as Doc2TsConfig
 ```
 
@@ -238,7 +239,7 @@ export default {
 
 ```typescript
 export default {
-  baseClassName: 'MyApiClient'  // Or {MyApiClient} if using export
+  baseClassName: 'MyApiClient' // Or {MyApiClient} if using export
 } as Doc2TsConfig
 ```
 
@@ -252,7 +253,7 @@ export default {
 
 ```typescript
 export default {
-  languageType: 'typeScript'  // Or 'js', 'javascript', etc.
+  languageType: 'typeScript' // Or 'js', 'javascript', etc.
 } as Doc2TsConfig
 ```
 
@@ -270,6 +271,28 @@ export default {
 } as Doc2TsConfig
 ```
 
+### AI Configuration (aiConfig)
+
+- Parameter: `aiConfig`
+- Required: `No`
+- Type: `AIConfig`
+- Default: `-`
+- Description: AI translation configuration for AI translation (when translateType is TranslateType.ai) and AI function name optimization
+
+```typescript
+export default {
+  aiConfig: {
+    apiKey: 'your-api-key',
+    baseURL: 'https://api.openai.com/v1',
+    model: 'gpt-4',
+    maxTokens: 2000,
+    temperature: 0.3,
+    enableThinking: true,
+    enableFuncNameOptimize: true
+  }
+} as Doc2TsConfig
+```
+
 ### Arrow Function Mode (arrowFunc)
 
 - Parameter: `arrowFunc`
@@ -280,7 +303,7 @@ export default {
 
 ```typescript
 export default {
-  arrowFunc: true  // Use arrow functions: method = () => {}
+  arrowFunc: true // Use arrow functions: method = () => {}
 } as Doc2TsConfig
 ```
 
@@ -294,7 +317,7 @@ export default {
 
 ```typescript
 export default {
-  emitTs: true  // Only valid when languageType is 'js'
+  emitTs: true // Only valid when languageType is 'js'
 } as Doc2TsConfig
 ```
 
@@ -308,7 +331,7 @@ export default {
 
 ```typescript
 export default {
-  declaration: true  // Generate corresponding .d.ts files
+  declaration: true // Generate corresponding .d.ts files
 } as Doc2TsConfig
 ```
 
@@ -350,9 +373,7 @@ export default {
 
 ```typescript
 export default {
-  disableParams: [
-    { paramType: 'header', keys: ['token', 'Authorization'] }
-  ]
+  disableParams: [{ paramType: 'header', keys: ['token', 'Authorization'] }]
 } as Doc2TsConfig
 ```
 

@@ -1,4 +1,4 @@
-import type { TypeInfoBase, TypeItem, TranslateType, PathInfo } from 'doc-pre-data'
+import type { TypeInfoBase, TypeItem, TranslateType, PathInfo, AIConfig } from 'doc-pre-data'
 
 type DefaultFun = {
   /**
@@ -203,6 +203,11 @@ export type Doc2TsConfig = {
    * @description 生成代码后执行脚本，用于格式化代码等
    */
   postRender?: string
+
+  /**
+   * @description AI 翻译配置，用于 AI 翻译和 AI 优化方法名
+   */
+  aiConfig?: AIConfig
 
   /**
    * @param content 即将生成文件的内容

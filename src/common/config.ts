@@ -46,6 +46,7 @@ export class Config {
   readonly typeFileRender: Doc2TsConfig['typeFileRender']
   readonly generateTypeRender?: Doc2TsConfig['generateTypeRender']
   readonly resultTypeRender: Doc2TsConfig['resultTypeRender']
+  readonly aiConfig: Doc2TsConfig['aiConfig']
 
   // baseClassPath
 
