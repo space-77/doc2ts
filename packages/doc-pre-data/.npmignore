@@ -1,0 +1,16 @@
+logs
+doc
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# dist/
+src
+.vscode
+node_modules/
+*.yaml
+*.lock
+mock/
+output/
+.gitignore
+tsconfig.json
