@@ -31,7 +31,7 @@ export function getChromePath() {
   }
 
   async close() {
-    if (this.chrome) await this.chrome.close()
+    if (this.chrome) await this.chrome.close?.()
   }
 }
 

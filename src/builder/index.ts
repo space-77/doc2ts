@@ -28,6 +28,7 @@ import ora from 'ora'
 import Apifox from '../apifox/index'
 import type { ModelList, ApifoxConfig } from '../types/types'
 import { execSync } from 'child_process'
+import iBrowser from '../utils/IBrowser'
 
 export default class Doc2Ts {
   config!: Config
@@ -163,6 +164,7 @@ export default class Doc2Ts {
 
     try {
       this.docList = await Promise.all(reqs)
+      iBrowser.close()
 
       this.docList.forEach(i => {
         const tsBuilder = new TsFileBuilder(i, this.config, i.origin)
@@ -171,6 +173,7 @@ export default class Doc2Ts {
         typeFile.build()
       })
     } catch (error) {
+      iBrowser.close()
       // throw new Error(error?.toString());
       return Promise.reject(error)
     }

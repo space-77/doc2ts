@@ -1,6 +1,6 @@
 {
   "name": "doc2ts",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "description": "根据接口文档生成ts接口文件",
   "main": "lib/index.js",
   "module": "lib/esm/index.js",
@@ -66,6 +66,7 @@
     "doc-pre-data": "workspace:*",
     "edge-paths": "^2.2.1",
     "fs-extra": "^10.1.0",
+    "iconv-lite": "^0.7.2",
     "inquirer": "^8.2.4",
     "is-ecma-keyword": "^1.0.3",
     "jsonrepair": "^3.8.0",

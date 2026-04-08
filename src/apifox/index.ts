@@ -1,8 +1,6 @@
 import iBrowser from '../utils/IBrowser'
 import { EvaluateFn, Protocol } from 'puppeteer-core'
 
-
-
 const headers = {
   // [':authority:']: 'apifox.com',
   // [':method:']: 'GET',
@@ -58,7 +56,7 @@ export default class Apifox {
         clearTimeout(timer)
         try {
           await page.close()
-          await iBrowser.close()
+          // await iBrowser.close()
         } catch (error) {
           console.error(error)
         }
@@ -77,9 +75,7 @@ export default class Apifox {
                 ({ projectId, sharedId }) => {
                   fetch(`https://apifox.com/api/v1/projects/${projectId}/shared-docs/${sharedId}/export-data`, {
                     method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                       id: sharedId,
                       type: 'openapi',

@@ -174,7 +174,7 @@ export default class Manage {
     } else {
       await this.initBranchname()
     }
-    fs.writeFileSync(getRootFilePath(CONFIG_PATH), this.doc2tsConfigContent)
+    fs.writeFileSync(getRootFilePath(CONFIG_PATH), this.doc2tsConfigContent as Uint8Array)
   }
 
   async getBranch() {

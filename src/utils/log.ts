@@ -4,7 +4,7 @@ class Log {
   info(text: string) {
     console.log(chalk.blue('[doc2ts] '), text)
   }
-  
+
   errTag(text: string) {
     return chalk.bgHex('#ff0000')(text)
   }
@@ -12,7 +12,6 @@ class Log {
   errColor(text: string) {
     return chalk.red(text)
   }
-
 
   error(text: string) {
     console.log(this.errColor('[doc2ts] '), text)
@@ -47,9 +46,12 @@ class Log {
   }
 
   clear() {
-    const lines = process.stdout.getWindowSize()[1]
-    for (let i = 0; i < lines; i++) {
-      console.log('\r\n')
+    if (!process.stdout.isTTY) return
+    const lines = process.stdout.getWindowSize?.()?.[1]
+    if (lines) {
+      for (let i = 0; i < lines; i++) {
+        console.log('\r\n')
+      }
     }
     console.clear()
   }

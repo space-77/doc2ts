@@ -17,7 +17,7 @@ export default class BuildTypeFile extends Base {
       return `export enum ${name} {
           ${values.map(value => {
             const key = `${value}`.replace(/^\d+/, $1 => `n${$1}`)
-            return `${key} = ${typeof value === 'number' ? value : `'${value}'`}`
+            return `"${key}" = ${typeof value === 'number' ? value : `'${value}'`}`
           }).join(',\n')}
         }`
     })
