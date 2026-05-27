@@ -1,6 +1,6 @@
 {
   "name": "doc2ts",
-  "version": "1.4.6",
+  "version": "1.4.7",
   "description": "根据接口文档生成ts接口文件",
   "main": "lib/index.js",
   "module": "lib/esm/index.js",
@@ -29,6 +29,8 @@
     "init-config": "ts-node ./src/scripts/initConfig.ts",
     "test-post": "ts-node ./src/scripts/testPostRender.ts",
     "dev": "ts-node ./src/dev.ts",
+    "test:unit": "TS_NODE_TRANSPILE_ONLY=true node -r ts-node/register --test tests/utils.test.ts tests/getConfig.test.ts",
+    "test:unit:watch": "TS_NODE_TRANSPILE_ONLY=true node -r ts-node/register --test --watch tests/utils.test.ts tests/getConfig.test.ts",
     "release": "standard-version -- --first-release",
     "changeset": "changeset",
     "changeset:version": "changeset version",

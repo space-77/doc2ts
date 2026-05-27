@@ -94,19 +94,20 @@ request 方法接收一个 [DocReqConfig ](./src/types/client.d.ts#L39)类型的
 
 **Origin 类型说明：**
 
-| 键值         | 类型   | 必传 | 说明                                                                                                                 |
-| ------------ | ------ | ---- | -------------------------------------------------------------------------------------------------------------------- |
-| url          | String | 是   | swagger 的接口信息地址，返回数据与[示例地址](https://petstore.swagger.io/v2/swagger.json) 一致，也可以是 js 文件地址 |
-| version      | String | 否   | swagger 版本                                                                                                         |
-| name         | String | 否   | 模块名                                                                                                               |
-| requestName  | String | 否   | 接口请求方法（默认：request）                                                                                        |
-| downloadName | String | 否   | 文件下载方法（默认：download）                                                                                       |
+| 键值         | 类型   | 必传 | 说明                                                                                           |
+| ------------ | ------ | ---- | ---------------------------------------------------------------------------------------------- |
+| url          | String | 是   | swagger 的接口信息地址（支持本地文件路径），返回数据与[示例地址](https://petstore.swagger.io/v2/swagger.json) 一致 |
+| version      | String | 否   | swagger 版本                                                                                   |
+| name         | String | 否   | 模块名                                                                                         |
+| requestName  | String | 否   | 接口请求方法（默认：request）                                                                  |
+| downloadName | String | 否   | 文件下载方法（默认：download）                                                                 |
 
 **ApifoxConfig 类型说明：**
 
 | 键值         | 类型   | 必传 | 说明                           |
 | ------------ | ------ | ---- | ------------------------------ |
 | sharedId     | String | 是   | Apifox 共享 ID                 |
+| cookie       | String | 否   | Apifox 项目的 cookie           |
 | name         | String | 否   | 模块名                         |
 | requestName  | String | 否   | 接口请求方法（默认：request）  |
 | downloadName | String | 否   | 文件下载方法（默认：download） |
@@ -115,6 +116,7 @@ request 方法接收一个 [DocReqConfig ](./src/types/client.d.ts#L39)类型的
 export default {
   origins: [
     { name: 'swagger-api', url: 'https://petstore.swagger.io/v2/swagger.json' },
+    { name: 'local-api', url: './mock/swagger.json' },
     { name: 'apifox-api', sharedId: 'shared-xxxxx', requestName: 'fetch' }
   ]
 } as Doc2TsConfig

@@ -13,7 +13,8 @@ import {
   getApiJson,
   logProgress,
   sleep,
-  getRootFilePath
+  getRootFilePath,
+  judgeIsVaildUrl
 } from '../utils'
 
 // ------------------------------------
@@ -91,7 +92,7 @@ export default class Doc2Ts {
       log.error(
         `${log.errTag(' error ')} ${log.errColor('origins 不能同时存在多个匿名模块')} ${log.link(`${filePath}`)}`
       )
-      process.exit(0)
+      throw new Error(`origins 不能同时存在多个匿名模块，配置文件位置: ${filePath}`)
     }
 
     const reqs = origins.map(async origin => {
@@ -124,6 +125,14 @@ export default class Doc2Ts {
       } else if (typeof fetchSwaggerDataMethod === 'function') {
         const swagger = await fetchSwaggerDataMethod(url)
         json = JSON.parse(swagger)
+      } else if (!judgeIsVaildUrl(url)) {
+        const absolutePath = path.resolve(process.cwd(), url)
+        if (fs.existsSync(absolutePath)) {
+          const fileContent = fs.readFileSync(absolutePath, 'utf8')
+          json = JSON.parse(fileContent)
+        } else {
+          throw new Error(`本地文件不存在: ${absolutePath}`)
+        }
       } else {
         json = await getApiJson(url, swaggerHeaders)
       }
@@ -154,8 +163,7 @@ export default class Doc2Ts {
           log.clear()
           this.saveDict(dictList, dictPath)
           log.error(`${log.errTag(' error ')} ${log.errColor('翻译失败.')}`)
-          log.info(`您可以在 ${log.link(`${dictPath}`)} 文件里，把翻译失败（en为null）的信息翻译后重试。`)
-          process.exit(0)
+          throw new Error(`翻译失败。您可以在 ${dictPath} 文件里，把翻译失败（en为null）的信息翻译后重试。`)
         } else {
           return Promise.reject(error)
         }
@@ -164,7 +172,7 @@ export default class Doc2Ts {
 
     try {
       this.docList = await Promise.all(reqs)
-      iBrowser.close()
+      await iBrowser.close()
 
       this.docList.forEach(i => {
         const tsBuilder = new TsFileBuilder(i, this.config, i.origin)
@@ -173,7 +181,7 @@ export default class Doc2Ts {
         typeFile.build()
       })
     } catch (error) {
-      iBrowser.close()
+      await iBrowser.close()
       // throw new Error(error?.toString());
       return Promise.reject(error)
     }
@@ -197,12 +205,9 @@ export default class Doc2Ts {
     for await (const { filePath, content } of fileList) {
       const dirList = filePath.split(path.sep)
       bar.update(index, { filename: _.last(dirList) })
-      await sleep(60)
       await createFile(filePath, content, true)
       index++
     }
-
-    await sleep(200)
 
     bar.stop()
   }

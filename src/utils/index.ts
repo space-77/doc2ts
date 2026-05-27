@@ -86,8 +86,12 @@ export async function loadPrettierConfig(prettierPath?: string) {
 }
 
 export async function getConfig(configPath: string): Promise<Doc2TsConfig> {
-  const noCacheFix = (Math.random() + '').slice(2, 5)
-  const jsName = path.join(__dirname, `__${noCacheFix}__.js`)
+  const tempDir = path.join(process.cwd(), 'temp')
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true })
+  }
+  const noCacheFix = `${Date.now()}_${(Math.random() + '').slice(2, 8)}`
+  const jsName = path.join(tempDir, `__config_${noCacheFix}__.js`)
 
   try {
     const filePath = getRootFilePath(configPath)
@@ -103,14 +107,20 @@ export async function getConfig(configPath: string): Promise<Doc2TsConfig> {
     // 编译到js
     fs.writeFileSync(jsName, jsResult.outputText, 'utf8')
 
-    // 删除该文件
+    // 加载该文件
     const res = require(jsName).default
-    fs.unlinkSync(jsName)
     return res
   } catch (error) {
     log.error('读取配置文件失败')
-    if (fs.existsSync(jsName)) fs.unlinkSync(jsName)
     return Promise.reject(error)
+  } finally {
+    try {
+      if (fs.existsSync(jsName)) {
+        fs.unlinkSync(jsName)
+      }
+    } catch (cleanError) {
+      console.error('清理临时配置文件失败', cleanError)
+    }
   }
 }
 
@@ -219,7 +229,7 @@ async function getModelList(url: string, count = 0): Promise<ModelList[]> {
 
 /** 检测是否是合法url */
 export function judgeIsVaildUrl(url: string) {
-  return /^(http|https):.*?$/.test(url)
+  return /^https?:.*?$/.test(url)
 }
 
 export function checkJsLang(lang: Doc2TsConfig['languageType'] = 'ts') {
@@ -344,14 +354,14 @@ export async function getApiJson(url: string, headers?: Record<string, any>): Pr
           return JSON.parse(jsonrepair(data))
         } catch (error) {
           log.error(`${url}: api 数据格式异常(不是标准JSON格式)`)
-          throw new Error('')
+          throw new Error(`api 数据格式异常: ${(error as Error).message}`)
         }
       }
       return data
     }
   } catch (error) {
-    log.error('获取文档数据异常，请检查网络是否正常。')
-    throw new Error('')
+    log.error(`获取文档数据异常: ${(error as Error).message}`)
+    throw new Error(`获取文档数据异常 (${url}): ${(error as Error).message}`)
   }
 }
 

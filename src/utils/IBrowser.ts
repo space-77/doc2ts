@@ -15,12 +15,23 @@ export function getChromePath() {
 
  class IBrowser {
   chrome!: Browser | null
+  private initPromise: Promise<Browser> | null = null
 
   async init() {
     if (this.chrome) return this.chrome
-    const chromePath = getChromePath()
-    this.chrome = await puppeteer.launch({ executablePath: chromePath })
-    return this.chrome
+    if (this.initPromise) return this.initPromise
+
+    this.initPromise = (async () => {
+      try {
+        const chromePath = getChromePath()
+        this.chrome = await puppeteer.launch({ executablePath: chromePath })
+        return this.chrome
+      } finally {
+        this.initPromise = null
+      }
+    })()
+
+    return this.initPromise
   }
 
   async newPage() {
@@ -31,7 +42,17 @@ export function getChromePath() {
   }
 
   async close() {
-    if (this.chrome) await this.chrome.close?.()
+    if (this.chrome) {
+      try {
+        await this.chrome.close?.()
+        this.chrome = null
+        console.log('关闭浏览器成功')
+      } catch (error) {
+        console.error('关闭浏览器失败:', error)
+      } finally {
+        this.chrome = null
+      }
+    }
   }
 }
 

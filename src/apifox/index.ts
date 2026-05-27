@@ -47,13 +47,10 @@ export default class Apifox {
         await page.setCookie(...cookies)
       }
 
-      const timer = setTimeout(() => {
-        // 超时处理
-        reject(new Error('get apifox failed'))
-      }, 1000 * 60 * 2)
+      let timer: NodeJS.Timeout
 
       const done = async () => {
-        clearTimeout(timer)
+        if (timer) clearTimeout(timer)
         try {
           await page.close()
           // await iBrowser.close()
@@ -61,6 +58,12 @@ export default class Apifox {
           console.error(error)
         }
       }
+
+      timer = setTimeout(async () => {
+        // 超时处理
+        await done()
+        reject(new Error('get apifox failed'))
+      }, 1000 * 60 * 2)
 
       page.on('response', async response => {
         const status = response.status()
@@ -110,8 +113,12 @@ export default class Apifox {
         }
       })
 
-      // page.goto(`https://apifox.com/apidoc/shared-${this.sharedId}`)
-      page.goto(`https://apifox.com/api/v1/shared-doc-summaries/${this.sharedId}`)
+      try {
+        await page.goto(`https://apifox.com/api/v1/shared-doc-summaries/${this.sharedId}`)
+      } catch (error) {
+        await done()
+        reject(error)
+      }
     })
   }
 

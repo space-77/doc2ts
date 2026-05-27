@@ -41,7 +41,7 @@ export interface ApifoxConfig extends DefaultFun {
 export interface ModelList extends DefaultFun {
   /**
    * @example http://localhost:8084/swagger/doc.json
-   * @description 接口文档地址
+   * @description 接口文档地址，支持本地文件路径
    */
   url: string
 

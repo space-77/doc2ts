@@ -105,19 +105,20 @@ By modifying the configuration information in `doc2ts-config.ts`, you can contro
 
 **Origin Type Description:**
 
-| Key          | Type   | Required | Description                                                                                                                                        |
-| ------------ | ------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| url          | String | Yes      | Swagger interface information address, consistent with [example address](https://petstore.swagger.io/v2/swagger.json), can also be JS file address |
-| version      | String | No       | Swagger version                                                                                                                                    |
-| name         | String | No       | Module name                                                                                                                                        |
-| requestName  | String | No       | Interface request method (default: request)                                                                                                        |
-| downloadName | String | No       | File download method (default: download)                                                                                                           |
+| Key          | Type   | Required | Description                                                                                                           |
+| ------------ | ------ | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| url          | String | Yes      | Swagger interface information address (supports local file path), consistent with [example address](https://petstore.swagger.io/v2/swagger.json) |
+| version      | String | No       | Swagger version                                                                                                       |
+| name         | String | No       | Module name                                                                                                           |
+| requestName  | String | No       | Interface request method (default: request)                                                                           |
+| downloadName | String | No       | File download method (default: download)                                                                              |
 
 **ApifoxConfig Type Description:**
 
 | Key          | Type   | Required | Description                                 |
 | ------------ | ------ | -------- | ------------------------------------------- |
 | sharedId     | String | Yes      | Apifox shared ID                            |
+| cookie       | String | No       | Apifox project cookie                       |
 | name         | String | No       | Module name                                 |
 | requestName  | String | No       | Interface request method (default: request) |
 | downloadName | String | No       | File download method (default: download)    |
@@ -126,6 +127,7 @@ By modifying the configuration information in `doc2ts-config.ts`, you can contro
 export default {
   origins: [
     { name: 'swagger-api', url: 'https://petstore.swagger.io/v2/swagger.json' },
+    { name: 'local-api', url: './mock/swagger.json' },
     { name: 'apifox-api', sharedId: 'shared-xxxxx', requestName: 'fetch' }
   ]
 } as Doc2TsConfig
