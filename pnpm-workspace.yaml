@@ -1,6 +1,5 @@
 packages:
   - packages/*
-  - .
 
 catalog:
   "doc-pre-data": "1.3.2"
