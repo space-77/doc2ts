@@ -116,68 +116,89 @@ export default class AIFunctionNamer {
     // 如果有未缓存的方法，调用 AI 批量处理
     if (uncachedFuncs.length > 0) {
       console.log(
-        `AI 优化方法名: ${this.moduleName} 模块共 ${funcs.length} 个方法，${uncachedFuncs.length} 个需要 AI 处理`
+        `AI 优化方法名: 共 ${funcs.length} 个方法，${uncachedFuncs.length} 个需要 AI 处理`
       )
 
-      try {
-        const aiResults = await this.callAIForFuncNames(uncachedFuncs)
+      const usedNames = new Set<string>()
+      const finalResults: FuncNameResult[] = []
 
-        // 处理 AI 返回结果，检查重复并添加后缀
-        const usedNames = new Set<string>()
-        const finalResults: FuncNameResult[] = []
-
-        // 首先处理已有缓存的结果
-        cachedResults.forEach(result => {
-          let name = result.name
-          // 检查重复
-          if (usedNames.has(name)) {
-            const baseName = name
-            let suffix = 1
-            while (usedNames.has(name)) {
-              name = `${baseName}${suffix}`
-              suffix++
-            }
+      // 首先处理已有缓存的结果
+      cachedResults.forEach(result => {
+        let name = result.name
+        // 检查重复
+        if (usedNames.has(name)) {
+          const baseName = name
+          let suffix = 1
+          while (usedNames.has(name)) {
+            name = `${baseName}${suffix}`
+            suffix++
           }
-          usedNames.add(name)
-          finalResults.push({ cacheKey: result.cacheKey, name })
-          this.cache.set(result.cacheKey, name)
-        })
+        }
+        usedNames.add(name)
+        finalResults.push({ cacheKey: result.cacheKey, name })
+        this.cache.set(result.cacheKey, name)
+      })
 
-        // 处理 AI 返回的结果
-        aiResults.forEach(result => {
-          let name = result.name
-          // 检查重复
-          if (usedNames.has(name)) {
-            const func = uncachedFuncs.find(f => f.cacheKey === result.cacheKey)
-            const method = func?.method || ''
-            name = `${name}${method.charAt(0).toUpperCase()}${method.slice(1).toLowerCase()}`
+      const BATCH_SIZE = this.aiConfig.batchSize || 300
+      const batches: FuncNameInfo[][] = []
+      for (let i = 0; i < uncachedFuncs.length; i += BATCH_SIZE) {
+        batches.push(uncachedFuncs.slice(i, i + BATCH_SIZE))
+      }
 
-            // 如果还是重复，加数字后缀
+      for (let i = 0; i < batches.length; i++) {
+        const batch = batches[i]
+        console.log(`处理第 ${i + 1}/${batches.length} 批 AI 优化任务...`)
+
+        try {
+          const aiResults = await this.callAIForFuncNames(batch)
+
+          // 处理 AI 返回的结果
+          aiResults.forEach(result => {
+            let name = result.name
+            // 检查重复
             if (usedNames.has(name)) {
-              const baseName = name
-              let suffix = 1
-              while (usedNames.has(name)) {
-                name = `${baseName}${suffix}`
-                suffix++
+              const func = batch.find(f => f.cacheKey === result.cacheKey)
+              const method = func?.method || ''
+              name = `${name}${method.charAt(0).toUpperCase()}${method.slice(1).toLowerCase()}`
+
+              // 如果还是重复，加数字后缀
+              if (usedNames.has(name)) {
+                const baseName = name
+                let suffix = 1
+                while (usedNames.has(name)) {
+                  name = `${baseName}${suffix}`
+                  suffix++
+                }
               }
             }
-          }
-          usedNames.add(name)
-          finalResults.push({ cacheKey: result.cacheKey, name })
-          this.cache.set(result.cacheKey, name)
-        })
-
-        console.log(`AI 优化方法名完成: ${this.moduleName} 模块`)
-      } catch (error) {
-        console.error('AI 优化方法名失败:', error)
-        // 如果 AI 调用失败，返回原始名称
-        uncachedFuncs.forEach(func => {
-          if (!this.cache.has(func.cacheKey)) {
-            const originalName = this.generateOriginalName(func)
-            this.cache.set(func.cacheKey, originalName)
-          }
-        })
+            usedNames.add(name)
+            finalResults.push({ cacheKey: result.cacheKey, name })
+            this.cache.set(result.cacheKey, name)
+          })
+        } catch (error) {
+          console.error(`第 ${i + 1} 批 AI 优化失败:`, error)
+          // 如果 AI 调用失败，返回原始名称并去重
+          batch.forEach(func => {
+            if (!this.cache.has(func.cacheKey)) {
+              let name = this.generateOriginalName(func)
+              // 检查重复
+              if (usedNames.has(name)) {
+                const baseName = name
+                let suffix = 1
+                while (usedNames.has(name)) {
+                  name = `${baseName}${suffix}`
+                  suffix++
+                }
+              }
+              usedNames.add(name)
+              finalResults.push({ cacheKey: func.cacheKey, name })
+              this.cache.set(func.cacheKey, name)
+            }
+          })
+        }
       }
+
+      console.log(`AI 优化方法名完成`)
     }
 
     // 保存缓存
@@ -221,8 +242,8 @@ export default class AIFunctionNamer {
 - 其他操作：根据语义选择合适动词
 
 输出格式：
-必须返回纯 JSON 格式，key 为 "序号_方法标识"，value 为优化后的方法名：
-{"1_getUser": "getUser", "2_postUsers": "createUser"}`
+必须返回纯 JSON 格式，key 为对应的方法标识，value 为优化后的方法名：
+{"getUser_api/user/list": "getUserList", "post_api/user/create": "createUser"}`
 
     const userPrompt = `请为以下接口生成优化的方法名：
 
@@ -239,7 +260,7 @@ ${i + 1}. 方法标识: ${f.cacheKey}
   )
   .join('\n')}
 
-请严格按照 JSON 格式返回，key 使用 "序号_方法标识" 格式。`
+请严格按照 JSON 格式返回，key 使用对应的"方法标识"。`
 
     try {
       const axios = (await import('axios')).default
@@ -284,9 +305,8 @@ ${i + 1}. 方法标识: ${f.cacheKey}
 
       // 解析返回结果
       const results: FuncNameResult[] = []
-      funcs.forEach((func, index) => {
-        const key = `${index + 1}_${func.cacheKey}`
-        const name = parsed[key] || parsed[func.cacheKey]
+      funcs.forEach((func) => {
+        const name = parsed[func.cacheKey]
 
         if (name && typeof name === 'string') {
           // 清理方法名，确保是有效的 camelCase

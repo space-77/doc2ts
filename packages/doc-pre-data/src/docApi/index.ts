@@ -213,10 +213,14 @@ export default class DocApi {
 
     // 如果启用了 AI 方法名优化，先处理所有模块
     if (this.aiFunctionNamer) {
+      // Phase 1: 收集全部模块的方法信息
+      const allFuncNameInfos: FuncNameInfo[] = []
+      const moduleFuncMap = new Map<string, FuncNameInfo[]>()
+
       for (const moduleItem of moduleList) {
         const { funs, moduleName } = moduleItem
 
-        // 设置当前模块
+        // 设置当前模块（用于加载缓存）
         this.aiFunctionNamer.setModuleName(moduleName)
 
         // 收集方法信息
@@ -237,10 +241,16 @@ export default class DocApi {
           }
         })
 
-        // 调用 AI 批量优化方法名
-        const optimizedNames = await this.aiFunctionNamer.optimizeFuncNames(funcNameInfos)
+        allFuncNameInfos.push(...funcNameInfos)
+        moduleFuncMap.set(moduleName, funcNameInfos)
+      }
 
-        // 使用优化后的名称生成 pathItems
+      // Phase 2: 调用 AI 批量优化方法名
+      const optimizedNames = await this.aiFunctionNamer.optimizeFuncNames(allFuncNameInfos)
+
+      // Phase 3: 使用优化后的名称生成 pathItems
+      for (const moduleItem of moduleList) {
+        const { funs, moduleName } = moduleItem
         const names = new Set<string>()
         const samePath = getMaxSamePath(funs.map(i => i.apiPath.slice(1)))
 

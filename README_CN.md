@@ -279,7 +279,8 @@ export default {
     maxTokens: 2000,
     temperature: 0.3,
     enableThinking: true,
-    enableFuncNameOptimize: true
+    enableFuncNameOptimize: true,
+    batchSize: 300 // AI 优化方法名时的分批数量，默认 300
   }
 } as Doc2TsConfig
 ```

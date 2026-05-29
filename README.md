@@ -290,7 +290,8 @@ export default {
     maxTokens: 2000,
     temperature: 0.3,
     enableThinking: true,
-    enableFuncNameOptimize: true
+    enableFuncNameOptimize: true,
+    batchSize: 300 // Batch size for AI function name optimization, default 300
   }
 } as Doc2TsConfig
 ```

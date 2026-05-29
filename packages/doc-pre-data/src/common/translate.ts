@@ -29,6 +29,10 @@ export interface AIConfig {
    * @description 是否启用 AI 优化方法名
    */
   enableFuncNameOptimize?: boolean
+  /**
+   * @description AI 优化方法名时的分批数量，默认 300
+   */
+  batchSize?: number
 }
 
 export enum TranslateCode {
