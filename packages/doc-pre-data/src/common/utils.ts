@@ -101,9 +101,9 @@ export function getIdentifierFromUrl(url: string, requestType: string, samePath 
     currUrl
       .split('/')
       .map(str => {
-        if (str.includes('-')) {
-          str = str.replace(/(\-\w)+/g, (_match, p1) => {
-            if (p1) return p1.slice(1).toUpperCase()
+        if (/[-_]/.test(str)) {
+          str = str.replace(/[-_](\w)/g, (_match, p1) => {
+            if (p1) return p1.toUpperCase()
           })
         }
 
@@ -210,6 +210,7 @@ export function transformCamelCase(name: string) {
   let result = ''
 
   if (name.includes('-')) words = name.split('-')
+  else if (name.includes('_')) words = name.split('_')
   else if (name.includes(' ')) words = name.split(' ')
   else {
     if (typeof name === 'string') result = name
