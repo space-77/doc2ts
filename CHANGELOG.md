@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/space-77/doc2ts/compare/v1.5.0...v1.6.0) (2026-05-29)
+
+
+### Features
+
+* **ai:** 添加AI翻译和优化方法名功能 ([1a4a507](https://github.com/space-77/doc2ts/commit/1a4a507a307431fb511bcf1932db9da42971c9fb))
+* **doc-pre-data:** 实现AI方法名优化分批处理，提升多模块生成性能 ([0c68dda](https://github.com/space-77/doc2ts/commit/0c68dda0fb8d3ead8d21e07d15701602ce2dd1dd))
+* 添加doc-pre-data包及相关配置和功能实现 ([f9e0240](https://github.com/space-77/doc2ts/commit/f9e024015a546800f0d043e36b3da95b3934e833))
+* 添加对 ESM 模块的支持 ([f18220a](https://github.com/space-77/doc2ts/commit/f18220af001a277e710482d0247980ef8d373140))
+
+
+### Bug Fixes
+
+* 修复浏览器关闭和类型构建问题 ([713e1d0](https://github.com/space-77/doc2ts/commit/713e1d0c7a47cfcd8662d6d1ff6dafa55204ba43))
+* 修复返回类型生成中空间名称引用问题 ([50ec858](https://github.com/space-77/doc2ts/commit/50ec858ed65a8ef959bfcf3b066b09911c9f4be1))
+
 ## [1.4.1](https://github.com/space-77/doc2ts/compare/v1.4.0...v1.5.0) (2025-10-16)
 
 
