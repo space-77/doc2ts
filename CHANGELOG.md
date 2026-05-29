@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [1.6.0](https://github.com/space-77/doc2ts/compare/v1.5.0...v1.6.0) (2026-05-29)
+## [1.5.0](https://github.com/space-77/doc2ts/compare/v1.5.0...v1.6.0) (2026-05-29)
 
 
 ### Features
