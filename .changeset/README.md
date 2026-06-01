@@ -67,5 +67,17 @@ pnpm changeset:publish
 ## 注意事项
 
 1. **linked 配置**：doc2ts 和 doc-pre-data 已设置为 linked，版本会同步更新
-2. **workspace 依赖**：doc-pre-data 通过 `catalog:` 协议引用，发版时会自动更新
+2. **workspace 依赖**：doc-pre-data 通过 `workspace:*` 协议被 doc2ts 引用，发版时由 `pnpm publish` 在 pack 阶段自动替换为 doc-pre-data 的当前版本号（实测：`"doc-pre-data": "workspace:*"` → tarball 中变为 `"doc-pre-data": "1.3.2"`），无需手动处理
 3. **自动更新依赖**：当 doc-pre-data 发版时，doc2ts 中的依赖版本会自动更新
+
+## 常见错误
+
+### `Command "changeset:publish" not found`
+
+**原因**：在子目录（如 `packages/doc2ts`）执行了命令，pnpm 不会向上查找 scripts。
+
+**解决**：所有发版相关命令（`changeset`、`changeset:version`、`changeset:publish`、`publish:all`）都必须在 monorepo 根目录 `/Users/d/package/doc2ts` 下执行。
+
+### `changeset:publish` 单独执行失败
+
+`changeset:publish` 仅做 `build + publish`，没有 `version` 步骤。直接运行会因 package.json 中的 `version` 未更新而报错。完整发版请用 `pnpm publish:all`（一键：version → install → build → publish）。
