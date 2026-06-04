@@ -1,12 +1,13 @@
 # Changelog
 
-## Unreleased
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+### [1.5.2](https://github.com/space-77/doc2ts/compare/v1.6.0...v1.5.2) (2026-06-04)
+
 
 ### Bug Fixes
 
-- **config:** 修复 ESM 项目中配置加载失败的问题 - 当用户项目设置 `"type": "module"` 时,配置加载器现在会自动检测模块类型并生成相应的 .mjs 或 .cjs 临时文件,避免模块格式冲突
-- **config:** 添加 `findNearestPackageJson()` 和 `detectModuleType()` 工具函数,自动检测项目模块类型
-- **config:** 保持向后兼容,CommonJS 项目的行为不受影响
+* **config:** 修复ESM项目配置加载失败的问题 ([fcb4ae8](https://github.com/space-77/doc2ts/commit/fcb4ae8f7a9e13323148d78326a8d81eb0df77ec))
 
 ## 1.5.2
 
