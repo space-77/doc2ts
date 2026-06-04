@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Bug Fixes
+
+- **config:** 修复 ESM 项目中配置加载失败的问题 - 当用户项目设置 `"type": "module"` 时,配置加载器现在会自动检测模块类型并生成相应的 .mjs 或 .cjs 临时文件,避免模块格式冲突
+- **config:** 添加 `findNearestPackageJson()` 和 `detectModuleType()` 工具函数,自动检测项目模块类型
+- **config:** 保持向后兼容,CommonJS 项目的行为不受影响
+
 ## 1.5.2
 
 ### Patch Changes

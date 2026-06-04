@@ -85,30 +85,100 @@ export async function loadPrettierConfig(prettierPath?: string) {
   }
 }
 
+type ModuleType = 'module' | 'commonjs'
+
+/**
+ * @description 向上遍历目录树查找最近的 package.json
+ */
+export function findNearestPackageJson(startDir: string = process.cwd()): string | null {
+  let currentDir = startDir
+  const root = path.parse(currentDir).root
+
+  while (currentDir !== root) {
+    const packageJsonPath = path.join(currentDir, 'package.json')
+    if (fs.existsSync(packageJsonPath)) {
+      return packageJsonPath
+    }
+    currentDir = path.dirname(currentDir)
+  }
+
+  // 检查根目录
+  const rootPackageJson = path.join(root, 'package.json')
+  if (fs.existsSync(rootPackageJson)) {
+    return rootPackageJson
+  }
+
+  return null
+}
+
+/**
+ * @description 检测项目的模块类型(ESM 或 CommonJS)
+ */
+export function detectModuleType(): ModuleType {
+  const packageJsonPath = findNearestPackageJson()
+  
+  if (!packageJsonPath) {
+    // 默认为 CommonJS (Node.js 默认行为)
+    return 'commonjs'
+  }
+
+  try {
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
+    const type = packageJson.type
+
+    if (type === 'module') {
+      return 'module'
+    }
+    // type === 'commonjs' 或 undefined 都返回 'commonjs'
+    return 'commonjs'
+  } catch (error) {
+    // 读取失败时默认为 CommonJS
+    return 'commonjs'
+  }
+}
+
 export async function getConfig(configPath: string): Promise<Doc2TsConfig> {
+  // 检测项目模块类型
+  const moduleType = detectModuleType()
+  
   const tempDir = path.join(process.cwd(), 'temp')
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir, { recursive: true })
   }
   const noCacheFix = `${Date.now()}_${(Math.random() + '').slice(2, 8)}`
-  const jsName = path.join(tempDir, `__config_${noCacheFix}__.js`)
+  
+  // 根据模块类型确定临时文件扩展名
+  const fileExt = moduleType === 'module' ? '.mjs' : '.cjs'
+  const jsName = path.join(tempDir, `__config_${noCacheFix}__${fileExt}`)
 
   try {
     const filePath = getRootFilePath(configPath)
     const stat = fs.statSync(filePath)
     if (!stat.isFile()) throw new Error('配置文件不存在')
     const tsResult = fs.readFileSync(filePath, 'utf8')
+    
+    // 根据模块类型选择编译目标
     const jsResult = ts.transpileModule(tsResult, {
       compilerOptions: {
         target: ts.ScriptTarget.ES2015,
-        module: ts.ModuleKind.CommonJS
+        module: moduleType === 'module' ? ts.ModuleKind.ES2015 : ts.ModuleKind.CommonJS
       }
     })
+    
     // 编译到js
     fs.writeFileSync(jsName, jsResult.outputText, 'utf8')
 
-    // 加载该文件
-    const res = require(jsName).default
+    // 根据模块类型选择加载方式
+    let res: Doc2TsConfig
+    if (moduleType === 'module') {
+      // ESM: 使用动态 import
+      const module = await import(jsName)
+      res = module.default
+    } else {
+      // CommonJS: 使用 require
+      res = require(jsName).default
+    }
+    
     return res
   } catch (error) {
     log.error('读取配置文件失败')
