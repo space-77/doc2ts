@@ -34,6 +34,9 @@ pnpm build              # Shortcut: build all packages
 pnpm changeset          # Create a changeset
 pnpm changeset:version  # Version packages based on changesets
 pnpm publish:all        # Full release: version → install → publish
+
+# doc2ts
+pnpm --filter doc2ts publish
 ```
 
 ## Package-specific Commands
