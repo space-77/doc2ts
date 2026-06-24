@@ -100,6 +100,18 @@ export type GitConfig = {
 已保证整个流程能自动完成的进行。
    */
   noVerify?: boolean
+
+  /**
+   * @desc git commit 时的额外参数，如 ['--no-verify', '--amend'] 等
+   * @example ['--no-verify']
+   */
+  commitArgs?: string[]
+
+  /**
+   * @desc git push 时的额外参数，如 ['--no-verify', '--force'] 等
+   * @example ['--no-verify']
+   */
+  pushArgs?: string[]
 }
 
 export type Origin = ModelList

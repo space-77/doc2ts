@@ -29,6 +29,8 @@ import { BranchSummaryBranch, GitResponseError, PullFailedResult, PushResult } f
 export default class Manage {
   config!: Doc2TsConfig
   noVerify = true
+  commitArgs: string[] = []
+  pushArgs: string[] = []
   // commitId?: string
   includeFiles: string[] = []
   remote!: string
@@ -100,6 +102,8 @@ export default class Manage {
     const { outDir, gitConfig } = this.config
     this.includeFiles.push(...[`${outDir}/*`, CONFIG_PATH])
     this.noVerify = gitConfig?.noVerify ?? true
+    this.commitArgs = gitConfig?.commitArgs ?? []
+    this.pushArgs = gitConfig?.pushArgs ?? []
     this.remote = gitConfig?.remote ?? 'origin'
     this.docBranchname = gitConfig?.branchname ?? GIT_BRANCHNAME
     this.remotesBranchKey = `remotes/${this.remote}/${this.docBranchname}`
@@ -209,7 +213,9 @@ export default class Manage {
 
   async commitFile() {
     const message = '"feat: update api files (doc2ts auto commit)."'
-    const { summary } = await gitCommit(message, this.noVerify ? '-n' : '')
+    // 合并 commitArgs，优先使用用户配置的参数，否则使用 noVerify 的逻辑
+    const args = this.commitArgs.length > 0 ? this.commitArgs : this.noVerify ? ['-n'] : []
+    const { summary } = await gitCommit(message, args)
     return Object.values(summary).reduce((res, item) => res + item, 0)
   }
 
@@ -274,11 +280,13 @@ export default class Manage {
         if (!this.remotesBranch) {
           // 远程分支不存在
           // 推送分支
-          await gitPush(this.remote, this.docBranchname, ['-u'])
+          const args = this.pushArgs.length > 0 ? this.pushArgs : ['-u']
+          await gitPush(this.remote, this.docBranchname, args)
         } else {
           // 远程分支已存在
-          // 直接posh代码即可
-          await gitPush(this.remote, this.docBranchname)
+          // 直接push代码即可
+          const args = this.pushArgs.length > 0 ? this.pushArgs : undefined
+          await gitPush(this.remote, this.docBranchname, args)
         }
       }
     } catch (error) {

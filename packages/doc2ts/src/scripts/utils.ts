@@ -65,8 +65,9 @@ export async function gitAdd(dirPath: string[]) {
   return await git.add(dirPath)
 }
 
-export async function gitCommit(message: string, verify: string) {
-  return await git.commit(message, [verify])
+export async function gitCommit(message: string, args: string[] | string = []) {
+  const argsArray = Array.isArray(args) ? args : args ? [args] : []
+  return await git.commit(message, argsArray)
 }
 
 export async function gitMerge(branchname: string) {
@@ -94,6 +95,6 @@ export async function gitPull(remote: string, branch: string) {
   return await git.pull(remote, branch)
 }
 
-export async function gitPush(remote: string, branch: string, options?: TaskOptions) {
-  return await git.push(remote, branch, options)
+export async function gitPush(remote: string, branch: string, args?: string[] | TaskOptions) {
+  return await git.push(remote, branch, args)
 }

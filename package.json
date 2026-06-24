@@ -6,6 +6,8 @@
     "changeset": "changeset",
     "changeset:version": "changeset version",
     "changeset:publish": "pnpm -r run build && changeset publish",
+    "publish:doc2ts": "pnpm --filter doc2ts publish",
+    "publish:doc-pre-data": "pnpm --filter doc-pre-data publish",
     "publish:all": "pnpm changeset:version && pnpm install && pnpm changeset:publish"
   },
   "devDependencies": {
