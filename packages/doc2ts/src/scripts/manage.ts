@@ -187,7 +187,12 @@ export default class Manage {
   }
 
   async initBranchname() {
-    const { baseClassPath, outDir } = this.config
+    const { baseClassPath: globalBaseClassPath, outDir } = this.config
+
+    // 全局 baseClassPath 可能省略（origin 各自覆盖），回退到首个非空的 origin 级 baseClassPath
+    const baseClassPath =
+      globalBaseClassPath ?? this.config.origins.find(o => o.baseClassPath)?.baseClassPath ?? ''
+    if (!baseClassPath) throw new Error('必要参数异常：无法解析 baseClassPath，请在全局或任一 origin 上配置')
 
     let commitId = await getFirstCommitId(baseClassPath)
     if (!commitId) {

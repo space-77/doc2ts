@@ -112,6 +112,17 @@ request 方法接收一个 [DocReqConfig ](./src/types/client.d.ts#L39)类型的
 | requestName  | String | 否   | 接口请求方法（默认：request）  |
 | downloadName | String | 否   | 文件下载方法（默认：download） |
 
+**每个 origin 可覆盖的字段（`Origin` 与 `ApifoxConfig` 通用）：**
+
+每个 origin 还可额外覆盖以下四个全局配置字段。在 origin 上配置时，origin 的值优先于全局 `Doc2TsConfig` 的同名值；未配置时回退到全局默认值。
+
+| 键值             | 类型                                                            | 说明                                                                                          |
+| ---------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| disableParams    | `DisableParams[]`                                               | 过滤该 origin 下某些入参。见 [disableParams](#禁用参数-disableparams)                        |
+| baseClassName    | `String`                                                        | 该 origin 模块继承的基类名称。见 [baseClassName](#基类名称-baseclassname)                    |
+| baseClassPath    | `String`                                                        | 该 origin 的基类路径。见 [baseClassPath](#基类路径-baseclasspath)                            |
+| resultTypeRender | `String \| ((funcName, typeInfo?) => string)`                   | 该 origin 的接口返回类型钩子。见 [resultTypeRender](#返回类型渲染-resulttyperender)          |
+
 ```typescript
 export default {
   origins: [
@@ -119,6 +130,29 @@ export default {
     { name: 'local-api', url: './mock/swagger.json' },
     { name: 'apifox-api', sharedId: 'shared-xxxxx', requestName: 'fetch' }
   ]
+} as Doc2TsConfig
+```
+
+```typescript
+// per-origin 覆盖示例：每个数据源使用各自的基类与禁用参数
+export default {
+  origins: [
+    {
+      name: 'api-a',
+      url: 'https://a.example.com/swagger.json',
+      baseClassName: 'ClientA',
+      baseClassPath: './src/services/clientA.ts',
+      disableParams: [{ paramType: 'header', keys: ['X-Token-A'] }]
+    },
+    {
+      name: 'api-b',
+      url: 'https://b.example.com/swagger.json',
+      baseClassName: 'ClientB',
+      baseClassPath: './src/services/clientB.ts',
+      resultTypeRender: '[any, {typeName}["data"], {typeName}]'
+    }
+  ]
+  // 当每个 origin 都各自配置 baseClassPath 时，全局 baseClassPath 可省略
 } as Doc2TsConfig
 ```
 

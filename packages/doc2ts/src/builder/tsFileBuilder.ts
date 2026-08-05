@@ -27,7 +27,7 @@ export default class TsFileBuilder extends Base {
    */
   private getParamsInfo(funcItem: PathItem) {
     const { docApi } = this.doc
-    const { disableParams } = this.config
+    const disableParams = this.effDisableParams
     const { parameterType, requestBodyType, moduleName, name } = funcItem
 
     let paramsTypeInfo = [parameterType, requestBodyType].map(i => i?.getRealBody()).filter(Boolean) as TypeBase[]
@@ -145,7 +145,14 @@ export default class TsFileBuilder extends Base {
     }
 
     const groupName = funcItem.responseType?.getSpaceName()
-    const returnType = createReturnType(config, docApi, name, groupName, responseType?.getRealBody())
+    const returnType = createReturnType(
+      this.effResultTypeRender,
+      this.config.languageType,
+      docApi,
+      name,
+      groupName,
+      responseType?.getRealBody()
+    )
 
     if (returnType.indexOf(commonTypeKey) > -1) hasCommonType = true
 

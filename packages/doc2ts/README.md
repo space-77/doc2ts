@@ -123,6 +123,17 @@ By modifying the configuration information in `doc2ts-config.ts`, you can contro
 | requestName  | String | No       | Interface request method (default: request) |
 | downloadName | String | No       | File download method (default: download)    |
 
+**Per-origin overrides (both `Origin` and `ApifoxConfig`):**
+
+Each origin can additionally override the following four global config fields. When set on an origin, the origin's value takes precedence over the global `Doc2TsConfig` value; when not set, the global value is used as the default.
+
+| Key              | Type                                                            | Description                                                                                          |
+| ---------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| disableParams    | `DisableParams[]`                                               | Filter certain input params for this origin. See [disableParams](#disable-parameters-disableparams) |
+| baseClassName    | `String`                                                        | Base class name for this origin's modules. See [baseClassName](#base-class-name-baseclassname)       |
+| baseClassPath    | `String`                                                        | Base class path for this origin. See [baseClassPath](#base-class-path-baseclasspath)                 |
+| resultTypeRender | `String \| ((funcName, typeInfo?) => string)`                   | Return type render hook for this origin. See [resultTypeRender](#return-type-rendering-resulttyperender) |
+
 ```typescript
 export default {
   origins: [
@@ -130,6 +141,29 @@ export default {
     { name: 'local-api', url: './mock/swagger.json' },
     { name: 'apifox-api', sharedId: 'shared-xxxxx', requestName: 'fetch' }
   ]
+} as Doc2TsConfig
+```
+
+```typescript
+// Per-origin override example: each data source uses its own base class and disable params
+export default {
+  origins: [
+    {
+      name: 'api-a',
+      url: 'https://a.example.com/swagger.json',
+      baseClassName: 'ClientA',
+      baseClassPath: './src/services/clientA.ts',
+      disableParams: [{ paramType: 'header', keys: ['X-Token-A'] }]
+    },
+    {
+      name: 'api-b',
+      url: 'https://b.example.com/swagger.json',
+      baseClassName: 'ClientB',
+      baseClassPath: './src/services/clientB.ts',
+      resultTypeRender: '[any, {typeName}["data"], {typeName}]'
+    }
+  ]
+  // Global baseClassPath can be omitted when every origin configures its own
 } as Doc2TsConfig
 ```
 

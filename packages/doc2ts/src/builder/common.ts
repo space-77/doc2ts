@@ -158,13 +158,14 @@ export function formatType(type: string, isJs: boolean) {
 }
 
 export function createReturnType(
-  config: Config,
+  resultTypeRender: Config['resultTypeRender'],
+  languageType: Config['languageType'],
   docApi: DocApi,
   funcName: string,
   groupName?: string,
   responseType?: TypeInfoBase
 ) {
-  const { resultTypeRender: render, languageType } = config
+  const render = resultTypeRender
   const isJs = checkJsLang(languageType)
   const { resConentType } = responseType ?? {}
 

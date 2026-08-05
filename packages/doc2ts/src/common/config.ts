@@ -32,7 +32,7 @@ export class Config {
   readonly emitTs?: boolean
   readonly declaration = false
   readonly prettierPath?: string
-  readonly baseClassPath!: string
+  readonly baseClassPath?: string
 
   /**
    * @description 是否使用箭头函数
@@ -59,10 +59,22 @@ export class Config {
     })
     Object.assign(this, { ...config })
 
-    if (!this.baseClassPath || !Array.isArray(this.origins) || this.origins.length === 0)
-      throw new Error('必要参数异常')
+    if (!Array.isArray(this.origins) || this.origins.length === 0) throw new Error('必要参数异常：origins 不能为空')
 
-    this.baseClassPath = this.baseClassPath.replace(/.ts/, '')
+    // 全局 baseClassPath 清洗（若填写了）
+    if (this.baseClassPath) this.baseClassPath = this.baseClassPath.replace(/.ts/, '')
+
+    // origin 级 baseClassPath 清洗 + 解析校验：每个 origin 必须能解析出非空 baseClassPath（origin 自身或全局任一）
+    this.origins.forEach(origin => {
+      if (origin.baseClassPath) origin.baseClassPath = origin.baseClassPath.replace(/.ts/, '')
+      const resolved = origin.baseClassPath ?? this.baseClassPath
+      if (!resolved) {
+        const originName = origin.name ?? '(匿名)'
+        throw new Error(
+          `必要参数异常：origin "${originName}" 缺少 baseClassPath，请在该 origin 上配置 baseClassPath，或在全局 Doc2TsConfig.baseClassPath 中提供默认值`
+        )
+      }
+    })
   }
 }
 

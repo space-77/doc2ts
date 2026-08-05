@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## Unreleased
+
+### Features
+
+- **config:** `origins` 数据源支持 `disableParams`、`baseClassName`、`baseClassPath`、`resultTypeRender` 四个覆盖字段，按 origin 优先、全局回退规则生效，便于多数据源差异化配置
+- **config:** `Doc2TsConfig.baseClassPath` 由必填改为可选（全局默认值）；当所有 origin 各自配置 `baseClassPath` 时全局可省略，任一 origin 与全局均缺失时抛出含 origin 名称的明确错误
+
+### BREAKING CHANGES
+
+- **config:** `createReturnType`（`packages/doc2ts/src/builder/common.ts`）签名变更：首个参数从 `config: Config` 改为 `resultTypeRender` 与 `languageType` 两个已解析值。该函数未在公共入口导出，仅内部使用
+
 ### [1.5.2](https://github.com/space-77/doc2ts/compare/v1.6.0...v1.5.2) (2026-06-04)
 
 

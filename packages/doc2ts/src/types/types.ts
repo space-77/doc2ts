@@ -15,9 +15,34 @@ type DefaultFun = {
 }
 
 /**
+ * @description 单个 origin（数据源）可覆盖的全局配置字段；origin 上显式配置时优先于 `Doc2TsConfig` 中的同名全局默认值
+ */
+export interface OriginOverride {
+  /**
+   * @description 移除该 origin 下某些入参提示，覆盖全局 `disableParams`。未配置时回退全局值
+   */
+  disableParams?: DisableParams[]
+
+  /**
+   * @description 该 origin 模块继承的基类名称，覆盖全局 `baseClassName`。未配置时回退全局值
+   */
+  baseClassName?: string
+
+  /**
+   * @description 该 origin 的基类路径，覆盖全局 `baseClassPath`。未配置时回退全局值
+   */
+  baseClassPath?: string
+
+  /**
+   * @description 该 origin 的接口返回数据类型钩子，覆盖全局 `resultTypeRender`。未配置时回退全局值
+   */
+  resultTypeRender?: Doc2TsConfig['resultTypeRender']
+}
+
+/**
  * @description apifox 配置, 通过 apifox 的 sharedId 自动获取接口文档信息
  */
-export interface ApifoxConfig extends DefaultFun {
+export interface ApifoxConfig extends DefaultFun, OriginOverride {
   /**
    * @example project
    * @description 项目名称
@@ -38,7 +63,7 @@ export interface ApifoxConfig extends DefaultFun {
 /**
  * @description 接口文档信息
  */
-export interface ModelList extends DefaultFun {
+export interface ModelList extends DefaultFun, OriginOverride {
   /**
    * @example http://localhost:8084/swagger/doc.json
    * @description 接口文档地址，支持本地文件路径
@@ -154,7 +179,7 @@ export type Doc2TsConfig = {
 
   /**
    * @default ApiClient
-   * @description 每个模块继承的基类名称， 注意：基类必须 实现 IApiClient 接口
+   * @description 每个模块继承的基类名称（全局默认值），注意：基类必须 实现 IApiClient 接口。origin 上同名 `baseClassName` 字段优先于此全局值
    */
   baseClassName?: string
 
@@ -188,9 +213,9 @@ export type Doc2TsConfig = {
   declaration?: boolean
 
   /**
-   * @description 基类路径
+   * @description 基类路径（全局默认值）。origin 上同名 `baseClassPath` 字段优先于此全局值；若所有 origin 均各自配置，则全局可省略
    */
-  baseClassPath: string
+  baseClassPath?: string
   // /**
   //  * @description swagger bootstrap ui 文档请求地址 eg: http://localhost:7001
   //  */
@@ -202,12 +227,12 @@ export type Doc2TsConfig = {
   prettierPath?: string
 
   /**
-   * @description 移除某些全局配置的入参提示，如：token信息是全配置的，不需要在调用接口是再填token信息，即可通过该配置取消
+   * @description 移除某些全局配置的入参提示（全局默认值），如：token信息是全配置的，不需要在调用接口是再填token信息，即可通过该配置取消。origin 上同名 `disableParams` 字段优先于此全局值
    */
   disableParams?: DisableParams[]
 
   /**
-   * @description 接口返回数据类型钩子
+   * @description 接口返回数据类型钩子（全局默认值）。origin 上同名 `resultTypeRender` 字段优先于此全局值
    */
   resultTypeRender?: string | ((funcName: string, typeInfo?: TypeInfoBase) => string)
 
