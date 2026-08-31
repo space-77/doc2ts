@@ -12,6 +12,15 @@ export function firstToUpper(str: string) {
 }
 
 /**
+ * @param name
+ * @description 清洗为合法的 TS 标识符：非法字符（如 `.`、`-`、空格）替换为 `_`，首字符为数字时加 `_` 前缀
+ */
+export function sanitizeIdentifier(name: string) {
+  const sanitized = name.replace(/[^A-Za-z0-9_$]/g, '_')
+  return /^\d/.test(sanitized) ? `_${sanitized}` : sanitized
+}
+
+/**
  * 获取路径数组中所有路径的最大公共路径
  * @param paths 路径数组，如 ['a/b/c', 'a/b/d']
  * @param samePath 当前已匹配的公共路径，默认为空字符串

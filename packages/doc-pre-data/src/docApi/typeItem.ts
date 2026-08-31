@@ -93,7 +93,9 @@ export default class TypeItem {
     const { type, nullable, children = [], ref, format } = this
     const { typeInfo, genericsItem } = ref ?? {} // 泛型
 
-    mergeTypeOf(this, children)
+    // 使用局部副本承接合并结果，避免多次调用时污染 this.children（共享实例场景会产生重复字段）
+    const mergedChildren = [...children]
+    mergeTypeOf(this, mergedChildren)
 
     let content = ''
     if (typeof type === 'string') {
@@ -130,9 +132,15 @@ export default class TypeItem {
     } else if (content === 'Array') content = 'Array<any>'
 
     // FIXME 如果泛型存在，而且也有子类型，该怎么处理？
-    if (children.length > 0) {
-      // 存在子类型，覆盖上面类型
-      content = `{${children.map(i => i.getTypeValue()).join('')}}`
+    if (mergedChildren.length > 0) {
+      // 存在子类型，覆盖上面类型；按名称去重（后出现的覆盖先出现的，保持原位置），与 allOf 合并语义一致
+      const uniqueChildren: TypeItem[] = []
+      for (const child of mergedChildren) {
+        const index = uniqueChildren.findIndex(i => i.name === child.name)
+        if (index !== -1) uniqueChildren[index] = child
+        else uniqueChildren.push(child)
+      }
+      content = `{${uniqueChildren.map(i => i.getTypeValue()).join('')}}`
     }
     return `${content}${nullable ? `${content ? '|' : ''}null` : ''}`
   }

@@ -1,4 +1,4 @@
-import { firstToUpper, getMaxSamePath } from '../../common/utils'
+import { firstToUpper, getMaxSamePath, sanitizeIdentifier } from '../../common/utils'
 
 describe('firstToUpper', () => {
   it('should capitalize the first character of a string', () => {
@@ -64,6 +64,37 @@ describe('getMaxSamePath', () => {
   it('should return full path when all paths are identical', () => {
     expect(getMaxSamePath(['a/b/c', '/a/b/c'])).toBe('/a/b/c')
     expect(getMaxSamePath(['x/y/z', '/x/y/z'])).toBe('/x/y/z')
+  })
+})
+
+describe('sanitizeIdentifier', () => {
+  it('should replace dots with underscores', () => {
+    expect(sanitizeIdentifier('Internal_server.Envelope')).toBe('Internal_server_Envelope')
+    expect(sanitizeIdentifier('Workbuddy2api_internal_store.CreditBucket')).toBe(
+      'Workbuddy2api_internal_store_CreditBucket'
+    )
+  })
+
+  it('should replace hyphens with underscores', () => {
+    expect(sanitizeIdentifier('Internal_server-Envelope')).toBe('Internal_server_Envelope')
+    expect(sanitizeIdentifier('X-Account-UID')).toBe('X_Account_UID')
+  })
+
+  it('should replace spaces with underscores', () => {
+    expect(sanitizeIdentifier('hello world')).toBe('hello_world')
+  })
+
+  it('should keep valid identifier characters unchanged', () => {
+    expect(sanitizeIdentifier('WorkbuddyAccount')).toBe('WorkbuddyAccount')
+    expect(sanitizeIdentifier('_private$name')).toBe('_private$name')
+  })
+
+  it('should prefix underscore when name starts with a digit', () => {
+    expect(sanitizeIdentifier('123abc')).toBe('_123abc')
+  })
+
+  it('should sanitize leading dot to underscore', () => {
+    expect(sanitizeIdentifier('.leading')).toBe('_leading')
   })
 })
 

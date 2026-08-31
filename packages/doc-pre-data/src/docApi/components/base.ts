@@ -14,7 +14,7 @@ import _ from 'lodash'
 import TypeItem from '../typeItem'
 import Schemas, { SchemasOp } from './schemas'
 import Components, { ModuleName } from '../components'
-import { firstToUpper, checkTsTypeKeyword, tsKeyword } from '../../common/utils'
+import { firstToUpper, checkTsTypeKeyword, sanitizeIdentifier, tsKeyword } from '../../common/utils'
 import { warnList } from '../../store'
 import { PathItem } from '../index'
 import { commonTypeKey } from '../../common'
@@ -66,7 +66,8 @@ export default abstract class TypeInfoBase {
   ) {
     // FIXME 考虑是否需要 排除原生类型
     // this.typeName = onlyName ? name : parent.checkName(checkTsTypeKeyword(firstToUpper(name)))
-    this.typeName = onlyName ? name : parent.checkName(firstToUpper(name), spaceName)
+    // 先清洗非法字符（如 `.`、`-`），保证生成的类型名是合法 TS 标识符，再做首字母大写与重名处理
+    this.typeName = onlyName ? name : parent.checkName(firstToUpper(sanitizeIdentifier(name)), spaceName)
   }
 
   /**
@@ -274,7 +275,7 @@ export default abstract class TypeInfoBase {
     )
 
     let enumName
-    if (_enum.length > 0) enumName = this.parent.pushEnum(firstToUpper(keyName), _enum)
+    if (_enum.length > 0) enumName = this.parent.pushEnum(firstToUpper(sanitizeIdentifier(keyName)), _enum)
 
     const typeItem = new TypeItem({
       ref: items ? this.createGenericsTypeinfo(items, keyName) : undefined,
