@@ -9,13 +9,19 @@ import { customInfoList } from './buildType'
 import { createParams, createReturnType, formatType, ParamsContents, TypeBase } from './common'
 import { PathInfo, RequestBodies, Custom, dotsUtils, PathItem, commonTypeKey } from 'doc-pre-data'
 import { checkJsLang, findDiffPath, firstToLower, firstToUpper, getDesc, resolveOutPath } from '../utils'
+import type { ExportEntry } from './barrelExport'
 
 export const FileContentType = new Set(['application/octet-stream'])
 export const FormDataKey = new Set(['multipart/form-data', 'application/x-www-form-urlencoded'])
-export const indexFileContent: string[] = []
 
-export const importList: string[] = []
-export const exportList: string[] = []
+export const importList: ExportEntry[] = []
+
+/**
+ * @description 清空 barrel 导出条目，供每次 build 开始前重置模块级状态
+ */
+export function resetImportList() {
+  importList.length = 0
+}
 
 export default class TsFileBuilder extends Base {
   private get isJs(): boolean {
@@ -288,8 +294,7 @@ export default class TsFileBuilder extends Base {
       fileList.push({ filePath, content })
 
       const fileExPath = findDiffPath(outDirDir, filePath).replace(/\.ts$/, '')
-      importList.push(`export { ${_fileName} } from '${fileExPath}'`)
-      exportList.push(_fileName)
+      importList.push({ originName: this.origin.name, exportName: _fileName, fileExPath })
     }
   }
 }

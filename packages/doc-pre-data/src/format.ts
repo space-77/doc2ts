@@ -20,12 +20,17 @@ type Subject = { $ref: string; title?: string; tags?: string[] }
 type ApiData = { json: OpenAPIV3.Document; dictList: DictList[] }
 type RevertChineseRef = { name: string; ref: string; subjects: any[]; key: string }
 type TextList = { subjects: Subject[]; text: string; translateProm: Promise<string>; textEn?: string }
-type TagsList = { subjects: { tags: string[] }[]; text: string; textEn?: string; translateProm: Promise<string> }
+type TagsList = { subject: { tags: string[] }; text: string; textEn?: string; translateProm: Promise<string> }
 
-const tagsTranslateList: TagsList[] = []
-type TagNamesOp = { itemTags: string[]; subject: { tags: string[] }; t: Translate; data: OpenAPIV3.Document }
+type TagNamesOp = {
+  itemTags: string[]
+  subject: { tags: string[] }
+  t: Translate
+  data: OpenAPIV3.Document
+  tagsTranslateList: TagsList[]
+}
 function translateTagNames(options: TagNamesOp) {
-  const { itemTags, subject, t, data } = options
+  const { itemTags, subject, t, data, tagsTranslateList } = options
 
   if (!Array.isArray(data.tags)) data.tags = []
   const { tags: rootTag } = data
@@ -35,7 +40,7 @@ function translateTagNames(options: TagNamesOp) {
     const tItem = tagsTranslateList.find(i => i.text === tagText)
     if (!tItem) {
       const translateProm = t.addTranslate(tagText)
-      const newTItem: TagsList = { translateProm, text: tagText, subjects: [subject] }
+      const newTItem: TagsList = { translateProm, text: tagText, subject }
 
       tagsTranslateList.push(newTItem)
       tagTextEn = await translateProm
@@ -44,13 +49,11 @@ function translateTagNames(options: TagNamesOp) {
       tagTextEn = checkName(tagTextEn, n => !!rootTag.find(i => i.name === n))
       newTItem.textEn = tagTextEn
 
-      newTItem.subjects.forEach(obj => {
-        obj.tags[index] = tagTextEn
-      })
+      newTItem.subject.tags[index] = tagTextEn
     } else {
-      tItem.subjects.push(subject)
       await tItem.translateProm
       tagTextEn = tItem.textEn as string
+      subject.tags[index] = tagTextEn
     }
     return tagTextEn
   }
@@ -105,6 +108,7 @@ async function translateV3(data: OpenAPIV3.Document, dictList: DictList[], trans
     aiConfig
   )
   const textList: TextList[] = []
+  const tagsTranslateList: TagsList[] = []
 
   const translateFn = async function (this: traverse.TraverseContext, value: string) {
     const { key, parent, isRoot } = this
@@ -113,7 +117,7 @@ async function translateV3(data: OpenAPIV3.Document, dictList: DictList[], trans
 
     if (translateType === TranslateType.none) {
       if (key === 'tags' && (subject as any) !== data && Array.isArray(value) && value.length > 0) {
-        translateTagNames({ t, itemTags: value, subject: subject as any, data })
+        translateTagNames({ t, itemTags: value, subject: subject as any, data, tagsTranslateList })
       }
     } else {
       if (key === '$ref' && typeof value === 'string') {
@@ -150,7 +154,7 @@ async function translateV3(data: OpenAPIV3.Document, dictList: DictList[], trans
           delete _data[typeInfoKey][refNname]
         }
       } else if (key === 'tags' && (subject as any) !== data && Array.isArray(value) && value.length > 0) {
-        translateTagNames({ t, itemTags: value, subject: subject as any, data })
+        translateTagNames({ t, itemTags: value, subject: subject as any, data, tagsTranslateList })
       } else if (key === 'operationId') {
         // 处理 方法名带下横杠
         subject.operationId = Translate.startCaseClassName(value, translateType)

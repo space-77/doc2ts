@@ -3,6 +3,7 @@ import { Config } from '../common/config'
 import { DisableParams, Doc2TsConfig, ModelList, ApifoxConfig } from '../types/types'
 import { DocListItem } from '../types/newType'
 import { findDiffPath, resolveOutPath } from '../utils'
+import { anonymousOriginName } from './barrelExport'
 
 export default class Base {
   constructor(protected doc: DocListItem, protected config: Config, public origin: ModelList | ApifoxConfig) {}
@@ -50,7 +51,7 @@ export default class Base {
   getOutputDir(moduleName: string) {
     const { outDir } = this.config
     // FIXME 存在 模块重名，方法重名 问题。
-    return path.join(resolveOutPath(outDir), moduleName ?? 'module')
+    return path.join(resolveOutPath(outDir), moduleName ?? anonymousOriginName)
   }
 
   getClientPath(filePath: string) {

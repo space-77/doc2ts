@@ -1,7 +1,7 @@
 import fs from 'fs-extra'
 import log from '../utils/log'
 import path from 'path'
-import { fileList } from '../generators/fileList'
+import { fileList, resetFileList } from '../generators/fileList'
 import { Config, CONFIG_PATH } from '../common/config'
 import {
   ts2Js,
@@ -21,9 +21,10 @@ import {
 import docInit, { Dict, LogInfo, AIConfig } from 'doc-pre-data'
 import { checkName } from 'doc-pre-data'
 import { DictList, TranslateCode } from 'doc-pre-data'
-import BuildTypeFile from './buildType'
+import BuildTypeFile, { customInfoList, typeStringList } from './buildType'
 import type { DocListItem } from '../types/newType'
-import TsFileBuilder, { importList } from './tsFileBuilder'
+import TsFileBuilder, { importList, resetImportList } from './tsFileBuilder'
+import { buildBarrelContent } from './barrelExport'
 import _ from 'lodash'
 import ora from 'ora'
 import Apifox from '../apifox/index'
@@ -39,6 +40,7 @@ export default class Doc2Ts {
   docList: DocListItem[] = []
 
   async build() {
+    this.resetAccumulators()
     await this.getConfig()
     await this.initRemoteDataSource()
     await this.createFiles()
@@ -47,6 +49,16 @@ export default class Doc2Ts {
 
     const { warnList, errorList } = this
     return { warnList, errorList }
+  }
+
+  /**
+   * @description 重置模块级累加器，保证同一进程内多次 build 不互相污染
+   */
+  private resetAccumulators() {
+    resetFileList()
+    resetImportList()
+    customInfoList.length = 0
+    typeStringList.length = 0
   }
 
   buildLog(logFunc?: Function) {
@@ -190,8 +202,8 @@ export default class Doc2Ts {
   async createFiles() {
     if (fileList.length === 0) return
 
-    // 创建 index.ts 文件
-    const content = importList.sort((a, b) => a.length - b.length).join('\r\n')
+    // 创建 index.ts 文件（跨 origin 重名的导出标识符会追加 origin 前缀）
+    const content = buildBarrelContent(importList)
     const { outDir } = this.config
     const filePath = path.join(resolveOutPath(outDir), 'index.ts')
     fileList.push({ filePath, content })

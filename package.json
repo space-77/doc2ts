@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "build": "pnpm -r run build",
+    "dev": "bun run --cwd packages/doc2ts dev",
     "changeset": "changeset",
     "changeset:version": "changeset version",
     "changeset:publish": "pnpm -r run build && changeset publish",
